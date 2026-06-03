@@ -8,6 +8,7 @@ out/
 dist/
 build/
 .turbo/
+*.tsbuildinfo
 
 # env / secrets
 .env
@@ -37,3 +38,6 @@ Thumbs.db
 
 # test / coverage
 coverage/
+test-results/
+playwright-report/
+.playwright/
