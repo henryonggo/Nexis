@@ -1,0 +1,13 @@
+{
+  "auth": {
+    "signUp": { "title": "Buat akun", "submit": "Daftar" },
+    "signIn": { "title": "Masuk", "submit": "Masuk", "badCredentials": "Email atau kata sandi salah." },
+    "forgot": { "title": "Lupa kata sandi", "neutralSuccess": "Jika akun terdaftar, kami telah mengirim tautan reset ke email Anda." },
+    "reset": { "title": "Atur kata sandi baru" },
+    "verify": { "checkEmail": "Cek email Anda untuk verifikasi." }
+  },
+  "onboarding": {
+    "company": { "nameLabel": "Nama perusahaan", "industryLabel": "Industri" },
+    "freeBadge": "Gratis untuk 5 karyawan pertama"
+  }
+}

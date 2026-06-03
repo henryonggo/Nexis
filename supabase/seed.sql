@@ -1,0 +1,10 @@
+-- Nexis local seed data.
+-- Stage 1: auth users are created via the signup flow, so there is nothing to
+-- seed here yet. Indonesian tax/BPJS reference tables (ptkp_rates, tax_brackets,
+-- ter_rates, bpjs_config) and their seed values are introduced in the Stage 4
+-- payroll migration (see docs/05-indonesian-compliance.md §9).
+--
+-- To create a demo account locally:
+--   1. supabase start
+--   2. run the web app and sign up at http://localhost:3000/sign-up
+--   3. confirm the email via Inbucket at http://localhost:54324

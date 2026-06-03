@@ -1,0 +1,13 @@
+{
+  "auth": {
+    "signUp": { "title": "Create account", "submit": "Sign up" },
+    "signIn": { "title": "Sign in", "submit": "Sign in", "badCredentials": "Invalid email or password." },
+    "forgot": { "title": "Forgot password", "neutralSuccess": "If an account exists, we've sent a reset link to your email." },
+    "reset": { "title": "Set a new password" },
+    "verify": { "checkEmail": "Check your email to verify your account." }
+  },
+  "onboarding": {
+    "company": { "nameLabel": "Company name", "industryLabel": "Industry" },
+    "freeBadge": "Free for your first 5 employees"
+  }
+}
