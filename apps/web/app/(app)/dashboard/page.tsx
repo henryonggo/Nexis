@@ -44,11 +44,11 @@ export default async function DashboardPage() {
           </div>
           <div className="mt-1 text-xs text-muted">Kelola karyawan →</div>
         </Link>
-        <div className="rounded-lg border border-[color:var(--border)] bg-white p-5">
+        <Link href="/attendance" className="rounded-lg border border-[color:var(--border)] bg-white p-5 hover:border-brand">
           <div className="text-sm text-muted">Kehadiran hari ini</div>
-          <div className="mt-1 text-2xl font-bold text-ink">—</div>
-          <div className="mt-1 text-xs text-muted">Stage 3</div>
-        </div>
+          <div className="mt-1 text-2xl font-bold text-ink">Langsung</div>
+          <div className="mt-1 text-xs text-muted">Lihat dashboard →</div>
+        </Link>
         <div className="rounded-lg border border-[color:var(--border)] bg-white p-5">
           <div className="text-sm text-muted">Payroll bulan ini</div>
           <div className="mt-1 text-2xl font-bold text-ink">—</div>

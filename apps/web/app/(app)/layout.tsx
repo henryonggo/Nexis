@@ -8,6 +8,7 @@ import { CompanySwitcher } from "@/components/company-switcher";
 const NAV = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/employees", label: "Karyawan" },
+  { href: "/attendance", label: "Kehadiran" },
   { href: "/members", label: "Anggota" },
 ];
 

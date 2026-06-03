@@ -9,5 +9,21 @@
   "onboarding": {
     "company": { "nameLabel": "Company name", "industryLabel": "Industry" },
     "freeBadge": "Free for your first 5 employees"
+  },
+  "attendance": {
+    "title": "Attendance",
+    "subtitle": "Live attendance status for your employees today.",
+    "live": "Live",
+    "connecting": "Connecting…",
+    "present": "currently present",
+    "noneToday": "No attendance yet today.",
+    "eventLog": "Today's event log",
+    "columns": { "employee": "Employee", "status": "Status", "time": "Time", "event": "Event", "validity": "Validity", "correction": "Correction" },
+    "valid": "Valid",
+    "outOfArea": "Out of area",
+    "approve": "Approve",
+    "markInvalid": "Mark invalid",
+    "updated": "Attendance updated.",
+    "kind": { "clock_in": "Clock in", "clock_out": "Clock out", "break_start": "Break start", "break_end": "Break end" }
   }
 }
