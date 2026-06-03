@@ -9,5 +9,21 @@
   "onboarding": {
     "company": { "nameLabel": "Nama perusahaan", "industryLabel": "Industri" },
     "freeBadge": "Gratis untuk 5 karyawan pertama"
+  },
+  "attendance": {
+    "title": "Kehadiran",
+    "subtitle": "Status langsung kehadiran karyawan hari ini.",
+    "live": "Langsung",
+    "connecting": "Menyambung…",
+    "present": "sedang hadir",
+    "noneToday": "Belum ada kehadiran hari ini.",
+    "eventLog": "Log kejadian hari ini",
+    "columns": { "employee": "Karyawan", "status": "Status", "time": "Waktu", "event": "Kejadian", "validity": "Validitas", "correction": "Koreksi" },
+    "valid": "Valid",
+    "outOfArea": "Di luar area",
+    "approve": "Setujui",
+    "markInvalid": "Tandai tidak valid",
+    "updated": "Kehadiran diperbarui.",
+    "kind": { "clock_in": "Masuk", "clock_out": "Keluar", "break_start": "Mulai istirahat", "break_end": "Selesai istirahat" }
   }
 }
