@@ -44,11 +44,29 @@ Core differentiator handled in code from day one:
 | Indonesian payroll/tax rules | `docs/05-indonesian-compliance.md` |
 | UI / design system | `docs/06-design-system.md` |
 | Security & data privacy (UU PDP) | `docs/07-security-compliance.md` |
+| **Who builds what (Claude ⟷ Antigravity)** | `docs/08-agent-boundaries.md` |
 | **Stage 1 build spec (start here)** | `docs/stages/stage-01-auth.md` |
+
+## Division of labor (Claude Code ⟷ Antigravity)
+
+Two AI agents work this repo. To avoid editing the same files, work is split by
+**layer**, not by stage, at the **Supabase client seam**:
+
+- **Antigravity** owns everything *behind* the DB client: `supabase/**` (migrations,
+  RLS, RPCs, pgTAP, Edge Functions, seed, config), `services/**`, `infra/**`, and it
+  **regenerates `packages/types`** after each migration.
+- **Claude Code** owns everything *in front of* it: `apps/web`, `apps/mobile`,
+  `packages/ui|money|payroll`, i18n, e2e — and **reads `packages/types`** (never edits it).
+- Cross-seam needs go through the handoff protocol (`TODO(db)` / `TODO(app)`), never a
+  direct edit into the other agent's lane.
+
+Full ownership table, handoff protocol, and per-agent definition-of-done:
+**`docs/08-agent-boundaries.md`**.
 
 ## Working agreement for agents
 
 - Read `docs/02-tech-stack.md` and the current stage spec in full before generating code.
+- Stay in your lane (`docs/08-agent-boundaries.md`); never edit across the DB seam.
 - Prefer small, reviewable PRs scoped to one feature within a stage.
 - Generate Supabase migrations as SQL files in `supabase/migrations/` — never mutate the DB ad hoc.
 - After schema changes, regenerate `packages/types`.
