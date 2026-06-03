@@ -6,6 +6,8 @@
     "allowJs": true,
     "noEmit": true,
     "incremental": true,
+    "baseUrl": ".",
+    "declaration": false,
     "paths": {
       "@/*": ["./*"],
       "@nexis/types": ["../../packages/types/src/index.ts"],

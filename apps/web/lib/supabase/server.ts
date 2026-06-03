@@ -1,13 +1,14 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { Database } from "@nexis/types";
+import { SupabaseClient } from "@supabase/supabase-js";
 
 /**
  * Cookie-based Supabase client for Server Components, Server Actions and Route
  * Handlers. Uses the anon key + the user's session cookie — RLS still applies.
  * NEVER use the service-role key here for user-driven requests.
  */
-export function createClient() {
+export function createClient(): SupabaseClient<Database> {
   const cookieStore = cookies();
 
   return createServerClient<Database>(
@@ -18,7 +19,7 @@ export function createClient() {
         getAll() {
           return cookieStore.getAll();
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet: any[]) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options),
@@ -29,5 +30,5 @@ export function createClient() {
         },
       },
     },
-  );
+  ) as unknown as SupabaseClient<Database>;
 }

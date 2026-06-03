@@ -28,7 +28,7 @@ export async function createFirstCompany(
   // a FREE billing row (5 free seats, no NPWP required). See migration RPC.
   const { error } = await supabase.rpc("create_company_with_owner", {
     p_name: parsed.data.name,
-    p_industry: parsed.data.industry ?? null,
+    p_industry: parsed.data.industry,
   });
 
   if (error) return { error: error.message };

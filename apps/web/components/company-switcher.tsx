@@ -21,6 +21,7 @@ export function CompanySwitcher({
   activeId: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [isPending, setIsPending] = useState(false);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -30,9 +31,12 @@ export function CompanySwitcher({
   function select(id: string) {
     setOpen(false);
     if (id === active!.id) return;
-    startTransition(async () => {
-      await setActiveCompany(id);
-      router.refresh();
+    setIsPending(true);
+    setActiveCompany(id).then(() => {
+      startTransition(() => {
+        router.refresh();
+        setIsPending(false);
+      });
     });
   }
 
@@ -40,7 +44,7 @@ export function CompanySwitcher({
     <div className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        disabled={pending}
+        disabled={isPending || pending}
         className="flex items-center gap-2 rounded-md border border-[color:var(--border)] px-3 py-1.5 text-sm hover:bg-brand-light disabled:opacity-60"
       >
         <span className="font-medium text-ink">{active.name}</span>

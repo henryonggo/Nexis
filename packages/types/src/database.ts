@@ -1,202 +1,668 @@
-/**
- * GENERATED FILE — placeholder.
- *
- * Replace this by running, after applying migrations:
- *   pnpm db:types        (local)   or   supabase gen types typescript --linked
- *
- * Until generation is wired up we expose a hand-written shape covering the
- * Stage 1–2 tables so the apps can compile. Do NOT hand-edit after generation.
- */
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
-export type CompanyRole = "owner" | "admin" | "manager" | "employee";
-export type PlanTier = "free" | "starter" | "growth" | "enterprise";
-export type EmployeeStatus = "active" | "probation" | "inactive" | "terminated";
-export type EmploymentType = "permanent" | "contract" | "intern" | "daily";
-export type InviteStatus = "pending" | "accepted" | "revoked" | "expired";
-
-type Row<T> = T;
-type WithDefaults<T, Required extends keyof T> = Partial<T> & Pick<T, Required>;
-
-export interface CompanyRow {
-  id: string;
-  name: string;
-  slug: string | null;
-  legal_name: string | null;
-  industry: string | null;
-  logo_url: string | null;
-  timezone: string;
-  locale: string;
-  plan: PlanTier;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CompanyMemberRow {
-  id: string;
-  company_id: string;
-  user_id: string;
-  role: CompanyRole;
-  employee_id: string | null;
-  created_at: string;
-}
-
-export interface EmployeeRow {
-  id: string;
-  company_id: string;
-  user_id: string | null;
-  employee_no: string | null;
-  full_name: string;
-  email: string | null;
-  phone: string | null;
-  status: EmployeeStatus;
-  employment_type: EmploymentType;
-  join_date: string | null;
-  end_date: string | null;
-  department: string | null;
-  position: string | null;
-  manager_id: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CompanyBillingRow {
-  company_id: string;
-  plan: PlanTier;
-  npwp: string | null;
-  bpjs_kes_no: string | null;
-  bpjs_tk_no: string | null;
-  billing_email: string | null;
-  free_seat_limit: number;
-  active_seats: number;
-  trial_ends_at: string | null;
-  updated_at: string;
-}
-
-export interface InvitationRow {
-  id: string;
-  company_id: string;
-  email: string;
-  role: CompanyRole;
-  token: string;
-  status: InviteStatus;
-  invited_by: string;
-  expires_at: string;
-  created_at: string;
-}
-
-export interface Database {
+export type Database = {
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
-      profiles: {
-        Row: {
-          id: string;
-          full_name: string | null;
-          phone: string | null;
-          avatar_url: string | null;
-          locale: string;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: WithDefaults<Database["public"]["Tables"]["profiles"]["Row"], "id">;
-        Update: Partial<Database["public"]["Tables"]["profiles"]["Row"]>;
-      };
-      companies: {
-        Row: Row<CompanyRow>;
-        Insert: WithDefaults<CompanyRow, "name">;
-        Update: Partial<CompanyRow>;
-      };
-      company_members: {
-        Row: Row<CompanyMemberRow>;
-        Insert: WithDefaults<CompanyMemberRow, "company_id" | "user_id">;
-        Update: Partial<CompanyMemberRow>;
-      };
-      company_billing: {
-        Row: Row<CompanyBillingRow>;
-        Insert: WithDefaults<CompanyBillingRow, "company_id">;
-        Update: Partial<CompanyBillingRow>;
-      };
-      employees: {
-        Row: Row<EmployeeRow>;
-        Insert: WithDefaults<EmployeeRow, "company_id" | "full_name">;
-        Update: Partial<EmployeeRow>;
-      };
-      invitations: {
-        Row: Row<InvitationRow>;
-        Insert: WithDefaults<InvitationRow, "company_id" | "email" | "invited_by">;
-        Update: Partial<InvitationRow>;
-      };
-      company_settings: {
-        Row: {
-          company_id: string;
-          payroll_cutoff_day: number;
-          pay_date_day: number;
-          workweek_days: number;
-          jkk_risk_class: string | null;
-          default_currency: string;
-          updated_at: string;
-        };
-        Insert: { company_id: string } & Partial<Database["public"]["Tables"]["company_settings"]["Row"]>;
-        Update: Partial<Database["public"]["Tables"]["company_settings"]["Row"]>;
-      };
-      compensation: {
-        Row: {
-          id: string;
-          company_id: string;
-          employee_id: string;
-          base_salary: number;
-          fixed_allowances: unknown;
-          pay_frequency: string;
-          bpjs_kes_enrolled: boolean;
-          bpjs_tk_enrolled: boolean;
-          jht_enrolled: boolean;
-          jp_enrolled: boolean;
-          effective_from: string;
-          created_at: string;
-        };
-        Insert: { company_id: string; employee_id: string } & Partial<
-          Database["public"]["Tables"]["compensation"]["Row"]
-        >;
-        Update: Partial<Database["public"]["Tables"]["compensation"]["Row"]>;
-      };
-      tax_profile: {
-        Row: {
-          employee_id: string;
-          company_id: string;
-          ptkp_status: string;
-          npwp: string | null;
-          has_npwp: boolean;
-        };
-        Insert: { employee_id: string; company_id: string } & Partial<
-          Database["public"]["Tables"]["tax_profile"]["Row"]
-        >;
-        Update: Partial<Database["public"]["Tables"]["tax_profile"]["Row"]>;
-      };
       bank_accounts: {
         Row: {
-          id: string;
-          company_id: string;
-          employee_id: string;
-          bank_name: string | null;
-          account_no: string | null;
-          account_name: string | null;
-          is_primary: boolean;
-        };
-        Insert: { company_id: string; employee_id: string } & Partial<
-          Database["public"]["Tables"]["bank_accounts"]["Row"]
-        >;
-        Update: Partial<Database["public"]["Tables"]["bank_accounts"]["Row"]>;
-      };
-    };
+          account_name: string | null
+          account_no: string | null
+          bank_name: string | null
+          company_id: string
+          employee_id: string
+          id: string
+          is_primary: boolean
+        }
+        Insert: {
+          account_name?: string | null
+          account_no?: string | null
+          bank_name?: string | null
+          company_id: string
+          employee_id: string
+          id?: string
+          is_primary?: boolean
+        }
+        Update: {
+          account_name?: string | null
+          account_no?: string | null
+          bank_name?: string | null
+          company_id?: string
+          employee_id?: string
+          id?: string
+          is_primary?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_accounts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_accounts_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      companies: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          industry: string | null
+          legal_name: string | null
+          locale: string
+          logo_url: string | null
+          name: string
+          plan: Database["public"]["Enums"]["plan_tier"]
+          slug: string | null
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          industry?: string | null
+          legal_name?: string | null
+          locale?: string
+          logo_url?: string | null
+          name: string
+          plan?: Database["public"]["Enums"]["plan_tier"]
+          slug?: string | null
+          timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          industry?: string | null
+          legal_name?: string | null
+          locale?: string
+          logo_url?: string | null
+          name?: string
+          plan?: Database["public"]["Enums"]["plan_tier"]
+          slug?: string | null
+          timezone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      company_billing: {
+        Row: {
+          active_seats: number
+          billing_email: string | null
+          bpjs_kes_no: string | null
+          bpjs_tk_no: string | null
+          company_id: string
+          free_seat_limit: number
+          npwp: string | null
+          plan: Database["public"]["Enums"]["plan_tier"]
+          trial_ends_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          active_seats?: number
+          billing_email?: string | null
+          bpjs_kes_no?: string | null
+          bpjs_tk_no?: string | null
+          company_id: string
+          free_seat_limit?: number
+          npwp?: string | null
+          plan?: Database["public"]["Enums"]["plan_tier"]
+          trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active_seats?: number
+          billing_email?: string | null
+          bpjs_kes_no?: string | null
+          bpjs_tk_no?: string | null
+          company_id?: string
+          free_seat_limit?: number
+          npwp?: string | null
+          plan?: Database["public"]["Enums"]["plan_tier"]
+          trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_billing_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_members: {
+        Row: {
+          company_id: string
+          created_at: string
+          employee_id: string | null
+          id: string
+          role: Database["public"]["Enums"]["company_role"]
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          employee_id?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["company_role"]
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          employee_id?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["company_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_members_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_members_employee_fk"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_members_profile_fk"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_settings: {
+        Row: {
+          company_id: string
+          default_currency: string
+          jkk_risk_class: string | null
+          pay_date_day: number
+          payroll_cutoff_day: number
+          updated_at: string
+          workweek_days: number
+        }
+        Insert: {
+          company_id: string
+          default_currency?: string
+          jkk_risk_class?: string | null
+          pay_date_day?: number
+          payroll_cutoff_day?: number
+          updated_at?: string
+          workweek_days?: number
+        }
+        Update: {
+          company_id?: string
+          default_currency?: string
+          jkk_risk_class?: string | null
+          pay_date_day?: number
+          payroll_cutoff_day?: number
+          updated_at?: string
+          workweek_days?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_settings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      compensation: {
+        Row: {
+          base_salary: number
+          bpjs_kes_enrolled: boolean
+          bpjs_tk_enrolled: boolean
+          company_id: string
+          created_at: string
+          effective_from: string
+          employee_id: string
+          fixed_allowances: Json
+          id: string
+          jht_enrolled: boolean
+          jp_enrolled: boolean
+          pay_frequency: string
+        }
+        Insert: {
+          base_salary?: number
+          bpjs_kes_enrolled?: boolean
+          bpjs_tk_enrolled?: boolean
+          company_id: string
+          created_at?: string
+          effective_from?: string
+          employee_id: string
+          fixed_allowances?: Json
+          id?: string
+          jht_enrolled?: boolean
+          jp_enrolled?: boolean
+          pay_frequency?: string
+        }
+        Update: {
+          base_salary?: number
+          bpjs_kes_enrolled?: boolean
+          bpjs_tk_enrolled?: boolean
+          company_id?: string
+          created_at?: string
+          effective_from?: string
+          employee_id?: string
+          fixed_allowances?: Json
+          id?: string
+          jht_enrolled?: boolean
+          jp_enrolled?: boolean
+          pay_frequency?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compensation_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compensation_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employees: {
+        Row: {
+          company_id: string
+          created_at: string
+          department: string | null
+          email: string | null
+          employee_no: string | null
+          employment_type: Database["public"]["Enums"]["employment_type"]
+          end_date: string | null
+          full_name: string
+          id: string
+          join_date: string | null
+          manager_id: string | null
+          phone: string | null
+          position: string | null
+          status: Database["public"]["Enums"]["employee_status"]
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          department?: string | null
+          email?: string | null
+          employee_no?: string | null
+          employment_type?: Database["public"]["Enums"]["employment_type"]
+          end_date?: string | null
+          full_name: string
+          id?: string
+          join_date?: string | null
+          manager_id?: string | null
+          phone?: string | null
+          position?: string | null
+          status?: Database["public"]["Enums"]["employee_status"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          department?: string | null
+          email?: string | null
+          employee_no?: string | null
+          employment_type?: Database["public"]["Enums"]["employment_type"]
+          end_date?: string | null
+          full_name?: string
+          id?: string
+          join_date?: string | null
+          manager_id?: string | null
+          phone?: string | null
+          position?: string | null
+          status?: Database["public"]["Enums"]["employee_status"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employees_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invitations: {
+        Row: {
+          company_id: string
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string
+          role: Database["public"]["Enums"]["company_role"]
+          status: Database["public"]["Enums"]["invite_status"]
+          token: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by: string
+          role?: Database["public"]["Enums"]["company_role"]
+          status?: Database["public"]["Enums"]["invite_status"]
+          token?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string
+          role?: Database["public"]["Enums"]["company_role"]
+          status?: Database["public"]["Enums"]["invite_status"]
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          locale: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          locale?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          locale?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tax_profile: {
+        Row: {
+          company_id: string
+          employee_id: string
+          has_npwp: boolean
+          npwp: string | null
+          ptkp_status: string
+        }
+        Insert: {
+          company_id: string
+          employee_id: string
+          has_npwp?: boolean
+          npwp?: string | null
+          ptkp_status?: string
+        }
+        Update: {
+          company_id?: string
+          employee_id?: string
+          has_npwp?: boolean
+          npwp?: string | null
+          ptkp_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tax_profile_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tax_profile_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
     Functions: {
+      accept_invitation: { Args: { p_token: string }; Returns: string }
       create_company_with_owner: {
-        Args: { p_name: string; p_industry?: string | null };
-        Returns: string;
-      };
-      accept_invitation: {
-        Args: { p_token: string };
-        Returns: string;
-      };
-    };
-  };
+        Args: { p_industry?: string; p_name: string }
+        Returns: string
+      }
+      refresh_active_seats: { Args: { p_company: string }; Returns: undefined }
+      user_has_company_access: { Args: { target: string }; Returns: boolean }
+      user_is_company_admin: { Args: { target: string }; Returns: boolean }
+      user_role_in_company: {
+        Args: { target: string }
+        Returns: Database["public"]["Enums"]["company_role"]
+      }
+    }
+    Enums: {
+      company_role: "owner" | "admin" | "manager" | "employee"
+      employee_status: "active" | "probation" | "inactive" | "terminated"
+      employment_type: "permanent" | "contract" | "intern" | "daily"
+      invite_status: "pending" | "accepted" | "revoked" | "expired"
+      plan_tier: "free" | "starter" | "growth" | "enterprise"
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
 }
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
+  public: {
+    Enums: {
+      company_role: ["owner", "admin", "manager", "employee"],
+      employee_status: ["active", "probation", "inactive", "terminated"],
+      employment_type: ["permanent", "contract", "intern", "daily"],
+      invite_status: ["pending", "accepted", "revoked", "expired"],
+      plan_tier: ["free", "starter", "growth", "enterprise"],
+    },
+  },
+} as const
+
