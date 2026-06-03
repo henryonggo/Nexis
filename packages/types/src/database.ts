@@ -34,6 +34,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      attendance_records: {
+        Row: {
+          company_id: string
+          created_at: string
+          employee_id: string
+          event_at: string
+          id: string
+          is_valid: boolean
+          kind: Database["public"]["Enums"]["attendance_kind"]
+          latitude: number | null
+          longitude: number | null
+          note: string | null
+          selfie_url: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          employee_id: string
+          event_at?: string
+          id?: string
+          is_valid?: boolean
+          kind: Database["public"]["Enums"]["attendance_kind"]
+          latitude?: number | null
+          longitude?: number | null
+          note?: string | null
+          selfie_url?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          employee_id?: string
+          event_at?: string
+          id?: string
+          is_valid?: boolean
+          kind?: Database["public"]["Enums"]["attendance_kind"]
+          latitude?: number | null
+          longitude?: number | null
+          note?: string | null
+          selfie_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_records_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_records_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bank_accounts: {
         Row: {
           account_name: string | null
@@ -390,6 +447,71 @@ export type Database = {
           },
         ]
       }
+      geofences: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          latitude: number
+          longitude: number
+          name: string
+          radius_meters: number
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          latitude: number
+          longitude: number
+          name: string
+          radius_meters?: number
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          latitude?: number
+          longitude?: number
+          name?: string
+          radius_meters?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "geofences_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      holidays: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          is_national: boolean
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          is_national?: boolean
+          name: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          is_national?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
       invitations: {
         Row: {
           company_id: string
@@ -434,6 +556,67 @@ export type Database = {
           },
         ]
       }
+      overtime_entries: {
+        Row: {
+          approved_by: string | null
+          company_id: string
+          created_at: string
+          date: string
+          duration_minutes: number
+          employee_id: string
+          id: string
+          is_approved: boolean
+          multiplier: number
+          updated_at: string
+        }
+        Insert: {
+          approved_by?: string | null
+          company_id: string
+          created_at?: string
+          date: string
+          duration_minutes: number
+          employee_id: string
+          id?: string
+          is_approved?: boolean
+          multiplier: number
+          updated_at?: string
+        }
+        Update: {
+          approved_by?: string | null
+          company_id?: string
+          created_at?: string
+          date?: string
+          duration_minutes?: number
+          employee_id?: string
+          id?: string
+          is_approved?: boolean
+          multiplier?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "overtime_entries_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "overtime_entries_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "overtime_entries_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -463,6 +646,47 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      shifts: {
+        Row: {
+          company_id: string
+          created_at: string
+          end_time: string
+          grace_period_minutes: number
+          id: string
+          name: string
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          end_time: string
+          grace_period_minutes?: number
+          id?: string
+          name: string
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          end_time?: string
+          grace_period_minutes?: number
+          id?: string
+          name?: string
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shifts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tax_profile: {
         Row: {
@@ -503,14 +727,89 @@ export type Database = {
           },
         ]
       }
+      work_schedules: {
+        Row: {
+          company_id: string
+          created_at: string
+          day_of_week: number
+          effective_from: string
+          employee_id: string
+          id: string
+          shift_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          day_of_week: number
+          effective_from?: string
+          employee_id: string
+          id?: string
+          shift_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          day_of_week?: number
+          effective_from?: string
+          employee_id?: string
+          id?: string
+          shift_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_schedules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_schedules_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_schedules_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "shifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
       accept_invitation: { Args: { p_token: string }; Returns: string }
+      calculate_overtime_hours: {
+        Args: { p_date: string; p_employee_id: string }
+        Returns: {
+          actual_work_minutes: number
+          is_rest_day: boolean
+          overtime_minutes: number
+          scheduled_minutes: number
+        }[]
+      }
       create_company_with_owner: {
         Args: { p_industry?: string; p_name: string }
+        Returns: string
+      }
+      record_attendance: {
+        Args: {
+          p_company_id: string
+          p_kind: Database["public"]["Enums"]["attendance_kind"]
+          p_latitude: number
+          p_longitude: number
+          p_note?: string
+          p_selfie_url?: string
+        }
         Returns: string
       }
       refresh_active_seats: { Args: { p_company: string }; Returns: undefined }
@@ -522,6 +821,7 @@ export type Database = {
       }
     }
     Enums: {
+      attendance_kind: "clock_in" | "clock_out" | "break_start" | "break_end"
       company_role: "owner" | "admin" | "manager" | "employee"
       employee_status: "active" | "probation" | "inactive" | "terminated"
       employment_type: "permanent" | "contract" | "intern" | "daily"
@@ -657,6 +957,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      attendance_kind: ["clock_in", "clock_out", "break_start", "break_end"],
       company_role: ["owner", "admin", "manager", "employee"],
       employee_status: ["active", "probation", "inactive", "terminated"],
       employment_type: ["permanent", "contract", "intern", "daily"],
