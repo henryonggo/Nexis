@@ -47,6 +47,59 @@ Nexis/
 - **`xlsx` skill** — generate the BPJS/PPh 21 reference rate workbook and test fixtures.
 - **A live Cowork artifact** — a "Nexis build tracker" HTML page that reads your roadmap and shows stage progress. (Ask Cowork: "Turn the roadmap into a live artifact I can re-open.")
 
-## Status
+## Project Overview
 
-This is a greenfield specification. No code exists yet. The first deliverable for the agent is the monorepo scaffold + Stage 1 (auth).
+Nexis is a modern multi-tenant HR & Payroll SaaS tailored specifically for the Indonesian market. It is engineered with robust security at the database layer and handles complex compliance requirements out of the box.
+
+### Key Capabilities Implemented (Stages 1 & 2)
+
+* **Multi-Company Tenancy (Tenant Isolation):** 
+  - A single user account can own or be a member of multiple companies with distinct roles (`owner`, `admin`, `manager`, `employee`).
+  - Row Level Security (RLS) policies are active on all tenant-scoped tables, validated by automated pgTAP tests.
+* **Onboarding & Free Tier:**
+  - Up to 5 employees are free per company. No legal/tax fields (like company NPWP) are required on the free tier to reduce signup friction.
+* **Employee Management & Compensation:**
+  - Employee roster with profile details, active seat tracking, and Excel/CSV imports.
+  - Compensation mapping with monthly base salaries, PTKP statuses (e.g. TK/0, K/1), and employee NPWP tax identifiers.
+* **Member Invitation System:**
+  - Secure email invitation flow (backed by Resend) allowing admins/owners to invite users directly into their workspace with predefined roles.
+* **Mobile Self-Service App:**
+  - React Native / Expo application scaffolded with login gates and a self-service Profile page restricted to the employee's own record.
+
+---
+
+## Technical Stack & Architecture
+
+Nexis is built as a Turborepo monorepo with the following services:
+
+* **apps/web:** Next.js (App Router, TypeScript, React Server Components) styled with TailwindCSS & shadcn/ui.
+* **apps/mobile:** Expo (React Native, TypeScript) for employee self-service.
+* **packages/types:** Shareable TypeScript database definitions auto-generated from the Supabase Postgres schema.
+* **packages/money:** Safe integer-only IDR currency utility package. All money calculations are stored as `bigint` (no floating-point decimals) to prevent rounding errors.
+* **supabase:** Postgres database with triggers, SECURITY DEFINER functions, and RLS policies.
+
+---
+
+## Running the Project
+
+### Prerequisites
+- Node.js 20+
+- pnpm 9+
+- Docker (for local Supabase instance)
+
+### Setup & Run Dev Servers
+1. Install dependencies:
+   ```bash
+   corepack enable && pnpm install
+   ```
+2. Start the database (runs migrations and seeds data):
+   ```bash
+   pnpm db:start
+   ```
+3. Set up environment variables inside [apps/web/.env.local](file:///c:/GIT/nexis/apps/web/.env.local) (populated automatically by the setup).
+4. Run the Next.js development server:
+   ```bash
+   pnpm dev
+   ```
+   - Frontend dashboard will run at: `http://localhost:3000`
+   - Local verification emails will land in Mailpit at: `http://localhost:54324`
