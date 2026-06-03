@@ -17,7 +17,7 @@ export async function getMemberships(): Promise<ActiveCompany[]> {
     .select("role, companies(id, name, plan)")
     .order("created_at", { ascending: true });
 
-  return ((data as MembershipRow[] | null) ?? [])
+  return ((data as unknown as MembershipRow[] | null) ?? [])
     .filter((m) => m.companies)
     .map((m) => ({
       id: m.companies!.id,

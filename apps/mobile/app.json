@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "name": "Nexis",
+    "slug": "nexis",
+    "scheme": "nexis",
+    "version": "0.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": { "supportsTablet": true, "bundleIdentifier": "id.nexis.app" },
+    "android": { "package": "id.nexis.app" },
+    "plugins": ["expo-router", "expo-secure-store"],
+    "experiments": { "typedRoutes": true }
+  }
+}

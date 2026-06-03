@@ -38,10 +38,11 @@ export default async function MembersPage() {
         .order("created_at", { ascending: false })
     : { data: null };
 
-  const memberRows = (members as MemberJoin[] | null) ?? [];
+  const memberRows = (members as unknown as MemberJoin[] | null) ?? [];
   const inviteRows =
-    (invites as { id: string; email: string; role: CompanyRole; status: InviteStatus; expires_at: string }[] | null) ??
-    [];
+    (invites as unknown as
+      | { id: string; email: string; role: CompanyRole; status: InviteStatus; expires_at: string }[]
+      | null) ?? [];
 
   return (
     <div className="space-y-6">

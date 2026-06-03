@@ -70,7 +70,7 @@ create index on company_members(user_id);
 create index on company_members(company_id);
 
 -- ── Authorization helper functions (single source of truth) ─────────────────
-create or replace function auth.user_has_company_access(target uuid)
+create or replace function public.user_has_company_access(target uuid)
 returns boolean language sql stable security definer set search_path = public as $$
   select exists (
     select 1 from public.company_members
@@ -78,13 +78,13 @@ returns boolean language sql stable security definer set search_path = public as
   );
 $$;
 
-create or replace function auth.user_role_in_company(target uuid)
+create or replace function public.user_role_in_company(target uuid)
 returns company_role language sql stable security definer set search_path = public as $$
   select role from public.company_members
   where company_id = target and user_id = auth.uid();
 $$;
 
-create or replace function auth.user_is_company_admin(target uuid)
+create or replace function public.user_is_company_admin(target uuid)
 returns boolean language sql stable security definer set search_path = public as $$
   select exists (
     select 1 from public.company_members
@@ -98,20 +98,20 @@ alter table companies enable row level security;
 alter table company_members enable row level security;
 
 create policy "companies: members read" on companies
-  for select using (auth.user_has_company_access(id));
+  for select using (public.user_has_company_access(id));
 
 create policy "companies: admin update" on companies
-  for update using (auth.user_is_company_admin(id));
+  for update using (public.user_is_company_admin(id));
 
 create policy "companies: owner delete" on companies
-  for delete using (auth.user_role_in_company(id) = 'owner');
+  for delete using (public.user_role_in_company(id) = 'owner');
 
 create policy "members: company read" on company_members
-  for select using (auth.user_has_company_access(company_id));
+  for select using (public.user_has_company_access(company_id));
 
 create policy "members: admin write" on company_members
-  for all using (auth.user_is_company_admin(company_id))
-  with check (auth.user_is_company_admin(company_id));
+  for all using (public.user_is_company_admin(company_id))
+  with check (public.user_is_company_admin(company_id));
 
 -- ── company_settings & company_billing ──────────────────────────────────────
 create table company_settings (
@@ -142,16 +142,16 @@ alter table company_settings enable row level security;
 alter table company_billing  enable row level security;
 
 create policy "settings: member read" on company_settings
-  for select using (auth.user_has_company_access(company_id));
+  for select using (public.user_has_company_access(company_id));
 create policy "settings: admin write" on company_settings
-  for all using (auth.user_is_company_admin(company_id))
-  with check (auth.user_is_company_admin(company_id));
+  for all using (public.user_is_company_admin(company_id))
+  with check (public.user_is_company_admin(company_id));
 
 create policy "billing: admin read"  on company_billing
-  for select using (auth.user_is_company_admin(company_id));
+  for select using (public.user_is_company_admin(company_id));
 create policy "billing: owner write" on company_billing
-  for all using (auth.user_role_in_company(company_id) = 'owner')
-  with check (auth.user_role_in_company(company_id) = 'owner');
+  for all using (public.user_role_in_company(company_id) = 'owner')
+  with check (public.user_role_in_company(company_id) = 'owner');
 
 -- ── Atomic company provisioning (signup creates company + owner) ────────────
 create or replace function public.create_company_with_owner(

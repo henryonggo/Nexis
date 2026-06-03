@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { sendInviteEmail } from "@/lib/email";
 
 const inviteSchema = z.object({
   email: z.string().email("Email tidak valid"),
@@ -51,12 +52,24 @@ export async function inviteMember(
 
   revalidatePath("/members");
 
-  // Email delivery (Resend) is wired in a later step; for now we surface the
-  // invite link so the admin can share it directly.
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const inviteUrl = `${base}/invite/${invite!.token}`;
+
+  // Try to email the invite. If Resend isn't configured (or fails), fall back to
+  // surfacing the link in-app so the admin can share it manually.
+  const mail = await sendInviteEmail({
+    to: parsed.data.email,
+    inviteUrl,
+    companyName: active.name,
+    role: parsed.data.role,
+  });
+
+  if (mail.sent) {
+    return { success: `Undangan terkirim ke ${parsed.data.email}.` };
+  }
   return {
-    success: `Undangan dibuat untuk ${parsed.data.email}.`,
-    inviteUrl: `${base}/invite/${invite!.token}`,
+    success: `Undangan dibuat untuk ${parsed.data.email}. Email belum dikonfigurasi — bagikan tautan ini:`,
+    inviteUrl,
   };
 }
 

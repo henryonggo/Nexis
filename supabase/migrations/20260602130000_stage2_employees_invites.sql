@@ -103,53 +103,54 @@ alter table compensation enable row level security;
 alter table tax_profile  enable row level security;
 alter table bank_accounts enable row level security;
 
--- members read; admins write; employee may read their OWN record.
-create policy "employees: member read" on employees
-  for select using (auth.user_has_company_access(company_id));
+-- Least privilege: owner/admin/manager read the whole roster; a plain employee
+-- reads ONLY their own record. Admins write.
+create policy "employees: staff read" on employees
+  for select using (public.user_role_in_company(company_id) in ('owner','admin','manager'));
 create policy "employees: self read" on employees
   for select using (user_id = auth.uid());
 create policy "employees: admin write" on employees
-  for all using (auth.user_is_company_admin(company_id))
-  with check (auth.user_is_company_admin(company_id));
+  for all using (public.user_is_company_admin(company_id))
+  with check (public.user_is_company_admin(company_id));
 
 create policy "compensation: admin read" on compensation
-  for select using (auth.user_is_company_admin(company_id));
+  for select using (public.user_is_company_admin(company_id));
 create policy "compensation: self read" on compensation
   for select using (exists (
     select 1 from employees e
     where e.id = compensation.employee_id and e.user_id = auth.uid()
   ));
 create policy "compensation: admin write" on compensation
-  for all using (auth.user_is_company_admin(company_id))
-  with check (auth.user_is_company_admin(company_id));
+  for all using (public.user_is_company_admin(company_id))
+  with check (public.user_is_company_admin(company_id));
 
 create policy "tax_profile: admin read" on tax_profile
-  for select using (auth.user_is_company_admin(company_id));
+  for select using (public.user_is_company_admin(company_id));
 create policy "tax_profile: self read" on tax_profile
   for select using (exists (
     select 1 from employees e
     where e.id = tax_profile.employee_id and e.user_id = auth.uid()
   ));
 create policy "tax_profile: admin write" on tax_profile
-  for all using (auth.user_is_company_admin(company_id))
-  with check (auth.user_is_company_admin(company_id));
+  for all using (public.user_is_company_admin(company_id))
+  with check (public.user_is_company_admin(company_id));
 
 create policy "bank_accounts: admin read" on bank_accounts
-  for select using (auth.user_is_company_admin(company_id));
+  for select using (public.user_is_company_admin(company_id));
 create policy "bank_accounts: self read" on bank_accounts
   for select using (exists (
     select 1 from employees e
     where e.id = bank_accounts.employee_id and e.user_id = auth.uid()
   ));
 create policy "bank_accounts: admin write" on bank_accounts
-  for all using (auth.user_is_company_admin(company_id))
-  with check (auth.user_is_company_admin(company_id));
+  for all using (public.user_is_company_admin(company_id))
+  with check (public.user_is_company_admin(company_id));
 
 -- ── RLS: invitations ──────────────────────────────────────────────────────────
 alter table invitations enable row level security;
 create policy "invites: admin manage" on invitations
-  for all using (auth.user_is_company_admin(company_id))
-  with check (auth.user_is_company_admin(company_id));
+  for all using (public.user_is_company_admin(company_id))
+  with check (public.user_is_company_admin(company_id));
 
 -- ── Free-seat enforcement: first 5 active employees free ──────────────────────
 create or replace function public.enforce_free_seat_limit()

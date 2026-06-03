@@ -82,6 +82,53 @@ Then `pnpm --filter @nexis/web dev` runs against the cloud database. Email/auth
 settings are configured in the Supabase dashboard (Authentication → URL config:
 add `http://localhost:3000/auth/callback`).
 
+## Quickest path to a running app (hosted Supabase, no Docker)
+
+What to put where, step by step:
+
+1. **Create the project** at https://supabase.com → New project. Pick the
+   Singapore (`ap-southeast-1`) region. Save the database password.
+2. **Get your keys:** Project → Settings → **API**. You need two values:
+   - *Project URL* → `NEXT_PUBLIC_SUPABASE_URL`
+   - *anon public* key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+3. **Create the env file:**
+   ```bash
+   cd apps/web
+   cp .env.local.example .env.local
+   # edit .env.local and paste the two values above
+   cd ../..
+   ```
+4. **Apply the database schema** (from the repo root):
+   ```bash
+   corepack enable
+   pnpm install
+   pnpm exec supabase login              # opens a browser, paste the token
+   pnpm exec supabase link --project-ref <your-project-ref>   # ref is in the URL/Settings
+   pnpm exec supabase db push            # applies BOTH migrations (Stage 1 + 2)
+   pnpm exec supabase gen types typescript --linked > packages/types/src/database.ts
+   ```
+5. **Auth settings** in the dashboard → Authentication → URL Configuration:
+   - Site URL: `http://localhost:3000`
+   - Redirect URLs: add `http://localhost:3000/auth/callback`
+   - (Optional, for faster testing) Authentication → Providers → Email →
+     turn **Confirm email** OFF so signups log in immediately.
+6. **Run it:**
+   ```bash
+   pnpm --filter @nexis/web dev      # http://localhost:3000
+   ```
+
+> Use **pnpm**, not `npm`, for install/dev — this repo uses pnpm workspaces and
+> the `workspace:*` protocol. `corepack enable` makes `pnpm` available without a
+> separate install. To run everything (web + mobile) use `pnpm dev`; for just the
+> web app use the `--filter @nexis/web` form above.
+
+### Running the security tests (needs local Docker once)
+
+```bash
+pnpm db:start            # requires Docker
+pnpm exec supabase test db   # runs supabase/tests/stage2_rls.test.sql (8 assertions)
+```
+
 ## Verified in this session
 
 - All schema SQL blocks in docs + both the Stage 1 and Stage 2 migrations parse
@@ -124,12 +171,25 @@ Web (`apps/web`):
   shareable invite link, pending-invite list + revoke.
 - **Accept invite:** `/invite/[token]` page + `acceptInvite` action (auth-gated).
 - Dashboard shows real employee count vs the free limit.
+- **Invite emails** via Resend (`lib/email.ts`) — falls back to an in-app link
+  when `RESEND_API_KEY` is unset.
+- **Employee detail/edit** (`/employees/[id]`) — core fields, base salary,
+  PTKP status + NPWP, employment status.
+- **CSV import** (`/employees/import`) — paste CSV, per-row validation, free-seat
+  aware, failure report.
+- **Mobile** (`apps/mobile`) — auth gate, sign-in screen, tabbed app shell, and a
+  **self-profile** screen that reads only the user's own employee record (RLS).
 
-Remaining for full Stage 2 completion:
-- [ ] Email delivery for invites (Resend) — invite link is currently shown in-app.
-- [ ] Employee detail/edit + CSV import.
-- [ ] pgTAP tests for the free-seat trigger and self-read policies.
-- [ ] Mobile employee self-profile.
+Stage 2 is functionally complete. Tightened during this work: the employees read
+policy is now **staff-read (owner/admin/manager) + employee self-read**, so a plain
+employee can't see coworkers' records — proven by `supabase/tests/stage2_rls.test.sql`
+(8 assertions incl. cross-company isolation and the free-seat limit).
+
+Note on verification: the pure packages (`@nexis/types` strict-compile,
+`@nexis/money` + `@nexis/payroll` tests) and all SQL (real Postgres grammar) were
+verified in-session. The **web app typecheck/build should be run locally** —
+`pnpm install && pnpm --filter @nexis/web typecheck` — as the sandbox here can't
+pull the full Next.js dependency tree.
 
 ## Next stage
 

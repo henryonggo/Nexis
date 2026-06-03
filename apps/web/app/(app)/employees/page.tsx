@@ -38,14 +38,22 @@ export default async function EmployeesPage() {
           )}
         </div>
         {isAdmin && (
-          <Link
-            href="/employees/new"
-            className={`rounded-md px-4 py-2 text-sm font-semibold text-white ${
-              atLimit ? "pointer-events-none bg-muted opacity-60" : "bg-brand hover:bg-brand-dark"
-            }`}
-          >
-            + Tambah karyawan
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/employees/import"
+              className="rounded-md border border-[color:var(--border)] px-4 py-2 text-sm font-semibold text-ink hover:bg-brand-light"
+            >
+              Impor CSV
+            </Link>
+            <Link
+              href="/employees/new"
+              className={`rounded-md px-4 py-2 text-sm font-semibold text-white ${
+                atLimit ? "pointer-events-none bg-muted opacity-60" : "bg-brand hover:bg-brand-dark"
+              }`}
+            >
+              + Tambah karyawan
+            </Link>
+          </div>
         )}
       </div>
 
@@ -78,7 +86,11 @@ export default async function EmployeesPage() {
             ) : (
               rows.map((e) => (
                 <tr key={e.id} className="border-t border-[color:var(--border)]">
-                  <td className="px-4 py-2 text-ink">{e.full_name}</td>
+                  <td className="px-4 py-2 text-ink">
+                    <Link href={`/employees/${e.id}`} className="nx-link">
+                      {e.full_name}
+                    </Link>
+                  </td>
                   <td className="px-4 py-2 text-muted">{e.employee_no ?? "—"}</td>
                   <td className="px-4 py-2 text-muted">{e.position ?? "—"}</td>
                   <td className="px-4 py-2 text-muted">{e.department ?? "—"}</td>
