@@ -8,6 +8,7 @@ const config: Config = {
       colors: {
         brand: { DEFAULT: "#1F6FEB", dark: "#1551B5", light: "#EAF1FE" },
         accent: "#14B8A6",
+        success: "#16A34A",
         danger: "#DC2626",
         warning: "#F59E0B",
         ink: "#0F172A",
