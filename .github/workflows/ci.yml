@@ -36,8 +36,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Lint
-        run: pnpm lint
+      # NOTE: `pnpm lint` is intentionally omitted — ESLint is not yet configured
+      # in apps/web (`next lint` drops into an interactive setup prompt). Wiring it
+      # needs eslint + eslint-config-next devDeps and a lockfile regen; tracked as
+      # follow-up. typecheck + build + e2e are the verification gate for now.
 
       - name: Typecheck (web, mobile, packages)
         run: pnpm typecheck
