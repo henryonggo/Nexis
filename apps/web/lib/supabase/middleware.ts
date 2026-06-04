@@ -48,6 +48,10 @@ export async function updateSession(request: NextRequest) {
     path.startsWith("/leave") ||
     path.startsWith("/claims") ||
     path.startsWith("/payroll") ||
+    path.startsWith("/reports") ||
+    path.startsWith("/billing") ||
+    path.startsWith("/analytics") ||
+    path.startsWith("/audit") ||
     path.startsWith("/members");
 
   if (!user && isProtected) {
