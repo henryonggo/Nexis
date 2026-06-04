@@ -12,6 +12,8 @@ const NAV = [
   { href: "/leave", label: "Cuti" },
   { href: "/claims", label: "Klaim" },
   { href: "/payroll", label: "Penggajian" },
+  { href: "/reports", label: "Laporan" },
+  { href: "/billing", label: "Tagihan" },
   { href: "/members", label: "Anggota" },
 ];
 
