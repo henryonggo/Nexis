@@ -136,6 +136,36 @@ export type Database = {
           },
         ]
       }
+      bpjs_config: {
+        Row: {
+          amount: number | null
+          created_at: string
+          effective_from: string
+          effective_to: string | null
+          id: string
+          key: string
+          rate_bps: number | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          effective_from: string
+          effective_to?: string | null
+          id?: string
+          key: string
+          rate_bps?: number | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          key?: string
+          rate_bps?: number | null
+        }
+        Relationships: []
+      }
       companies: {
         Row: {
           created_at: string
@@ -617,6 +647,211 @@ export type Database = {
           },
         ]
       }
+      payroll_items: {
+        Row: {
+          allowances: number
+          base_salary: number
+          bpjs_kes_employee: number
+          bpjs_kes_employer: number
+          breakdown: Json | null
+          company_id: string
+          created_at: string
+          employee_id: string
+          gross_pay: number
+          id: string
+          jht_employee: number
+          jht_employer: number
+          jkk_employer: number
+          jkm_employer: number
+          jp_employee: number
+          jp_employer: number
+          net_pay: number
+          overtime_pay: number
+          payroll_run_id: string
+          pph21: number
+          ter_category: string | null
+          ter_rate_bps: number | null
+        }
+        Insert: {
+          allowances?: number
+          base_salary?: number
+          bpjs_kes_employee?: number
+          bpjs_kes_employer?: number
+          breakdown?: Json | null
+          company_id: string
+          created_at?: string
+          employee_id: string
+          gross_pay?: number
+          id?: string
+          jht_employee?: number
+          jht_employer?: number
+          jkk_employer?: number
+          jkm_employer?: number
+          jp_employee?: number
+          jp_employer?: number
+          net_pay?: number
+          overtime_pay?: number
+          payroll_run_id: string
+          pph21?: number
+          ter_category?: string | null
+          ter_rate_bps?: number | null
+        }
+        Update: {
+          allowances?: number
+          base_salary?: number
+          bpjs_kes_employee?: number
+          bpjs_kes_employer?: number
+          breakdown?: Json | null
+          company_id?: string
+          created_at?: string
+          employee_id?: string
+          gross_pay?: number
+          id?: string
+          jht_employee?: number
+          jht_employer?: number
+          jkk_employer?: number
+          jkm_employer?: number
+          jp_employee?: number
+          jp_employer?: number
+          net_pay?: number
+          overtime_pay?: number
+          payroll_run_id?: string
+          pph21?: number
+          ter_category?: string | null
+          ter_rate_bps?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_items_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_items_payroll_run_id_fkey"
+            columns: ["payroll_run_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payroll_runs: {
+        Row: {
+          company_id: string
+          completed_at: string | null
+          config_snapshot: Json | null
+          created_at: string
+          created_by: string | null
+          id: string
+          period_month: number
+          period_year: number
+          status: Database["public"]["Enums"]["pay_period_status"]
+          total_bpjs_employee: number
+          total_bpjs_employer: number
+          total_gross: number
+          total_net: number
+          total_pph21: number
+        }
+        Insert: {
+          company_id: string
+          completed_at?: string | null
+          config_snapshot?: Json | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          period_month: number
+          period_year: number
+          status?: Database["public"]["Enums"]["pay_period_status"]
+          total_bpjs_employee?: number
+          total_bpjs_employer?: number
+          total_gross?: number
+          total_net?: number
+          total_pph21?: number
+        }
+        Update: {
+          company_id?: string
+          completed_at?: string | null
+          config_snapshot?: Json | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          period_month?: number
+          period_year?: number
+          status?: Database["public"]["Enums"]["pay_period_status"]
+          total_bpjs_employee?: number
+          total_bpjs_employer?: number
+          total_gross?: number
+          total_net?: number
+          total_pph21?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_runs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payslips: {
+        Row: {
+          company_id: string
+          employee_id: string
+          id: string
+          issued_at: string
+          payroll_item_id: string
+          pdf_path: string | null
+        }
+        Insert: {
+          company_id: string
+          employee_id: string
+          id?: string
+          issued_at?: string
+          payroll_item_id: string
+          pdf_path?: string | null
+        }
+        Update: {
+          company_id?: string
+          employee_id?: string
+          id?: string
+          issued_at?: string
+          payroll_item_id?: string
+          pdf_path?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payslips_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payslips_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payslips_payroll_item_id_fkey"
+            columns: ["payroll_item_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -644,6 +879,33 @@ export type Database = {
           locale?: string
           phone?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      ptkp_rates: {
+        Row: {
+          annual_amount: number
+          created_at: string
+          effective_from: string
+          effective_to: string | null
+          id: string
+          status: string
+        }
+        Insert: {
+          annual_amount: number
+          created_at?: string
+          effective_from: string
+          effective_to?: string | null
+          id?: string
+          status: string
+        }
+        Update: {
+          annual_amount?: number
+          created_at?: string
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          status?: string
         }
         Relationships: []
       }
@@ -688,6 +950,36 @@ export type Database = {
           },
         ]
       }
+      tax_brackets: {
+        Row: {
+          created_at: string
+          effective_from: string
+          effective_to: string | null
+          id: string
+          lower_bound: number
+          rate_bps: number
+          upper_bound: number | null
+        }
+        Insert: {
+          created_at?: string
+          effective_from: string
+          effective_to?: string | null
+          id?: string
+          lower_bound: number
+          rate_bps: number
+          upper_bound?: number | null
+        }
+        Update: {
+          created_at?: string
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          lower_bound?: number
+          rate_bps?: number
+          upper_bound?: number | null
+        }
+        Relationships: []
+      }
       tax_profile: {
         Row: {
           company_id: string
@@ -726,6 +1018,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ter_rates: {
+        Row: {
+          category: string
+          created_at: string
+          effective_from: string
+          effective_to: string | null
+          id: string
+          income_lower: number
+          income_upper: number | null
+          rate_bps: number
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          effective_from: string
+          effective_to?: string | null
+          id?: string
+          income_lower: number
+          income_upper?: number | null
+          rate_bps: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          income_lower?: number
+          income_upper?: number | null
+          rate_bps?: number
+        }
+        Relationships: []
       }
       work_schedules: {
         Row: {
@@ -826,6 +1151,14 @@ export type Database = {
       employee_status: "active" | "probation" | "inactive" | "terminated"
       employment_type: "permanent" | "contract" | "intern" | "daily"
       invite_status: "pending" | "accepted" | "revoked" | "expired"
+      pay_period_status:
+        | "draft"
+        | "queued"
+        | "processing"
+        | "completed"
+        | "failed"
+        | "paid"
+        | "cancelled"
       plan_tier: "free" | "starter" | "growth" | "enterprise"
     }
     CompositeTypes: {
@@ -962,6 +1295,15 @@ export const Constants = {
       employee_status: ["active", "probation", "inactive", "terminated"],
       employment_type: ["permanent", "contract", "intern", "daily"],
       invite_status: ["pending", "accepted", "revoked", "expired"],
+      pay_period_status: [
+        "draft",
+        "queued",
+        "processing",
+        "completed",
+        "failed",
+        "paid",
+        "cancelled",
+      ],
       plan_tier: ["free", "starter", "growth", "enterprise"],
     },
   },
