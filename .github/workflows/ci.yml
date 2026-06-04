@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, dev]
+
+# Cancel superseded runs on the same ref.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Placeholder Supabase env so the web client constructs and `next build`
+  # succeeds without a live backend. Real values are injected at deploy time.
+  NEXT_PUBLIC_SUPABASE_URL: http://localhost:54321
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-anon-key-placeholder
+
+jobs:
+  build:
+    name: Lint, typecheck & build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # NOTE: `pnpm lint` is intentionally omitted — ESLint is not yet configured
+      # in apps/web (`next lint` drops into an interactive setup prompt). Wiring it
+      # needs eslint + eslint-config-next devDeps and a lockfile regen; tracked as
+      # follow-up. typecheck + build + e2e are the verification gate for now.
+
+      - name: Typecheck (web, mobile, packages)
+        run: pnpm typecheck
+
+      - name: Build
+        run: pnpm build
+
+  e2e:
+    name: Playwright (guard specs)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browser
+        run: pnpm --filter @nexis/web exec playwright install --with-deps chromium
+
+      # No E2E_STORAGE_STATE in CI, so the authenticated describe blocks skip and
+      # only the unauthenticated redirect guards run (these need no seeded data).
+      - name: Run e2e guard specs
+        run: pnpm --filter @nexis/web test:e2e

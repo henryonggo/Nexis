@@ -25,5 +25,20 @@
     "markInvalid": "Mark invalid",
     "updated": "Attendance updated.",
     "kind": { "clock_in": "Clock in", "clock_out": "Clock out", "break_start": "Break start", "break_end": "Break end" }
+  },
+  "payroll": {
+    "title": "Payroll",
+    "subtitle": "Run and review monthly payroll for your company.",
+    "runPayroll": "Run payroll",
+    "newRun": { "title": "Run payroll", "subtitle": "Pick a period and run type. You'll review the per-employee breakdown before approving.", "month": "Month", "year": "Year", "runType": "Run type", "monthly": "Monthly salary", "thr": "THR (religious holiday allowance)", "submit": "Create draft run" },
+    "columns": { "period": "Period", "status": "Status", "gross": "Gross", "net": "Net (take-home)", "employee": "Employee", "pph21": "PPh 21 (TER)", "deductions": "Employee deductions" },
+    "status": { "draft": "Draft", "queued": "Queued", "processing": "Processing", "completed": "Completed", "paid": "Paid", "failed": "Failed", "cancelled": "Cancelled" },
+    "empty": "No payroll runs yet.",
+    "review": "Review",
+    "estimateNote": "Live estimate — final figures are written when the run is processed.",
+    "queuedNote": "Run is queued. Automatic processing (calculation & payslips) will run once the payroll worker is active.",
+    "actions": { "approve": "Approve & process", "markPaid": "Mark as paid", "cancel": "Cancel run" },
+    "breakdown": "Breakdown",
+    "noNpwp": "(+20% without NPWP)"
   }
 }
