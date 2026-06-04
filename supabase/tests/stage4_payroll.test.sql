@@ -45,15 +45,15 @@ insert into bpjs_config (id, key, rate_bps, effective_from) values
 
 -- Payroll run and items (privileged inserts)
 insert into payroll_runs (id, company_id, period_year, period_month, status) values
-  ('pr000000-0000-0000-0000-000000000001', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 2026, 5, 'draft');
+  ('d0000000-0000-0000-0000-000000000001', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 2026, 5, 'draft');
 
 insert into payroll_items (id, company_id, payroll_run_id, employee_id, gross_pay, net_pay) values
-  ('pi000000-0000-0000-0000-000000000001', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'pr000000-0000-0000-0000-000000000001', 'e1111111-1111-1111-1111-111111111111', 10000000, 9400000),
-  ('pi000000-0000-0000-0000-000000000002', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'pr000000-0000-0000-0000-000000000001', 'e2222222-2222-2222-2222-222222222222', 8000000, 7500000);
+  ('d0000000-0000-0000-0000-000000000011', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'd0000000-0000-0000-0000-000000000001', 'e1111111-1111-1111-1111-111111111111', 10000000, 9400000),
+  ('d0000000-0000-0000-0000-000000000012', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'd0000000-0000-0000-0000-000000000001', 'e2222222-2222-2222-2222-222222222222', 8000000, 7500000);
 
 insert into payslips (id, company_id, payroll_item_id, employee_id, pdf_path) values
-  ('ps000000-0000-0000-0000-000000000001', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'pi000000-0000-0000-0000-000000000001', 'e1111111-1111-1111-1111-111111111111', 'aa/e11/ps1.pdf'),
-  ('ps000000-0000-0000-0000-000000000002', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'pi000000-0000-0000-0000-000000000002', 'e2222222-2222-2222-2222-222222222222', 'aa/e22/ps2.pdf');
+  ('d0000000-0000-0000-0000-000000000111', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'd0000000-0000-0000-0000-000000000011', 'e1111111-1111-1111-1111-111111111111', 'aa/e11/ps1.pdf'),
+  ('d0000000-0000-0000-0000-000000000112', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'd0000000-0000-0000-0000-000000000012', 'e2222222-2222-2222-2222-222222222222', 'aa/e22/ps2.pdf');
 
 -- ── Helper: impersonate an authenticated user via JWT claims ──────────────────
 create or replace function tests_authenticate_as(p_uid uuid) returns void

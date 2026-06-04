@@ -1,7 +1,7 @@
 -- Nexis local seed data.
 -- Pre-populates Indonesian compliance reference data (PTKP, Tax Brackets, BPJS, PPh 21 TER).
 --
-TRUNCATE ptkp_rates, tax_brackets, bpjs_config, ter_rates CASCADE;
+TRUNCATE ptkp_rates, tax_brackets, bpjs_config, ter_rates, minimum_wages CASCADE;
 
 -- 1. PTKP Rates
 insert into ptkp_rates (status, annual_amount, effective_from) values ('TK/0', 54000000, '2024-01-01');
@@ -170,3 +170,7 @@ insert into ter_rates (category, income_lower, income_upper, rate_bps, effective
 insert into ter_rates (category, income_lower, income_upper, rate_bps, effective_from) values ('C', 869000001, 1110000000, 3200, '2024-01-01');
 insert into ter_rates (category, income_lower, income_upper, rate_bps, effective_from) values ('C', 1110000001, 1637000000, 3300, '2024-01-01');
 insert into ter_rates (category, income_lower, income_upper, rate_bps, effective_from) values ('C', 1637000001, NULL, 3400, '2024-01-01');
+
+-- 7. Minimum Wages (UMR)
+insert into minimum_wages (region, amount, effective_from) values ('DKI Jakarta', 5067381, '2024-01-01');
+insert into minimum_wages (region, amount, effective_from) values ('DKI Jakarta', 5729876, '2026-01-01');

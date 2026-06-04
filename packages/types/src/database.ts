@@ -314,6 +314,7 @@ export type Database = {
           jkk_risk_class: string | null
           pay_date_day: number
           payroll_cutoff_day: number
+          region: string
           updated_at: string
           workweek_days: number
         }
@@ -323,6 +324,7 @@ export type Database = {
           jkk_risk_class?: string | null
           pay_date_day?: number
           payroll_cutoff_day?: number
+          region?: string
           updated_at?: string
           workweek_days?: number
         }
@@ -332,6 +334,7 @@ export type Database = {
           jkk_risk_class?: string | null
           pay_date_day?: number
           payroll_cutoff_day?: number
+          region?: string
           updated_at?: string
           workweek_days?: number
         }
@@ -585,6 +588,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      minimum_wages: {
+        Row: {
+          amount: number
+          created_at: string
+          effective_from: string
+          effective_to: string | null
+          id: string
+          region: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          effective_from: string
+          effective_to?: string | null
+          id?: string
+          region: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          region?: string
+        }
+        Relationships: []
       }
       overtime_entries: {
         Row: {
