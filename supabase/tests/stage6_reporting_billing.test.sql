@@ -4,7 +4,7 @@
 -- ============================================================================
 
 begin;
-select plan(9);
+select plan(19);
 
 -- Ensure pgTAP is available.
 create extension if not exists pgtap;
@@ -111,6 +111,36 @@ select lives_ok(
   $$insert into employees (company_id, full_name, status) values ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Emp 6 (Should Pass)', 'active')$$,
   '6th active employee is allowed on paid plan'
 );
+
+-- ── 5. Manager Storage Access Tests ─────────────────────────────────────────
+
+-- Deauthenticate to insert storage fixtures
+perform set_config('role', 'postgres', true);
+perform set_config('request.jwt.claims', null, true);
+
+-- Insert test files into storage.objects
+insert into storage.objects (id, bucket_id, name, owner) values
+  ('10000000-0000-0000-0000-000000000002', 'attendance-selfies', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/e1000000-0000-0000-0000-000000000002/selfie.png', '22222222-2222-2222-2222-222222222222'),
+  ('10000000-0000-0000-0000-000000000003', 'selfies', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/e1000000-0000-0000-0000-000000000002/selfie.png', '22222222-2222-2222-2222-222222222222'),
+  ('10000000-0000-0000-0000-000000000004', 'leave-attachments', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/e1000000-0000-0000-0000-000000000002/leave.pdf', '22222222-2222-2222-2222-222222222222'),
+  ('10000000-0000-0000-0000-000000000005', 'claim-receipts', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/e1000000-0000-0000-0000-000000000002/receipt.png', '22222222-2222-2222-2222-222222222222'),
+  ('10000000-0000-0000-0000-000000000006', 'reports', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/reports/summary.xlsx', '11111111-1111-1111-1111-111111111111');
+
+-- 1. Manager SELECT tests (should see 1 row for each bucket)
+select tests_authenticate_as('33333333-3333-3333-3333-333333333333');
+select is((select count(*)::int from storage.objects where bucket_id = 'attendance-selfies'), 1, 'Manager can select attendance selfies');
+select is((select count(*)::int from storage.objects where bucket_id = 'selfies'), 1, 'Manager can select selfies');
+select is((select count(*)::int from storage.objects where bucket_id = 'leave-attachments'), 1, 'Manager can select leave attachments');
+select is((select count(*)::int from storage.objects where bucket_id = 'claim-receipts'), 1, 'Manager can select claim receipts');
+select is((select count(*)::int from storage.objects where bucket_id = 'reports'), 1, 'Manager can select reports');
+
+-- 2. Stranger SELECT tests (should see 0 rows)
+select tests_authenticate_as('44444444-4444-4444-4444-444444444444');
+select is((select count(*)::int from storage.objects where bucket_id = 'attendance-selfies'), 0, 'Stranger cannot select attendance selfies');
+select is((select count(*)::int from storage.objects where bucket_id = 'selfies'), 0, 'Stranger cannot select selfies');
+select is((select count(*)::int from storage.objects where bucket_id = 'leave-attachments'), 0, 'Stranger cannot select leave attachments');
+select is((select count(*)::int from storage.objects where bucket_id = 'claim-receipts'), 0, 'Stranger cannot select claim receipts');
+select is((select count(*)::int from storage.objects where bucket_id = 'reports'), 0, 'Stranger cannot select reports');
 
 -- Clean up
 select * from finish();
