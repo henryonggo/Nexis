@@ -15,6 +15,7 @@ const NAV = [
   { href: "/analytics", label: "Analitik" },
   { href: "/reports", label: "Laporan" },
   { href: "/billing", label: "Tagihan" },
+  { href: "/audit", label: "Audit" },
   { href: "/members", label: "Anggota" },
 ];
 
