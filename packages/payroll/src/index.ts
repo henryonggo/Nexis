@@ -341,3 +341,19 @@ export function computeThr(monthlySalary: Rupiah, monthsWorked: number): Rupiah 
   if (monthsWorked >= 12) return monthlySalary;
   return toRupiah((monthlySalary * monthsWorked) / 12);
 }
+
+// ───────────────────────────────────────────────────────────────────────────
+// Reference-table → config loaders (pure mappers; see config.ts).
+// ───────────────────────────────────────────────────────────────────────────
+export {
+  buildPayrollConfig,
+  buildAnnualTaxConfig,
+  toTerRateRows,
+  toProgressiveBrackets,
+  BIAYA_JABATAN_RATE_BPS,
+  BIAYA_JABATAN_ANNUAL_CAP,
+  type BpjsConfigRow,
+  type TerRateDbRow,
+  type PtkpRateRow,
+  type TaxBracketRow,
+} from "./config";
