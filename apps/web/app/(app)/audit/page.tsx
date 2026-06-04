@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { ExportCsvButton } from "@/components/export-csv-button";
 import {
   getAuditLog,
   actionLabel,
@@ -62,11 +63,24 @@ export default async function AuditPage({
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold text-ink">Audit & Kepatuhan</h1>
-        <p className="text-sm text-muted">
-          Catatan tindakan sensitif di {active.name} — persetujuan, penolakan, dan koreksi.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-ink">Audit & Kepatuhan</h1>
+          <p className="text-sm text-muted">
+            Catatan tindakan sensitif di {active.name} — persetujuan, penolakan, dan koreksi.
+          </p>
+        </div>
+        <ExportCsvButton
+          filename={`audit-${active.name}`}
+          headers={["Waktu", "Tindakan", "Objek", "Oleh", "Detail"]}
+          rows={entries.map((entry) => [
+            entry.createdAt,
+            actionLabel(entry.action),
+            entityLabel(entry.entity),
+            entry.actorName,
+            summarizeMetadata(entry.metadata) ?? "",
+          ])}
+        />
       </div>
 
       {/* Entity filter chips */}

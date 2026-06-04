@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { ExportCsvButton } from "@/components/export-csv-button";
 import type { EmployeeRow, CompanyBillingRow } from "@nexis/types";
 
 export default async function EmployeesPage() {
@@ -39,6 +40,18 @@ export default async function EmployeesPage() {
         </div>
         {isAdmin && (
           <div className="flex items-center gap-2">
+            <ExportCsvButton
+              filename={`karyawan-${active.name}`}
+              headers={["Nama", "Nomor", "Posisi", "Departemen", "Tipe", "Status"]}
+              rows={rows.map((e) => [
+                e.full_name ?? "",
+                e.employee_no ?? "",
+                e.position ?? "",
+                e.department ?? "",
+                e.employment_type ?? "",
+                e.status ?? "",
+              ])}
+            />
             <Link
               href="/employees/import"
               className="rounded-md border border-[color:var(--border)] px-4 py-2 text-sm font-semibold text-ink hover:bg-brand-light"
@@ -59,8 +72,11 @@ export default async function EmployeesPage() {
 
       {atLimit && (
         <div className="rounded-lg border border-warning/40 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          Anda telah memakai semua kursi gratis ({limit}). <strong>Upgrade</strong> untuk menambah
-          karyawan (penagihan tersedia di Stage 6).
+          Anda telah memakai semua kursi gratis ({limit}).{" "}
+          <Link href="/billing" className="font-semibold underline">
+            Upgrade paket
+          </Link>{" "}
+          untuk menambah karyawan.
         </div>
       )}
 
