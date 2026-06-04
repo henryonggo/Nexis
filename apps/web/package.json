@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@nexis/money": "workspace:*",
+    "@nexis/payroll": "workspace:*",
     "@nexis/types": "workspace:*",
     "@supabase/ssr": "^0.5.1",
     "@supabase/supabase-js": "^2.45.4",

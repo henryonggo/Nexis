@@ -25,5 +25,20 @@
     "markInvalid": "Tandai tidak valid",
     "updated": "Kehadiran diperbarui.",
     "kind": { "clock_in": "Masuk", "clock_out": "Keluar", "break_start": "Mulai istirahat", "break_end": "Selesai istirahat" }
+  },
+  "payroll": {
+    "title": "Penggajian",
+    "subtitle": "Jalankan dan tinjau payroll bulanan perusahaan Anda.",
+    "runPayroll": "Jalankan payroll",
+    "newRun": { "title": "Jalankan payroll", "subtitle": "Pilih periode dan jenis run. Anda akan meninjau rincian per karyawan sebelum menyetujui.", "month": "Bulan", "year": "Tahun", "runType": "Jenis run", "monthly": "Gaji bulanan", "thr": "THR (Tunjangan Hari Raya)", "submit": "Buat draf run" },
+    "columns": { "period": "Periode", "status": "Status", "gross": "Bruto", "net": "Neto (take-home)", "employee": "Karyawan", "pph21": "PPh 21 (TER)", "deductions": "Potongan karyawan" },
+    "status": { "draft": "Draf", "queued": "Antre", "processing": "Diproses", "completed": "Selesai", "paid": "Dibayar", "failed": "Gagal", "cancelled": "Dibatalkan" },
+    "empty": "Belum ada run payroll.",
+    "review": "Tinjau",
+    "estimateNote": "Estimasi langsung — angka final ditulis saat run diproses.",
+    "queuedNote": "Run sudah diantre. Pemrosesan otomatis (perhitungan & slip gaji) akan berjalan saat worker payroll aktif.",
+    "actions": { "approve": "Setujui & proses", "markPaid": "Tandai sudah dibayar", "cancel": "Batalkan run" },
+    "breakdown": "Rincian",
+    "noNpwp": "(+20% tanpa NPWP)"
   }
 }

@@ -9,6 +9,7 @@ const NAV = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/employees", label: "Karyawan" },
   { href: "/attendance", label: "Kehadiran" },
+  { href: "/payroll", label: "Penggajian" },
   { href: "/members", label: "Anggota" },
 ];
 
