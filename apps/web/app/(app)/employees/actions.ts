@@ -15,7 +15,7 @@ const employeeSchema = z.object({
   employmentType: z.enum(["permanent", "contract", "intern", "daily"]).default("permanent"),
 });
 
-export type EmployeeState = { error?: string; success?: string };
+export type EmployeeState = { error?: string; success?: string; upgrade?: boolean };
 
 export async function createEmployee(
   _prev: EmployeeState,
@@ -60,6 +60,7 @@ export async function createEmployee(
       return {
         error:
           "Batas paket gratis tercapai (5 karyawan). Upgrade untuk menambah karyawan lagi.",
+        upgrade: true,
       };
     }
     if (error.code === "23505") {

@@ -3,6 +3,7 @@
 import { useFormState } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import Link from "next/link";
 import { createEmployee, type EmployeeState } from "../actions";
 import { SubmitButton } from "@/components/submit-button";
 
@@ -21,7 +22,19 @@ export function NewEmployeeForm() {
 
   return (
     <div className="nx-card max-w-xl">
-      {state.error && <div className="nx-error mb-4">{state.error}</div>}
+      {state.error && (
+        <div className="nx-error mb-4">
+          {state.error}
+          {state.upgrade && (
+            <>
+              {" "}
+              <Link href="/billing" className="font-semibold underline">
+                Upgrade paket →
+              </Link>
+            </>
+          )}
+        </div>
+      )}
       {state.success && <div className="nx-success mb-4">{state.success} Mengalihkan…</div>}
 
       <form action={action} className="space-y-4">
