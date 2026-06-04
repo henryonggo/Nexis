@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 import { createClient } from "@supabase/supabase-js";
 import PDFDocument from "pdfkit";
 import { Writable } from "stream";
+import XLSX from "xlsx";
 import type { Database } from "@nexis/types";
 import {
   buildPayrollConfig,
@@ -650,6 +651,374 @@ app.post("/process", async (req, res) => {
       .eq("id", runId);
 
     return res.status(500).json({ error: error.message || "Unknown error occurred during processing." });
+  }
+});
+
+/** Process Report Job Endpoint */
+app.post("/process-report", async (req, res) => {
+  const { jobId } = req.body;
+  if (!jobId || typeof jobId !== "string") {
+    return res.status(400).json({ error: "jobId parameter is required." });
+  }
+
+  console.log(`[Worker] Received report process request for job: ${jobId}`);
+
+  try {
+    // 1. Transition job to processing
+    const { data: job, error: jobError } = await supabase
+      .from("report_jobs")
+      .update({ status: "processing" })
+      .eq("id", jobId)
+      .in("status", ["pending", "processing"])
+      .select("*")
+      .single();
+
+    if (jobError || !job) {
+      console.error(`[Worker] Failed to transition job ${jobId}:`, jobError?.message);
+      return res.status(409).json({
+        error: "Job not found or not in pending/processing state.",
+      });
+    }
+
+    const { company_id: companyId, report_type: reportType, parameters } = job;
+    const params = (parameters || {}) as Record<string, any>;
+    const payrollRunId = params.payrollRunId || params.payroll_run_id;
+
+    if (!payrollRunId) {
+      throw new Error("Missing required parameter: payrollRunId");
+    }
+
+    // 2. Fetch company and run details
+    const [
+      { data: company, error: companyErr },
+      { data: run, error: runErr },
+      { data: items, error: itemsErr },
+    ] = await Promise.all([
+      supabase.from("companies").select("name").eq("id", companyId).single(),
+      supabase.from("payroll_runs").select("*").eq("id", payrollRunId).single(),
+      supabase.from("payroll_items").select("*, employees(*, tax_profile(*))").eq("payroll_run_id", payrollRunId),
+    ]);
+
+    if (companyErr) throw companyErr;
+    if (runErr) throw runErr;
+    if (itemsErr) throw itemsErr;
+
+    if (!run) {
+      throw new Error(`Payroll run ${payrollRunId} not found.`);
+    }
+    if (!items || items.length === 0) {
+      throw new Error(`No payroll items found for run ${payrollRunId}.`);
+    }
+
+    const companyName = company?.name || "Nexis Tenant";
+    const runPeriod = `${run.period_month}/${run.period_year}`;
+    
+    // Create new workbook
+    const wb = XLSX.utils.book_new();
+    let sheetName = "Report";
+    let wsData: any[][] = [];
+
+    if (reportType === "payroll_summary") {
+      sheetName = "Payroll Summary";
+      // Header Info
+      wsData = [
+        ["PAYROLL SUMMARY REPORT"],
+        [`Company: ${companyName}`],
+        [`Period: ${runPeriod}`],
+        [],
+        [
+          "No",
+          "Employee No",
+          "Employee Name",
+          "Department",
+          "Position",
+          "Base Salary",
+          "Allowances",
+          "Overtime Pay",
+          "Taxable Reimbursement",
+          "Non-Taxable Reimbursement",
+          "Gross Pay",
+          "BPJS Kes Employee",
+          "BPJS JHT Employee",
+          "BPJS JP Employee",
+          "PPh 21",
+          "Total Deductions",
+          "Net Pay"
+        ]
+      ];
+
+      let idx = 1;
+      let totalBase = 0, totalAllow = 0, totalOt = 0, totalTaxReim = 0, totalNonTaxReim = 0;
+      let totalGross = 0, totalBpjsKes = 0, totalJht = 0, totalJp = 0, totalPph = 0, totalDeduct = 0, totalNet = 0;
+
+      for (const item of items) {
+        const emp = (item.employees as any) || {};
+        const breakdown = (item.breakdown as any) || {};
+        const base = Number(item.base_salary);
+        const allow = Number(item.allowances);
+        const ot = Number(item.overtime_pay);
+        const taxReim = Number(breakdown.variableEarnings || 0);
+        const nonTaxReim = Number(breakdown.reimbursementNonTaxable || 0);
+        const gross = Number(item.gross_pay);
+        const bpjsKes = Number(item.bpjs_kes_employee);
+        const jht = Number(item.jht_employee);
+        const jp = Number(item.jp_employee);
+        const pph = Number(item.pph21);
+        const deduct = bpjsKes + jht + jp + pph;
+        const net = Number(item.net_pay);
+
+        totalBase += base;
+        totalAllow += allow;
+        totalOt += ot;
+        totalTaxReim += taxReim;
+        totalNonTaxReim += nonTaxReim;
+        totalGross += gross;
+        totalBpjsKes += bpjsKes;
+        totalJht += jht;
+        totalJp += jp;
+        totalPph += pph;
+        totalDeduct += deduct;
+        totalNet += net;
+
+        wsData.push([
+          idx++,
+          emp.employee_no || "",
+          emp.full_name || "",
+          emp.department || "",
+          emp.position || "",
+          base,
+          allow,
+          ot,
+          taxReim,
+          nonTaxReim,
+          gross,
+          bpjsKes,
+          jht,
+          jp,
+          pph,
+          deduct,
+          net
+        ]);
+      }
+
+      // Add Totals row
+      wsData.push([
+        "TOTAL",
+        "",
+        "",
+        "",
+        "",
+        totalBase,
+        totalAllow,
+        totalOt,
+        totalTaxReim,
+        totalNonTaxReim,
+        totalGross,
+        totalBpjsKes,
+        totalJht,
+        totalJp,
+        totalPph,
+        totalDeduct,
+        totalNet
+      ]);
+
+    } else if (reportType === "bpjs_contribution") {
+      sheetName = "BPJS Contributions";
+      wsData = [
+        ["BPJS CONTRIBUTION REPORT"],
+        [`Company: ${companyName}`],
+        [`Period: ${runPeriod}`],
+        [],
+        [
+          "No",
+          "Employee Name",
+          "Wage (Upah)",
+          "BPJS Kes Employee (1%)",
+          "BPJS Kes Employer (4%)",
+          "BPJS JHT Employee (2%)",
+          "BPJS JHT Employer (3.7%)",
+          "BPJS JP Employee (1%)",
+          "BPJS JP Employer (2%)",
+          "BPJS JKK Employer",
+          "BPJS JKM Employer (0.3%)",
+          "Total Employee Cost",
+          "Total Employer Cost",
+          "Total Contribution"
+        ]
+      ];
+
+      let idx = 1;
+      let totalWage = 0;
+      let totalKesEe = 0, totalKesEr = 0;
+      let totalJhtEe = 0, totalJhtEr = 0;
+      let totalJpEe = 0, totalJpEr = 0;
+      let totalJkkEr = 0, totalJkmEr = 0;
+      let totalCostEe = 0, totalCostEr = 0, totalAll = 0;
+
+      for (const item of items) {
+        const emp = (item.employees as any) || {};
+        const wage = Number(item.base_salary) + Number(item.allowances);
+        const kesEe = Number(item.bpjs_kes_employee);
+        const kesEr = Number(item.bpjs_kes_employer);
+        const jhtEe = Number(item.jht_employee);
+        const jhtEr = Number(item.jht_employer);
+        const jpEe = Number(item.jp_employee);
+        const jpEr = Number(item.jp_employer);
+        const jkkEr = Number(item.jkk_employer);
+        const jkmEr = Number(item.jkm_employer);
+
+        const costEe = kesEe + jhtEe + jpEe;
+        const costEr = kesEr + jhtEr + jpEr + jkkEr + jkmEr;
+        const total = costEe + costEr;
+
+        totalWage += wage;
+        totalKesEe += kesEe;
+        totalKesEr += kesEr;
+        totalJhtEe += jhtEe;
+        totalJhtEr += jhtEr;
+        totalJpEe += jpEe;
+        totalJpEr += jpEr;
+        totalJkkEr += jkkEr;
+        totalJkmEr += jkmEr;
+        totalCostEe += costEe;
+        totalCostEr += costEr;
+        totalAll += total;
+
+        wsData.push([
+          idx++,
+          emp.full_name || "",
+          wage,
+          kesEe,
+          kesEr,
+          jhtEe,
+          jhtEr,
+          jpEe,
+          jpEr,
+          jkkEr,
+          jkmEr,
+          costEe,
+          costEr,
+          total
+        ]);
+      }
+
+      wsData.push([
+        "TOTAL",
+        "",
+        totalWage,
+        totalKesEe,
+        totalKesEr,
+        totalJhtEe,
+        totalJhtEr,
+        totalJpEe,
+        totalJpEr,
+        totalJkkEr,
+        totalJkmEr,
+        totalCostEe,
+        totalCostEr,
+        totalAll
+      ]);
+
+    } else if (reportType === "pph21_ebupot") {
+      sheetName = "e-Bupot PPh 21";
+      // This template aligns with DJP e-Bupot 21/26 skema impor
+      wsData = [
+        ["Masa Pajak", "Tahun Pajak", "Pembetulan", "NPWP/NIK", "Nama", "Kode Objek Pajak", "Penghasilan Bruto", "PPh 21 Dipotong"],
+      ];
+
+      for (const item of items) {
+        const emp = (item.employees as any) || {};
+        const tax = (emp.tax_profile as any) || {};
+        const idNumber = tax.npwp || emp.employee_no || ""; // Fallback to employee no if no NPWP/NIK is stored
+        const gross = Number(item.gross_pay);
+        const pph21 = Number(item.pph21);
+
+        wsData.push([
+          String(run.period_month).padStart(2, "0"),
+          run.period_year,
+          0,
+          idNumber,
+          emp.full_name || "",
+          "21-100-01", // Pegawai Tetap
+          gross,
+          pph21
+        ]);
+      }
+
+    } else if (reportType === "bpjs_sipp") {
+      sheetName = "SIPP Upload Upah";
+      // Official SIPP wage upload column template
+      wsData = [
+        ["NIK", "KPJ", "Nama Karyawan", "Upah"],
+      ];
+
+      for (const item of items) {
+        const emp = (item.employees as any) || {};
+        const wage = Number(item.base_salary) + Number(item.allowances);
+        
+        wsData.push([
+          "", // NIK is not explicitly stored or can use a mock
+          "", // KPJ is not explicitly stored
+          emp.full_name || "",
+          wage
+        ]);
+      }
+    } else {
+      throw new Error(`Unsupported report type: ${reportType}`);
+    }
+
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+
+    // Write to Excel buffer
+    const excelBuffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+
+    // Upload path
+    const outputPath = `${companyId}/reports/${jobId}_${reportType}.xlsx`;
+
+    // 3. Upload to reports private storage bucket
+    const { error: uploadError } = await supabase.storage
+      .from("reports")
+      .upload(outputPath, excelBuffer, {
+        contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        upsert: true,
+      });
+
+    if (uploadError) {
+      throw new Error(`Storage upload failed: ${uploadError.message}`);
+    }
+
+    // 4. Update job to completed
+    const { error: updateError } = await supabase
+      .from("report_jobs")
+      .update({
+        status: "completed",
+        output_path: outputPath,
+        completed_at: new Date().toISOString(),
+      })
+      .eq("id", jobId);
+
+    if (updateError) {
+      throw new Error(`Failed to finalize report job status: ${updateError.message}`);
+    }
+
+    console.log(`[Worker] Successfully completed report job: ${jobId}`);
+    return res.status(200).json({ success: true, message: "Report processed successfully." });
+
+  } catch (error: any) {
+    console.error(`[Worker] Error processing report job ${jobId}:`, error);
+
+    // Set job status to failed
+    await supabase
+      .from("report_jobs")
+      .update({
+        status: "failed",
+        error_message: error.message || "Unknown error occurred.",
+        completed_at: new Date().toISOString(),
+      })
+      .eq("id", jobId);
+
+    return res.status(500).json({ error: error.message || "Unknown error occurred during report processing." });
   }
 });
 

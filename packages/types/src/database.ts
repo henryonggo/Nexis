@@ -294,6 +294,7 @@ export type Database = {
           free_seat_limit: number
           npwp: string | null
           plan: Database["public"]["Enums"]["plan_tier"]
+          subscription_id: string | null
           trial_ends_at: string | null
           updated_at: string
         }
@@ -306,6 +307,7 @@ export type Database = {
           free_seat_limit?: number
           npwp?: string | null
           plan?: Database["public"]["Enums"]["plan_tier"]
+          subscription_id?: string | null
           trial_ends_at?: string | null
           updated_at?: string
         }
@@ -318,6 +320,7 @@ export type Database = {
           free_seat_limit?: number
           npwp?: string | null
           plan?: Database["public"]["Enums"]["plan_tier"]
+          subscription_id?: string | null
           trial_ends_at?: string | null
           updated_at?: string
         }
@@ -327,6 +330,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: true
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_billing_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
             referencedColumns: ["id"]
           },
         ]
@@ -679,6 +689,60 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          amount: number
+          company_id: string
+          created_at: string
+          gateway_invoice_id: string | null
+          id: string
+          pdf_url: string | null
+          period_end: string | null
+          period_start: string | null
+          status: string
+          subscription_id: string | null
+        }
+        Insert: {
+          amount: number
+          company_id: string
+          created_at?: string
+          gateway_invoice_id?: string | null
+          id?: string
+          pdf_url?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          status: string
+          subscription_id?: string | null
+        }
+        Update: {
+          amount?: number
+          company_id?: string
+          created_at?: string
+          gateway_invoice_id?: string | null
+          id?: string
+          pdf_url?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          status?: string
+          subscription_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
             referencedColumns: ["id"]
           },
         ]
@@ -1305,6 +1369,53 @@ export type Database = {
           },
         ]
       }
+      report_jobs: {
+        Row: {
+          company_id: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          error_message: string | null
+          id: string
+          output_path: string | null
+          parameters: Json
+          report_type: string
+          status: string
+        }
+        Insert: {
+          company_id: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          id?: string
+          output_path?: string | null
+          parameters?: Json
+          report_type: string
+          status: string
+        }
+        Update: {
+          company_id?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          id?: string
+          output_path?: string | null
+          parameters?: Json
+          report_type?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_jobs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shifts: {
         Row: {
           company_id: string
@@ -1339,6 +1450,56 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "shifts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions: {
+        Row: {
+          company_id: string
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          gateway_customer_id: string | null
+          gateway_subscription_id: string | null
+          id: string
+          plan_id: string
+          quantity: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          gateway_customer_id?: string | null
+          gateway_subscription_id?: string | null
+          id?: string
+          plan_id: string
+          quantity?: number
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          gateway_customer_id?: string | null
+          gateway_subscription_id?: string | null
+          id?: string
+          plan_id?: string
+          quantity?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
