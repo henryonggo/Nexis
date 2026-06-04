@@ -143,6 +143,9 @@ function generatePayslipPdfBuffer(data: any): Promise<Buffer> {
       doc.text(`Gaji Pokok: Rp ${data.baseSalary.toLocaleString("id-ID")}`);
       doc.text(`Tunjangan Tetap: Rp ${data.allowances.toLocaleString("id-ID")}`);
       doc.text(`Lembur (Overtime): Rp ${data.overtimePay.toLocaleString("id-ID")}`);
+      if (data.reimbursementTaxable && data.reimbursementTaxable > 0) {
+        doc.text(`Reimbursement (Taxable): Rp ${data.reimbursementTaxable.toLocaleString("id-ID")}`);
+      }
       doc.font("Helvetica-Bold").text(`Total Penghasilan Kotor (Gross): Rp ${data.grossPay.toLocaleString("id-ID")}`);
       doc.font("Helvetica").moveDown(1.5);
 
@@ -160,6 +163,9 @@ function generatePayslipPdfBuffer(data: any): Promise<Buffer> {
       doc.moveDown(1);
 
       // Net Pay
+      if (data.reimbursementNonTaxable && data.reimbursementNonTaxable > 0) {
+        doc.text(`Reimbursement (Non-taxable): Rp ${data.reimbursementNonTaxable.toLocaleString("id-ID")}`);
+      }
       doc.fontSize(14).font("Helvetica-Bold").text(`TAKE HOME PAY (NET): Rp ${data.netPay.toLocaleString("id-ID")}`);
       doc.font("Helvetica").moveDown(2);
 
@@ -233,6 +239,7 @@ app.post("/process", async (req, res) => {
       { data: terRows },
       { data: ptkpRows },
       { data: bracketRows },
+      { data: approvedClaims },
     ] = await Promise.all([
       supabase.from("company_settings").select("*").eq("company_id", run.company_id).maybeSingle(),
       supabase.from("employees").select("*").eq("company_id", run.company_id).eq("status", "active"),
@@ -244,7 +251,26 @@ app.post("/process", async (req, res) => {
       supabase.from("ter_rates").select("*"),
       supabase.from("ptkp_rates").select("*"),
       supabase.from("tax_brackets").select("*"),
+      supabase.from("reimbursement_claims").select("*, claim_types(taxable)").eq("company_id", run.company_id).eq("status", "approved").is("payroll_run_id", null),
     ]);
+
+    // Map claims by employee
+    const claimsByEmployee = new Map<string, { taxableAmount: number; nonTaxableAmount: number; claimIds: string[] }>();
+    for (const claim of approvedClaims || []) {
+      const empId = claim.employee_id;
+      const current = claimsByEmployee.get(empId) || { taxableAmount: 0, nonTaxableAmount: 0, claimIds: [] };
+      
+      const isTaxable = (claim.claim_types as any)?.taxable ?? false;
+      const amount = Number(claim.amount);
+      
+      if (isTaxable) {
+        current.taxableAmount += amount;
+      } else {
+        current.nonTaxableAmount += amount;
+      }
+      current.claimIds.push(claim.id);
+      claimsByEmployee.set(empId, current);
+    }
 
     if (!employees || employees.length === 0) {
       console.warn(`[Worker] No active employees found for company ${run.company_id}. Completing run with 0 items.`);
@@ -348,6 +374,8 @@ app.post("/process", async (req, res) => {
 
       let itemResult: any;
 
+      const empClaims = claimsByEmployee.get(emp.id) || { taxableAmount: 0, nonTaxableAmount: 0, claimIds: [] };
+
       if (inferredRunType === "thr") {
         const months = monthsOfService(emp.join_date, year, month);
         const thrAmount = Number(computeThr(baseSalary, months));
@@ -368,6 +396,8 @@ app.post("/process", async (req, res) => {
           baseSalary,
           allowances: 0,
           overtimePay: 0,
+          variableEarnings: 0,
+          reimbursementNonTaxable: 0,
           terCategory: null,
           monthsWorked: months,
         };
@@ -416,6 +446,7 @@ app.post("/process", async (req, res) => {
           baseSalary,
           fixedAllowances: allowances,
           overtimePay,
+          variableEarnings: empClaims.taxableAmount,
           ptkpStatus,
           hasNpwp,
           jkkRiskClass,
@@ -425,6 +456,9 @@ app.post("/process", async (req, res) => {
         };
 
         const result = computeMonthlyPayroll(input, config);
+
+        // Add non-taxable claims directly to net pay
+        result.netPay += empClaims.nonTaxableAmount;
 
         // December progressive reconciliation override
         if (month === 12) {
@@ -445,7 +479,7 @@ app.post("/process", async (req, res) => {
 
           result.pph21 = Math.max(0, decRecon.decemberWithholding);
           const deductions = result.bpjsKesEmployee + result.jhtEmployee + result.jpEmployee + result.pph21;
-          result.netPay = Math.max(0, result.gross - deductions);
+          result.netPay = Math.max(0, result.gross - deductions) + empClaims.nonTaxableAmount;
         }
 
         itemResult = {
@@ -453,6 +487,8 @@ app.post("/process", async (req, res) => {
           baseSalary,
           allowances,
           overtimePay,
+          variableEarnings: empClaims.taxableAmount,
+          reimbursementNonTaxable: empClaims.nonTaxableAmount,
           terCategory: ptkpCategory(ptkpStatus),
         };
       }
@@ -502,6 +538,8 @@ app.post("/process", async (req, res) => {
         baseSalary: itemResult.baseSalary,
         allowances: itemResult.allowances,
         overtimePay: itemResult.overtimePay,
+        reimbursementTaxable: itemResult.variableEarnings || 0,
+        reimbursementNonTaxable: itemResult.reimbursementNonTaxable || 0,
         grossPay: itemResult.gross,
         bpjsKesEmployee: itemResult.bpjsKesEmployee,
         jhtEmployee: itemResult.jhtEmployee,
@@ -576,6 +614,27 @@ app.post("/process", async (req, res) => {
 
     if (runUpdateError) {
       throw new Error(`Failed to finalize payroll run totals: ${runUpdateError.message}`);
+    }
+
+    // 9. Update claims processed in this run to status='paid' and set payroll_run_id
+    const allProcessedClaimIds: string[] = [];
+    for (const emp of employees) {
+      const empClaims = claimsByEmployee.get(emp.id);
+      if (empClaims && empClaims.claimIds.length > 0) {
+        allProcessedClaimIds.push(...empClaims.claimIds);
+      }
+    }
+
+    if (allProcessedClaimIds.length > 0) {
+      const { error: claimsUpdateError } = await supabase
+        .from("reimbursement_claims")
+        .update({ status: "paid", payroll_run_id: runId })
+        .in("id", allProcessedClaimIds);
+
+      if (claimsUpdateError) {
+        throw new Error(`Failed to update processed reimbursement claims to paid: ${claimsUpdateError.message}`);
+      }
+      console.log(`[Worker] Marked ${allProcessedClaimIds.length} reimbursement claims as paid for run ${runId}`);
     }
 
     console.log(`[Worker] Successfully completed run: ${runId}`);

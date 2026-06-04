@@ -1,7 +1,16 @@
 # Continue here — Claude Code working notes
 
-_Last updated: 2026-06-03. This is Claude Code's scratch/handoff note (app-layer
+_Last updated: 2026-06-04. This is Claude Code's scratch/handoff note (app-layer
 lane). Not authoritative — `AGENTS.md` + `docs/` win. Safe to delete anytime._
+
+## ▶️ NOW: Stage 5 — Leave & Claims (branch `claude/stage-05-leave-claims`)
+Stage 4 fully merged to `dev` (PR #4) + `main`. Started Stage 5 app layer.
+- **✅ `@nexis/leave`** pure engine done — accrual (monthly/annual-lump, prorated,
+  min-service gate), carry-over cap, working-day counting (weekends + holidays +
+  half-day), balance + request validation. **20 tests pass, typecheck green.**
+- **✅ Antigravity database & worker items landed on dev**: Stage 5 tables, RLS policies, RPCs, private storage buckets, and realtime publications are active. Types regenerated. The payroll worker now integrates approved claims, and the `send-notification` Edge function is ready.
+- **Next steps for Claude (types are live):** mobile leave/claim submit + history; web approval
+  dashboard + team calendar; balance views; notifications integration.
 
 ## Where things stand
 
