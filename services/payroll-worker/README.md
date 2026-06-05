@@ -26,13 +26,29 @@ This is the background payroll calculation worker. It runs as a stateless Expres
 
 ## API Trigger
 
-The worker exposes a single `POST` endpoint to process a run:
+The worker exposes two `POST` endpoints for processing async jobs:
+
+### 1. Payroll Run Processing
+
+Processes a queued monthly or THR payroll run:
 
 ```bash
 curl -X POST http://localhost:3001/process \
   -H "Content-Type: application/json" \
   -d '{"runId": "your-payroll-run-uuid"}'
 ```
+
+### 2. Report Job Export Processing
+
+Asynchronously generates Excel exports (e.g. Payroll Summary, BPJS Contributions, e-Bupot PPh 21, BPJS SIPP) and writes them to the private `reports` Storage bucket:
+
+```bash
+curl -X POST http://localhost:3001/process-report \
+  -H "Content-Type: application/json" \
+  -d '{"jobId": "your-report-job-uuid"}'
+```
+
+*Trigger Seam*: In local development, these are triggered via direct inline HTTP requests from Next.js server actions (found in `apps/web/lib/report-worker.ts`). In production, these should be queued via GCP Cloud Tasks to enforce rate-limiting and OIDC-authorized invocation.
 
 ## Cloud Run Deployment
 
