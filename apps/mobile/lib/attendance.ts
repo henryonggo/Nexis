@@ -42,11 +42,10 @@ export function nearestGeofence(
 }
 
 /**
- * Upload a captured selfie to the private attendance bucket and return its path.
- * The bucket + RLS policy are owned by Antigravity (Storage).
+ * Upload a captured selfie to the private `attendance-selfies` bucket and return
+ * its path. The bucket + RLS policies (employee uploads own under
+ * {company_id}/{employee_id}/...) are owned by Antigravity (Storage) and live.
  */
-// TODO(db): confirm private Storage bucket name "attendance-selfies" + insert policy
-//           (employee may upload own selfie under {company_id}/{employee_id}/...) — Antigravity
 const SELFIE_BUCKET = "attendance-selfies";
 
 export async function uploadSelfie(

@@ -34,6 +34,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_request_logs: {
+        Row: {
+          created_at: string
+          id: string
+          key_hash: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key_hash: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key_hash?: string
+        }
+        Relationships: []
+      }
       attendance_records: {
         Row: {
           company_id: string
@@ -284,6 +302,53 @@ export type Database = {
         }
         Relationships: []
       }
+      company_api_keys: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          key_hash: string
+          last_used_at: string | null
+          name: string
+          scopes: string[]
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_hash: string
+          last_used_at?: string | null
+          name: string
+          scopes?: string[]
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_hash?: string
+          last_used_at?: string | null
+          name?: string
+          scopes?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_api_keys_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_billing: {
         Row: {
           active_seats: number
@@ -431,6 +496,47 @@ export type Database = {
           },
         ]
       }
+      company_webhooks: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          events: string[]
+          id: string
+          is_active: boolean
+          secret: string
+          url: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          events?: string[]
+          id?: string
+          is_active?: boolean
+          secret: string
+          url: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          events?: string[]
+          id?: string
+          is_active?: boolean
+          secret?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_webhooks_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       compensation: {
         Row: {
           base_salary: number
@@ -484,6 +590,75 @@ export type Database = {
           },
           {
             foreignKeyName: "compensation_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_loans: {
+        Row: {
+          company_id: string
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_note: string | null
+          disbursed_at: string | null
+          employee_id: string
+          id: string
+          installment_amount: number
+          installments: number
+          next_due_month: number | null
+          next_due_year: number | null
+          principal: number
+          reason: string | null
+          status: Database["public"]["Enums"]["loan_status"]
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          disbursed_at?: string | null
+          employee_id: string
+          id?: string
+          installment_amount: number
+          installments: number
+          next_due_month?: number | null
+          next_due_year?: number | null
+          principal: number
+          reason?: string | null
+          status?: Database["public"]["Enums"]["loan_status"]
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          disbursed_at?: string | null
+          employee_id?: string
+          id?: string
+          installment_amount?: number
+          installments?: number
+          next_due_month?: number | null
+          next_due_year?: number | null
+          principal?: number
+          reason?: string | null
+          status?: Database["public"]["Enums"]["loan_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_loans_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_loans_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "employees"
@@ -935,6 +1110,80 @@ export type Database = {
           },
         ]
       }
+      loan_installments: {
+        Row: {
+          amount: number
+          company_id: string
+          created_at: string
+          due_month: number
+          due_year: number
+          employee_id: string
+          id: string
+          loan_id: string
+          paid_at: string | null
+          payroll_run_id: string | null
+          sequence: number
+          status: string
+        }
+        Insert: {
+          amount: number
+          company_id: string
+          created_at?: string
+          due_month: number
+          due_year: number
+          employee_id: string
+          id?: string
+          loan_id: string
+          paid_at?: string | null
+          payroll_run_id?: string | null
+          sequence: number
+          status?: string
+        }
+        Update: {
+          amount?: number
+          company_id?: string
+          created_at?: string
+          due_month?: number
+          due_year?: number
+          employee_id?: string
+          id?: string
+          loan_id?: string
+          paid_at?: string | null
+          payroll_run_id?: string | null
+          sequence?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loan_installments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loan_installments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loan_installments_loan_id_fkey"
+            columns: ["loan_id"]
+            isOneToOne: false
+            referencedRelation: "employee_loans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loan_installments_payroll_run_id_fkey"
+            columns: ["payroll_run_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       minimum_wages: {
         Row: {
           amount: number
@@ -1041,6 +1290,7 @@ export type Database = {
           jkm_employer: number
           jp_employee: number
           jp_employer: number
+          loan_deduction: number
           net_pay: number
           overtime_pay: number
           payroll_run_id: string
@@ -1065,6 +1315,7 @@ export type Database = {
           jkm_employer?: number
           jp_employee?: number
           jp_employer?: number
+          loan_deduction?: number
           net_pay?: number
           overtime_pay?: number
           payroll_run_id: string
@@ -1089,6 +1340,7 @@ export type Database = {
           jkm_employer?: number
           jp_employee?: number
           jp_employer?: number
+          loan_deduction?: number
           net_pay?: number
           overtime_pay?: number
           payroll_run_id?: string
@@ -1224,6 +1476,134 @@ export type Database = {
             columns: ["payroll_item_id"]
             isOneToOne: false
             referencedRelation: "payroll_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      performance_goals: {
+        Row: {
+          company_id: string
+          created_at: string
+          cycle_id: string | null
+          description: string | null
+          employee_id: string
+          id: string
+          progress: number
+          status: Database["public"]["Enums"]["goal_status"]
+          title: string
+          updated_at: string
+          weight: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          cycle_id?: string | null
+          description?: string | null
+          employee_id: string
+          id?: string
+          progress?: number
+          status?: Database["public"]["Enums"]["goal_status"]
+          title: string
+          updated_at?: string
+          weight?: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          cycle_id?: string | null
+          description?: string | null
+          employee_id?: string
+          id?: string
+          progress?: number
+          status?: Database["public"]["Enums"]["goal_status"]
+          title?: string
+          updated_at?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performance_goals_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_goals_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "review_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_goals_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      performance_reviews: {
+        Row: {
+          acknowledged_at: string | null
+          company_id: string
+          created_at: string
+          cycle_id: string
+          employee_id: string
+          id: string
+          overall_rating: number | null
+          reviewer_id: string | null
+          status: Database["public"]["Enums"]["review_status"]
+          submitted_at: string | null
+          summary: string | null
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          company_id: string
+          created_at?: string
+          cycle_id: string
+          employee_id: string
+          id?: string
+          overall_rating?: number | null
+          reviewer_id?: string | null
+          status?: Database["public"]["Enums"]["review_status"]
+          submitted_at?: string | null
+          summary?: string | null
+        }
+        Update: {
+          acknowledged_at?: string | null
+          company_id?: string
+          created_at?: string
+          cycle_id?: string
+          employee_id?: string
+          id?: string
+          overall_rating?: number | null
+          reviewer_id?: string | null
+          status?: Database["public"]["Enums"]["review_status"]
+          submitted_at?: string | null
+          summary?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performance_reviews_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_reviews_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "review_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_reviews_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
             referencedColumns: ["id"]
           },
         ]
@@ -1409,6 +1789,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "report_jobs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      review_cycles: {
+        Row: {
+          company_id: string
+          created_at: string
+          end_date: string
+          id: string
+          name: string
+          start_date: string
+          status: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          end_date: string
+          id?: string
+          name: string
+          start_date: string
+          status?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          end_date?: string
+          id?: string
+          name?: string
+          start_date?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_cycles_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
@@ -1609,6 +2027,105 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_logs: {
+        Row: {
+          attempt_number: number
+          company_id: string
+          created_at: string
+          event_type: string
+          id: string
+          response_body: string | null
+          response_status: number | null
+          status: string
+          webhook_id: string
+        }
+        Insert: {
+          attempt_number?: number
+          company_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          response_body?: string | null
+          response_status?: number | null
+          status: string
+          webhook_id: string
+        }
+        Update: {
+          attempt_number?: number
+          company_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          response_body?: string | null
+          response_status?: number | null
+          status?: string
+          webhook_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_logs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_logs_webhook_id_fkey"
+            columns: ["webhook_id"]
+            isOneToOne: false
+            referencedRelation: "company_webhooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      webhook_queue: {
+        Row: {
+          company_id: string
+          created_at: string
+          event_type: string
+          id: string
+          payload: Json
+          retry_count: number
+          status: string
+          webhook_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          payload: Json
+          retry_count?: number
+          status?: string
+          webhook_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          payload?: Json
+          retry_count?: number
+          status?: string
+          webhook_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_queue_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_queue_webhook_id_fkey"
+            columns: ["webhook_id"]
+            isOneToOne: false
+            referencedRelation: "company_webhooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       work_schedules: {
         Row: {
           company_id: string
@@ -1670,11 +2187,13 @@ export type Database = {
     }
     Functions: {
       accept_invitation: { Args: { p_token: string }; Returns: string }
+      acknowledge_review: { Args: { p_review_id: string }; Returns: undefined }
       approve_claim: {
         Args: { p_claim_id: string; p_decision_note?: string }
         Returns: undefined
       }
       approve_leave: { Args: { p_request_id: string }; Returns: undefined }
+      approve_loan: { Args: { p_loan_id: string }; Returns: undefined }
       calculate_overtime_hours: {
         Args: { p_date: string; p_employee_id: string }
         Returns: {
@@ -1686,6 +2205,15 @@ export type Database = {
       }
       create_company_with_owner: {
         Args: { p_industry?: string; p_name: string }
+        Returns: string
+      }
+      generate_api_key: {
+        Args: {
+          p_company_id: string
+          p_expires_at?: string
+          p_name: string
+          p_scopes: string[]
+        }
         Returns: string
       }
       record_attendance: {
@@ -1708,6 +2236,20 @@ export type Database = {
         Args: { p_decision_note?: string; p_request_id: string }
         Returns: undefined
       }
+      reject_loan: {
+        Args: { p_decision_note?: string; p_loan_id: string }
+        Returns: undefined
+      }
+      request_loan: {
+        Args: {
+          p_employee_id: string
+          p_installments: number
+          p_principal: number
+          p_reason: string
+        }
+        Returns: string
+      }
+      submit_review: { Args: { p_review_id: string }; Returns: undefined }
       user_has_company_access: { Args: { target: string }; Returns: boolean }
       user_is_company_admin: { Args: { target: string }; Returns: boolean }
       user_role_in_company: {
@@ -1721,8 +2263,16 @@ export type Database = {
       company_role: "owner" | "admin" | "manager" | "employee"
       employee_status: "active" | "probation" | "inactive" | "terminated"
       employment_type: "permanent" | "contract" | "intern" | "daily"
+      goal_status: "on_track" | "at_risk" | "off_track" | "done" | "cancelled"
       invite_status: "pending" | "accepted" | "revoked" | "expired"
       leave_status: "pending" | "approved" | "rejected" | "cancelled"
+      loan_status:
+        | "pending"
+        | "approved"
+        | "active"
+        | "settled"
+        | "rejected"
+        | "cancelled"
       pay_period_status:
         | "draft"
         | "queued"
@@ -1732,6 +2282,7 @@ export type Database = {
         | "paid"
         | "cancelled"
       plan_tier: "free" | "starter" | "growth" | "enterprise"
+      review_status: "draft" | "submitted" | "acknowledged"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1867,8 +2418,17 @@ export const Constants = {
       company_role: ["owner", "admin", "manager", "employee"],
       employee_status: ["active", "probation", "inactive", "terminated"],
       employment_type: ["permanent", "contract", "intern", "daily"],
+      goal_status: ["on_track", "at_risk", "off_track", "done", "cancelled"],
       invite_status: ["pending", "accepted", "revoked", "expired"],
       leave_status: ["pending", "approved", "rejected", "cancelled"],
+      loan_status: [
+        "pending",
+        "approved",
+        "active",
+        "settled",
+        "rejected",
+        "cancelled",
+      ],
       pay_period_status: [
         "draft",
         "queued",
@@ -1879,6 +2439,7 @@ export const Constants = {
         "cancelled",
       ],
       plan_tier: ["free", "starter", "growth", "enterprise"],
+      review_status: ["draft", "submitted", "acknowledged"],
     },
   },
 } as const

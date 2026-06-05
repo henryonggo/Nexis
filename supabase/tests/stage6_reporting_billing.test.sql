@@ -115,8 +115,8 @@ select lives_ok(
 -- ── 5. Manager Storage Access Tests ─────────────────────────────────────────
 
 -- Deauthenticate to insert storage fixtures
-perform set_config('role', 'postgres', true);
-perform set_config('request.jwt.claims', null, true);
+select set_config('role', 'postgres', true);
+select set_config('request.jwt.claims', null, true);
 
 -- Insert test files into storage.objects
 insert into storage.objects (id, bucket_id, name, owner) values
