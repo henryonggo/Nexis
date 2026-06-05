@@ -4,10 +4,13 @@
 -- ============================================================================
 
 begin;
-select plan(19);
+select plan(22);
 
 -- Ensure pgTAP is available.
 create extension if not exists pgtap;
+
+-- Clean up any existing data in tables to ensure test isolation
+truncate public.employee_loans cascade;
 
 -- Fixtures: Auth users.
 insert into auth.users (id, email) values
@@ -92,11 +95,15 @@ select is(
 
 -- ── 3. Direct writes blocker test (no direct client insert/update) ───────────
 
--- Employee-a tries to update loan directly
+-- Employee-a tries to update loan directly (this should affect 0 rows because no update policy exists)
 select set_config('request.jwt.claims', json_build_object('sub', '22222222-2222-2222-2222-222222222222', 'role', 'authenticated')::text, true);
-select throws_ok(
-  $$ update public.employee_loans set status = 'approved' where id = 'c1000000-0000-0000-0000-000000000001' $$,
-  'new row violates row-level security policy for "employee_loans"',
+update public.employee_loans set status = 'approved' where id = :'loan_id_fixture';
+
+-- Authenticate as owner-a to verify status did not change
+select set_config('request.jwt.claims', json_build_object('sub', '11111111-1111-1111-1111-111111111111', 'role', 'authenticated')::text, true);
+select is(
+  (select status from public.employee_loans where id = :'loan_id_fixture'),
+  'pending'::public.loan_status,
   'Direct status updates are blocked by RLS'
 );
 
@@ -107,7 +114,7 @@ select set_config('request.jwt.claims', json_build_object('sub', '33333333-3333-
 
 -- Reject loan
 select lives_ok(
-  $$ select public.reject_loan(:'loan_id_fixture', 'Alasan penolakan: cicilan terlalu besar') $$,
+  format('select public.reject_loan(%L, ''Alasan penolakan: cicilan terlalu besar'')', :'loan_id_fixture'),
   'Manager-a can reject Company A loan request'
 );
 
@@ -127,7 +134,7 @@ select set_config('request.jwt.claims', json_build_object('sub', '11111111-1111-
 
 -- Approve loan
 select lives_ok(
-  $$ select public.approve_loan(:'loan_id_fixture') $$,
+  format('select public.approve_loan(%L)', :'loan_id_fixture'),
   'Owner-a can approve Company A loan request'
 );
 
@@ -146,21 +153,41 @@ select is(amount, 1000000::bigint, 'Installment 3 is 1,000,000') from public.loa
 -- ── 6. Trigger next_due and status tests ─────────────────────────────────────
 
 -- Verify next due date is set on loan (should match installment 1)
-select is(next_due_year, (select due_year from public.loan_installments where loan_id = :'loan_id_fixture' and sequence = 1), 'Loan next_due_year is initialized to installment 1 year');
-select is(next_due_month, (select due_month from public.loan_installments where loan_id = :'loan_id_fixture' and sequence = 1), 'Loan next_due_month is initialized to installment 1 month');
+select is(
+  (select next_due_year from public.employee_loans where id = :'loan_id_fixture'), 
+  (select due_year from public.loan_installments where loan_id = :'loan_id_fixture' and sequence = 1), 
+  'Loan next_due_year is initialized to installment 1 year'
+);
+select is(
+  (select next_due_month from public.employee_loans where id = :'loan_id_fixture'), 
+  (select due_month from public.loan_installments where loan_id = :'loan_id_fixture' and sequence = 1), 
+  'Loan next_due_month is initialized to installment 1 month'
+);
+
+-- Switch to postgres role to simulate backend worker / trigger execution
+select set_config('role', 'postgres', true);
+select set_config('request.jwt.claims', null, true);
 
 -- Update first installment to deducted
 update public.loan_installments set status = 'deducted' where loan_id = :'loan_id_fixture' and sequence = 1;
 
 -- Verify next due has moved to installment 2
-select is(next_due_month, (select due_month from public.loan_installments where loan_id = :'loan_id_fixture' and sequence = 2), 'Loan next due month moves to installment 2 after installment 1 is deducted');
+select is(
+  (select next_due_month from public.employee_loans where id = :'loan_id_fixture'), 
+  (select due_month from public.loan_installments where loan_id = :'loan_id_fixture' and sequence = 2), 
+  'Loan next due month moves to installment 2 after installment 1 is deducted'
+);
 
 -- Update remaining installments to deducted
 update public.loan_installments set status = 'deducted' where loan_id = :'loan_id_fixture' and sequence in (2, 3);
 
 -- Verify loan next due is now null and status has flipped to settled
-select is(next_due_month, null, 'Loan next due is null when all installments are deducted');
-select is(status, 'settled', 'Loan status automatically flips to settled when all installments are deducted');
+select is(
+  (select next_due_month from public.employee_loans where id = :'loan_id_fixture'), 
+  null, 
+  'Loan next due is null when all installments are deducted'
+);
+select is(status, 'settled', 'Loan status automatically flips to settled when all installments are deducted') from public.employee_loans where id = :'loan_id_fixture';
 
 -- Clean up
 select * from finish();

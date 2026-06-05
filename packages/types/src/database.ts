@@ -1374,6 +1374,134 @@ export type Database = {
           },
         ]
       }
+      performance_goals: {
+        Row: {
+          company_id: string
+          created_at: string
+          cycle_id: string | null
+          description: string | null
+          employee_id: string
+          id: string
+          progress: number
+          status: Database["public"]["Enums"]["goal_status"]
+          title: string
+          updated_at: string
+          weight: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          cycle_id?: string | null
+          description?: string | null
+          employee_id: string
+          id?: string
+          progress?: number
+          status?: Database["public"]["Enums"]["goal_status"]
+          title: string
+          updated_at?: string
+          weight?: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          cycle_id?: string | null
+          description?: string | null
+          employee_id?: string
+          id?: string
+          progress?: number
+          status?: Database["public"]["Enums"]["goal_status"]
+          title?: string
+          updated_at?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performance_goals_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_goals_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "review_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_goals_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      performance_reviews: {
+        Row: {
+          acknowledged_at: string | null
+          company_id: string
+          created_at: string
+          cycle_id: string
+          employee_id: string
+          id: string
+          overall_rating: number | null
+          reviewer_id: string | null
+          status: Database["public"]["Enums"]["review_status"]
+          submitted_at: string | null
+          summary: string | null
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          company_id: string
+          created_at?: string
+          cycle_id: string
+          employee_id: string
+          id?: string
+          overall_rating?: number | null
+          reviewer_id?: string | null
+          status?: Database["public"]["Enums"]["review_status"]
+          submitted_at?: string | null
+          summary?: string | null
+        }
+        Update: {
+          acknowledged_at?: string | null
+          company_id?: string
+          created_at?: string
+          cycle_id?: string
+          employee_id?: string
+          id?: string
+          overall_rating?: number | null
+          reviewer_id?: string | null
+          status?: Database["public"]["Enums"]["review_status"]
+          submitted_at?: string | null
+          summary?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performance_reviews_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_reviews_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "review_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_reviews_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1555,6 +1683,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "report_jobs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      review_cycles: {
+        Row: {
+          company_id: string
+          created_at: string
+          end_date: string
+          id: string
+          name: string
+          start_date: string
+          status: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          end_date: string
+          id?: string
+          name: string
+          start_date: string
+          status?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          end_date?: string
+          id?: string
+          name?: string
+          start_date?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_cycles_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
@@ -1816,6 +1982,7 @@ export type Database = {
     }
     Functions: {
       accept_invitation: { Args: { p_token: string }; Returns: string }
+      acknowledge_review: { Args: { p_review_id: string }; Returns: undefined }
       approve_claim: {
         Args: { p_claim_id: string; p_decision_note?: string }
         Returns: undefined
@@ -1868,6 +2035,7 @@ export type Database = {
         }
         Returns: string
       }
+      submit_review: { Args: { p_review_id: string }; Returns: undefined }
       user_has_company_access: { Args: { target: string }; Returns: boolean }
       user_is_company_admin: { Args: { target: string }; Returns: boolean }
       user_role_in_company: {
@@ -1881,6 +2049,7 @@ export type Database = {
       company_role: "owner" | "admin" | "manager" | "employee"
       employee_status: "active" | "probation" | "inactive" | "terminated"
       employment_type: "permanent" | "contract" | "intern" | "daily"
+      goal_status: "on_track" | "at_risk" | "off_track" | "done" | "cancelled"
       invite_status: "pending" | "accepted" | "revoked" | "expired"
       leave_status: "pending" | "approved" | "rejected" | "cancelled"
       loan_status:
@@ -1899,6 +2068,7 @@ export type Database = {
         | "paid"
         | "cancelled"
       plan_tier: "free" | "starter" | "growth" | "enterprise"
+      review_status: "draft" | "submitted" | "acknowledged"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2034,6 +2204,7 @@ export const Constants = {
       company_role: ["owner", "admin", "manager", "employee"],
       employee_status: ["active", "probation", "inactive", "terminated"],
       employment_type: ["permanent", "contract", "intern", "daily"],
+      goal_status: ["on_track", "at_risk", "off_track", "done", "cancelled"],
       invite_status: ["pending", "accepted", "revoked", "expired"],
       leave_status: ["pending", "approved", "rejected", "cancelled"],
       loan_status: [
@@ -2054,6 +2225,7 @@ export const Constants = {
         "cancelled",
       ],
       plan_tier: ["free", "starter", "growth", "enterprise"],
+      review_status: ["draft", "submitted", "acknowledged"],
     },
   },
 } as const

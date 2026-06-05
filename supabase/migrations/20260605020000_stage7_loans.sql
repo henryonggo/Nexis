@@ -167,7 +167,7 @@ begin
   end if;
 
   -- Verify manager/admin authority
-  if not public.user_role_in_company(v_company_id) in ('owner', 'admin', 'manager') then
+  if public.user_role_in_company(v_company_id) is null or public.user_role_in_company(v_company_id) not in ('owner', 'admin', 'manager') then
     raise exception 'Unauthorized to request loan for this employee';
   end if;
 
@@ -257,7 +257,7 @@ begin
   end if;
 
   -- Verify manager/admin authority
-  if not public.user_role_in_company(v_company_id) in ('owner', 'admin', 'manager') then
+  if public.user_role_in_company(v_company_id) is null or public.user_role_in_company(v_company_id) not in ('owner', 'admin', 'manager') then
     raise exception 'Unauthorized to approve loan for this company';
   end if;
 
@@ -366,7 +366,7 @@ begin
   end if;
 
   -- Verify manager/admin authority
-  if not public.user_role_in_company(v_company_id) in ('owner', 'admin', 'manager') then
+  if public.user_role_in_company(v_company_id) is null or public.user_role_in_company(v_company_id) not in ('owner', 'admin', 'manager') then
     raise exception 'Unauthorized to reject loan for this company';
   end if;
 
