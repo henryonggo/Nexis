@@ -13,6 +13,7 @@ const NAV = [
   { href: "/claims", label: "Klaim" },
   { href: "/loans", label: "Pinjaman" },
   { href: "/payroll", label: "Penggajian" },
+  { href: "/performance", label: "Kinerja" },
   { href: "/analytics", label: "Analitik" },
   { href: "/reports", label: "Laporan" },
   { href: "/billing", label: "Tagihan" },
