@@ -3,6 +3,7 @@ import type { Database } from "@nexis/types";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 import { formatPeriod, formatRupiah } from "@/lib/payroll";
+import { ExportCsvButton } from "@/components/export-csv-button";
 import { StatusBadge } from "./status-badge";
 
 type RunRow = Pick<
@@ -33,14 +34,26 @@ export default async function PayrollPage() {
           <h1 className="text-2xl font-bold text-ink">Penggajian</h1>
           <p className="text-sm text-muted">Jalankan dan tinjau payroll bulanan {active.name}.</p>
         </div>
-        {isAdmin && (
-          <Link
-            href="/payroll/new"
-            className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
-          >
-            + Jalankan payroll
-          </Link>
-        )}
+        <div className="flex items-center gap-2">
+          <ExportCsvButton
+            filename={`payroll-${active.name}`}
+            headers={["Periode", "Status", "Bruto", "Neto"]}
+            rows={rows.map((run) => [
+              formatPeriod(run.period_year, run.period_month),
+              run.status,
+              run.total_gross,
+              run.total_net,
+            ])}
+          />
+          {isAdmin && (
+            <Link
+              href="/payroll/new"
+              className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
+            >
+              + Jalankan payroll
+            </Link>
+          )}
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-lg border border-[color:var(--border)] bg-white">
