@@ -157,6 +157,9 @@ function generatePayslipPdfBuffer(data: any): Promise<Buffer> {
       doc.text(`BPJS Ketenagakerjaan JHT (Karyawan): Rp ${data.jhtEmployee.toLocaleString("id-ID")}`);
       doc.text(`BPJS Ketenagakerjaan JP (Karyawan): Rp ${data.jpEmployee.toLocaleString("id-ID")}`);
       doc.text(`PPh 21 (Pajak): Rp ${data.pph21.toLocaleString("id-ID")}`);
+      if (data.loanDeduction && data.loanDeduction > 0) {
+        doc.text(`Potongan Pinjaman (Loan): Rp ${data.loanDeduction.toLocaleString("id-ID")}`);
+      }
       doc.font("Helvetica-Bold").text(`Total Potongan: Rp ${data.totalDeductions.toLocaleString("id-ID")}`);
       doc.font("Helvetica").moveDown(1.5);
 
@@ -241,6 +244,7 @@ app.post("/process", async (req, res) => {
       { data: ptkpRows },
       { data: bracketRows },
       { data: approvedClaims },
+      { data: dueInstallments },
     ] = await Promise.all([
       supabase.from("company_settings").select("*").eq("company_id", run.company_id).maybeSingle(),
       supabase.from("employees").select("*").eq("company_id", run.company_id).eq("status", "active"),
@@ -253,6 +257,7 @@ app.post("/process", async (req, res) => {
       supabase.from("ptkp_rates").select("*"),
       supabase.from("tax_brackets").select("*"),
       supabase.from("reimbursement_claims").select("*, claim_types(taxable)").eq("company_id", run.company_id).eq("status", "approved").is("payroll_run_id", null),
+      supabase.from("loan_installments").select("*").eq("company_id", run.company_id).eq("status", "scheduled").eq("due_year", run.period_year).eq("due_month", run.period_month),
     ]);
 
     // Map claims by employee
@@ -271,6 +276,16 @@ app.post("/process", async (req, res) => {
       }
       current.claimIds.push(claim.id);
       claimsByEmployee.set(empId, current);
+    }
+
+    // Map loan installments by employee
+    const loansByEmployee = new Map<string, { amount: number; installmentIds: string[] }>();
+    for (const inst of dueInstallments || []) {
+      const empId = inst.employee_id;
+      const current = loansByEmployee.get(empId) || { amount: 0, installmentIds: [] };
+      current.amount += Number(inst.amount);
+      current.installmentIds.push(inst.id);
+      loansByEmployee.set(empId, current);
     }
 
     if (!employees || employees.length === 0) {
@@ -376,6 +391,7 @@ app.post("/process", async (req, res) => {
       let itemResult: any;
 
       const empClaims = claimsByEmployee.get(emp.id) || { taxableAmount: 0, nonTaxableAmount: 0, claimIds: [] };
+      const empLoans = loansByEmployee.get(emp.id) || { amount: 0, installmentIds: [] };
 
       if (inferredRunType === "thr") {
         const months = monthsOfService(emp.join_date, year, month);
@@ -399,6 +415,7 @@ app.post("/process", async (req, res) => {
           overtimePay: 0,
           variableEarnings: 0,
           reimbursementNonTaxable: 0,
+          loanDeduction: 0,
           terCategory: null,
           monthsWorked: months,
         };
@@ -461,6 +478,9 @@ app.post("/process", async (req, res) => {
         // Add non-taxable claims directly to net pay
         result.netPay += empClaims.nonTaxableAmount;
 
+        const loanDeduction = empLoans.amount;
+        result.netPay = Math.max(0, result.netPay - loanDeduction);
+
         // December progressive reconciliation override
         if (month === 12) {
           const ytd = ytdMap.get(emp.id) || { annualGross: 0, annualPensionJht: 0, ytdPph21Withheld: 0 };
@@ -480,7 +500,8 @@ app.post("/process", async (req, res) => {
 
           result.pph21 = Math.max(0, decRecon.decemberWithholding);
           const deductions = result.bpjsKesEmployee + result.jhtEmployee + result.jpEmployee + result.pph21;
-          result.netPay = Math.max(0, result.gross - deductions) + empClaims.nonTaxableAmount;
+          result.netPay = Math.max(0, result.gross - deductions) + empClaims.nonTaxableAmount - loanDeduction;
+          result.netPay = Math.max(0, result.netPay);
         }
 
         itemResult = {
@@ -490,6 +511,7 @@ app.post("/process", async (req, res) => {
           overtimePay,
           variableEarnings: empClaims.taxableAmount,
           reimbursementNonTaxable: empClaims.nonTaxableAmount,
+          loanDeduction,
           terCategory: ptkpCategory(ptkpStatus),
         };
       }
@@ -517,6 +539,7 @@ app.post("/process", async (req, res) => {
           ter_category: itemResult.terCategory,
           ter_rate_bps: itemResult.terRateBps,
           net_pay: itemResult.netPay,
+          loan_deduction: itemResult.loanDeduction || 0,
           breakdown: itemResult,
         })
         .select("id")
@@ -546,7 +569,8 @@ app.post("/process", async (req, res) => {
         jhtEmployee: itemResult.jhtEmployee,
         jpEmployee: itemResult.jpEmployee,
         pph21: itemResult.pph21,
-        totalDeductions: itemResult.bpjsKesEmployee + itemResult.jhtEmployee + itemResult.jpEmployee + itemResult.pph21,
+        loanDeduction: itemResult.loanDeduction || 0,
+        totalDeductions: itemResult.bpjsKesEmployee + itemResult.jhtEmployee + itemResult.jpEmployee + itemResult.pph21 + (itemResult.loanDeduction || 0),
         netPay: itemResult.netPay,
         bpjsKesEmployer: itemResult.bpjsKesEmployer,
         jhtEmployer: itemResult.jhtEmployer,
@@ -636,6 +660,27 @@ app.post("/process", async (req, res) => {
         throw new Error(`Failed to update processed reimbursement claims to paid: ${claimsUpdateError.message}`);
       }
       console.log(`[Worker] Marked ${allProcessedClaimIds.length} reimbursement claims as paid for run ${runId}`);
+    }
+
+    // 10. Update loan installments processed in this run to status='deducted', paid_at=now(), and set payroll_run_id
+    const allProcessedInstallmentIds: string[] = [];
+    for (const emp of employees) {
+      const empLoans = loansByEmployee.get(emp.id);
+      if (empLoans && empLoans.installmentIds.length > 0) {
+        allProcessedInstallmentIds.push(...empLoans.installmentIds);
+      }
+    }
+
+    if (allProcessedInstallmentIds.length > 0) {
+      const { error: installmentsUpdateError } = await supabase
+        .from("loan_installments")
+        .update({ status: "deducted", payroll_run_id: runId, paid_at: new Date().toISOString() })
+        .in("id", allProcessedInstallmentIds);
+
+      if (installmentsUpdateError) {
+        throw new Error(`Failed to update processed loan installments to deducted: ${installmentsUpdateError.message}`);
+      }
+      console.log(`[Worker] Marked ${allProcessedInstallmentIds.length} loan installments as deducted for run ${runId}`);
     }
 
     console.log(`[Worker] Successfully completed run: ${runId}`);
