@@ -47,6 +47,7 @@ export async function updateSession(request: NextRequest) {
     path.startsWith("/employees") ||
     path.startsWith("/leave") ||
     path.startsWith("/claims") ||
+    path.startsWith("/loans") ||
     path.startsWith("/payroll") ||
     path.startsWith("/reports") ||
     path.startsWith("/billing") ||
