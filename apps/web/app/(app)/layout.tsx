@@ -18,6 +18,7 @@ const NAV = [
   { href: "/reports", label: "Laporan" },
   { href: "/billing", label: "Tagihan" },
   { href: "/audit", label: "Audit" },
+  { href: "/developer", label: "API" },
   { href: "/members", label: "Anggota" },
 ];
 
