@@ -491,6 +491,75 @@ export type Database = {
           },
         ]
       }
+      employee_loans: {
+        Row: {
+          company_id: string
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_note: string | null
+          disbursed_at: string | null
+          employee_id: string
+          id: string
+          installment_amount: number
+          installments: number
+          next_due_month: number | null
+          next_due_year: number | null
+          principal: number
+          reason: string | null
+          status: Database["public"]["Enums"]["loan_status"]
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          disbursed_at?: string | null
+          employee_id: string
+          id?: string
+          installment_amount: number
+          installments: number
+          next_due_month?: number | null
+          next_due_year?: number | null
+          principal: number
+          reason?: string | null
+          status?: Database["public"]["Enums"]["loan_status"]
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          disbursed_at?: string | null
+          employee_id?: string
+          id?: string
+          installment_amount?: number
+          installments?: number
+          next_due_month?: number | null
+          next_due_year?: number | null
+          principal?: number
+          reason?: string | null
+          status?: Database["public"]["Enums"]["loan_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_loans_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_loans_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           company_id: string
@@ -935,6 +1004,80 @@ export type Database = {
           },
         ]
       }
+      loan_installments: {
+        Row: {
+          amount: number
+          company_id: string
+          created_at: string
+          due_month: number
+          due_year: number
+          employee_id: string
+          id: string
+          loan_id: string
+          paid_at: string | null
+          payroll_run_id: string | null
+          sequence: number
+          status: string
+        }
+        Insert: {
+          amount: number
+          company_id: string
+          created_at?: string
+          due_month: number
+          due_year: number
+          employee_id: string
+          id?: string
+          loan_id: string
+          paid_at?: string | null
+          payroll_run_id?: string | null
+          sequence: number
+          status?: string
+        }
+        Update: {
+          amount?: number
+          company_id?: string
+          created_at?: string
+          due_month?: number
+          due_year?: number
+          employee_id?: string
+          id?: string
+          loan_id?: string
+          paid_at?: string | null
+          payroll_run_id?: string | null
+          sequence?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loan_installments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loan_installments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loan_installments_loan_id_fkey"
+            columns: ["loan_id"]
+            isOneToOne: false
+            referencedRelation: "employee_loans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loan_installments_payroll_run_id_fkey"
+            columns: ["payroll_run_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       minimum_wages: {
         Row: {
           amount: number
@@ -1041,6 +1184,7 @@ export type Database = {
           jkm_employer: number
           jp_employee: number
           jp_employer: number
+          loan_deduction: number
           net_pay: number
           overtime_pay: number
           payroll_run_id: string
@@ -1065,6 +1209,7 @@ export type Database = {
           jkm_employer?: number
           jp_employee?: number
           jp_employer?: number
+          loan_deduction?: number
           net_pay?: number
           overtime_pay?: number
           payroll_run_id: string
@@ -1089,6 +1234,7 @@ export type Database = {
           jkm_employer?: number
           jp_employee?: number
           jp_employer?: number
+          loan_deduction?: number
           net_pay?: number
           overtime_pay?: number
           payroll_run_id?: string
@@ -1675,6 +1821,7 @@ export type Database = {
         Returns: undefined
       }
       approve_leave: { Args: { p_request_id: string }; Returns: undefined }
+      approve_loan: { Args: { p_loan_id: string }; Returns: undefined }
       calculate_overtime_hours: {
         Args: { p_date: string; p_employee_id: string }
         Returns: {
@@ -1708,6 +1855,19 @@ export type Database = {
         Args: { p_decision_note?: string; p_request_id: string }
         Returns: undefined
       }
+      reject_loan: {
+        Args: { p_decision_note?: string; p_loan_id: string }
+        Returns: undefined
+      }
+      request_loan: {
+        Args: {
+          p_employee_id: string
+          p_installments: number
+          p_principal: number
+          p_reason: string
+        }
+        Returns: string
+      }
       user_has_company_access: { Args: { target: string }; Returns: boolean }
       user_is_company_admin: { Args: { target: string }; Returns: boolean }
       user_role_in_company: {
@@ -1723,6 +1883,13 @@ export type Database = {
       employment_type: "permanent" | "contract" | "intern" | "daily"
       invite_status: "pending" | "accepted" | "revoked" | "expired"
       leave_status: "pending" | "approved" | "rejected" | "cancelled"
+      loan_status:
+        | "pending"
+        | "approved"
+        | "active"
+        | "settled"
+        | "rejected"
+        | "cancelled"
       pay_period_status:
         | "draft"
         | "queued"
@@ -1869,6 +2036,14 @@ export const Constants = {
       employment_type: ["permanent", "contract", "intern", "daily"],
       invite_status: ["pending", "accepted", "revoked", "expired"],
       leave_status: ["pending", "approved", "rejected", "cancelled"],
+      loan_status: [
+        "pending",
+        "approved",
+        "active",
+        "settled",
+        "rejected",
+        "cancelled",
+      ],
       pay_period_status: [
         "draft",
         "queued",
