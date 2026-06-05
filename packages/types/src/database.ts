@@ -34,6 +34,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_request_logs: {
+        Row: {
+          created_at: string
+          id: string
+          key_hash: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key_hash: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key_hash?: string
+        }
+        Relationships: []
+      }
       attendance_records: {
         Row: {
           company_id: string
@@ -284,6 +302,53 @@ export type Database = {
         }
         Relationships: []
       }
+      company_api_keys: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          key_hash: string
+          last_used_at: string | null
+          name: string
+          scopes: string[]
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_hash: string
+          last_used_at?: string | null
+          name: string
+          scopes?: string[]
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_hash?: string
+          last_used_at?: string | null
+          name?: string
+          scopes?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_api_keys_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_billing: {
         Row: {
           active_seats: number
@@ -426,6 +491,47 @@ export type Database = {
             foreignKeyName: "company_settings_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_webhooks: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          events: string[]
+          id: string
+          is_active: boolean
+          secret: string
+          url: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          events?: string[]
+          id?: string
+          is_active?: boolean
+          secret: string
+          url: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          events?: string[]
+          id?: string
+          is_active?: boolean
+          secret?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_webhooks_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
@@ -1921,6 +2027,105 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_logs: {
+        Row: {
+          attempt_number: number
+          company_id: string
+          created_at: string
+          event_type: string
+          id: string
+          response_body: string | null
+          response_status: number | null
+          status: string
+          webhook_id: string
+        }
+        Insert: {
+          attempt_number?: number
+          company_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          response_body?: string | null
+          response_status?: number | null
+          status: string
+          webhook_id: string
+        }
+        Update: {
+          attempt_number?: number
+          company_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          response_body?: string | null
+          response_status?: number | null
+          status?: string
+          webhook_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_logs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_logs_webhook_id_fkey"
+            columns: ["webhook_id"]
+            isOneToOne: false
+            referencedRelation: "company_webhooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      webhook_queue: {
+        Row: {
+          company_id: string
+          created_at: string
+          event_type: string
+          id: string
+          payload: Json
+          retry_count: number
+          status: string
+          webhook_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          payload: Json
+          retry_count?: number
+          status?: string
+          webhook_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          payload?: Json
+          retry_count?: number
+          status?: string
+          webhook_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_queue_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_queue_webhook_id_fkey"
+            columns: ["webhook_id"]
+            isOneToOne: false
+            referencedRelation: "company_webhooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       work_schedules: {
         Row: {
           company_id: string
@@ -2000,6 +2205,15 @@ export type Database = {
       }
       create_company_with_owner: {
         Args: { p_industry?: string; p_name: string }
+        Returns: string
+      }
+      generate_api_key: {
+        Args: {
+          p_company_id: string
+          p_expires_at?: string
+          p_name: string
+          p_scopes: string[]
+        }
         Returns: string
       }
       record_attendance: {

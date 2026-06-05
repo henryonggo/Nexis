@@ -49,4 +49,12 @@ enabled = true
 [analytics]
 enabled = false
 
+[functions.dispatch-webhook]
+verify_jwt = false
+
+[functions.public-api]
+verify_jwt = false
+
+
+
 
