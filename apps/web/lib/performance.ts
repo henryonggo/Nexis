@@ -1,6 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@nexis/types";
+import type { CycleStatus, GoalStatus, ReviewStatus } from "./performance-constants";
 
 /**
  * Performance & KPI — Stage 7.
@@ -14,23 +15,10 @@ import type { Database } from "@nexis/types";
 type GoalRowT = Database["public"]["Tables"]["performance_goals"]["Row"];
 type ReviewRowT = Database["public"]["Tables"]["performance_reviews"]["Row"];
 
-export type CycleStatus = "draft" | "active" | "closed";
-export type GoalStatus = Database["public"]["Enums"]["goal_status"];
-export type ReviewStatus = Database["public"]["Enums"]["review_status"];
-
-export const GOAL_STATUS_LABELS: Record<GoalStatus, string> = {
-  on_track: "Sesuai target",
-  at_risk: "Berisiko",
-  off_track: "Meleset",
-  done: "Selesai",
-  cancelled: "Dibatalkan",
-};
-
-export const REVIEW_STATUS_LABELS: Record<ReviewStatus, string> = {
-  draft: "Draf",
-  submitted: "Terkirim",
-  acknowledged: "Disetujui karyawan",
-};
+// Status labels/types are client-safe and live in performance-constants.ts so the
+// client status badges/review form can import them without this server-only module.
+export { GOAL_STATUS_LABELS, REVIEW_STATUS_LABELS } from "./performance-constants";
+export type { CycleStatus, GoalStatus, ReviewStatus } from "./performance-constants";
 
 export interface CycleView {
   id: string;

@@ -2,7 +2,7 @@
 
 import { useFormState } from "react-dom";
 import { generateKeyAction, type DeveloperActionState } from "./actions";
-import { API_SCOPES } from "@/lib/developer";
+import { API_SCOPES } from "@/lib/developer-constants";
 import { SubmitButton } from "@/components/submit-button";
 import { SecretReveal } from "./secret-reveal";
 

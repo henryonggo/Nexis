@@ -8,11 +8,22 @@
   --border: #e2e8f0;
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
 html,
 body {
   background: var(--bg);
   color: #0f172a;
-  font-family: Inter, system-ui, sans-serif;
+  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 @layer components {
@@ -36,5 +47,38 @@ body {
   }
   .nx-link {
     @apply text-brand hover:underline;
+  }
+}
+
+/* ---- Landing page helpers ---- */
+.lp-gradient-text {
+  background-image: linear-gradient(110deg, #1f6feb 0%, #14b8a6 55%, #1551b5 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.lp-grid {
+  background-image: linear-gradient(to right, rgba(15, 23, 42, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.05) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 40%, transparent 100%);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 40%, transparent 100%);
+}
+
+.lp-glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+}
+
+.lp-blob {
+  filter: blur(64px);
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-blob {
+    animation: none !important;
   }
 }

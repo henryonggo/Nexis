@@ -8,7 +8,7 @@ import {
 } from "./actions";
 import { SubmitButton } from "@/components/submit-button";
 import { ReviewStatusBadge } from "./status-badge";
-import type { ReviewStatus } from "@/lib/performance";
+import type { ReviewStatus } from "@/lib/performance-constants";
 
 const initial: PerfActionState = {};
 

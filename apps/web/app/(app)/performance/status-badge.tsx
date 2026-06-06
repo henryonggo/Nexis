@@ -3,7 +3,7 @@ import {
   REVIEW_STATUS_LABELS,
   type GoalStatus,
   type ReviewStatus,
-} from "@/lib/performance";
+} from "@/lib/performance-constants";
 
 const GOAL_STYLES: Record<GoalStatus, string> = {
   on_track: "bg-emerald-100 text-emerald-700",
