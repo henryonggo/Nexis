@@ -2,7 +2,7 @@
 
 import { useFormState } from "react-dom";
 import { createWebhookAction, type DeveloperActionState } from "./actions";
-import { WEBHOOK_EVENTS } from "@/lib/developer";
+import { WEBHOOK_EVENTS } from "@/lib/developer-constants";
 import { SubmitButton } from "@/components/submit-button";
 import { SecretReveal } from "./secret-reveal";
 

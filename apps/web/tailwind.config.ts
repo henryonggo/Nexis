@@ -15,7 +15,23 @@ const config: Config = {
         muted: "#64748B",
       },
       borderRadius: { lg: "12px", md: "8px" },
-      fontFamily: { sans: ["Inter", "system-ui", "sans-serif"] },
+      fontFamily: { sans: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"] },
+      keyframes: {
+        aurora: {
+          "0%, 100%": { transform: "translate(0, 0) scale(1)" },
+          "33%": { transform: "translate(3%, -4%) scale(1.08)" },
+          "66%": { transform: "translate(-3%, 3%) scale(0.96)" },
+        },
+        marquee: {
+          from: { transform: "translateX(0)" },
+          to: { transform: "translateX(-50%)" },
+        },
+      },
+      animation: {
+        "aurora-slow": "aurora 18s ease-in-out infinite",
+        "aurora-slower": "aurora 26s ease-in-out infinite",
+        marquee: "marquee 32s linear infinite",
+      },
     },
   },
   plugins: [],

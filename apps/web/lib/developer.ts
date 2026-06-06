@@ -12,25 +12,10 @@ import type { Database } from "@nexis/types";
  * `dispatch-webhook` are Antigravity's lane.
  */
 
-/** API scopes a key can be granted (must match the public-api Edge Function). */
-export const API_SCOPES = [
-  "employees:read",
-  "employees:write",
-  "attendance:read",
-  "attendance:write",
-  "payroll:read",
-] as const;
-export type ApiScope = (typeof API_SCOPES)[number];
-
-/** Webhook event types the dispatch trigger emits. */
-export const WEBHOOK_EVENTS = [
-  "employee.created",
-  "employee.updated",
-  "attendance.clock_in",
-  "attendance.clock_out",
-  "payroll.completed",
-] as const;
-export type WebhookEvent = (typeof WEBHOOK_EVENTS)[number];
+// Scope/event catalog is client-safe and lives in developer-constants.ts so the
+// client key/webhook forms can import it without pulling in this server-only module.
+export { API_SCOPES, WEBHOOK_EVENTS } from "./developer-constants";
+export type { ApiScope, WebhookEvent } from "./developer-constants";
 
 // ── API keys ─────────────────────────────────────────────────────────────────
 
