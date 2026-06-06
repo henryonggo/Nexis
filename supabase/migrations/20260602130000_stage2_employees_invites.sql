@@ -89,7 +89,7 @@ create table invitations (
   company_id  uuid not null references companies(id) on delete cascade,
   email       text not null,
   role        company_role not null default 'employee',
-  token       text not null unique default encode(gen_random_bytes(24),'hex'),
+  token       text not null unique default encode(extensions.gen_random_bytes(24),'hex'),
   status      invite_status not null default 'pending',
   invited_by  uuid not null references auth.users(id),
   expires_at  timestamptz not null default (now() + interval '7 days'),
