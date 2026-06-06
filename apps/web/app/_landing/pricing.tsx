@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { PLANS, formatRupiah } from "@/lib/billing-plans";
-import { Reveal, RevealGroup, RevealItem } from "./reveal";
+import { Reveal } from "./reveal";
 
-function priceLabel(pricePerSeat: number | null): { main: string; sub: string } {
-  if (pricePerSeat === null) return { main: "Hubungi kami", sub: "harga khusus" };
-  if (pricePerSeat === 0) return { main: "Gratis", sub: "selamanya" };
-  return { main: formatRupiah(pricePerSeat), sub: "/ karyawan / bulan" };
-}
+const INCLUDED = [
+  "Semua fitur HR & payroll",
+  "Multi-perusahaan dalam satu akun",
+  "PPh 21, BPJS, THR & lembur otomatis",
+  "Tanpa biaya setup, tanpa kartu kredit",
+];
 
 export function Pricing({ isAuthed }: { isAuthed: boolean }) {
   return (
@@ -20,63 +20,57 @@ export function Pricing({ isAuthed }: { isAuthed: boolean }) {
           Mulai gratis, bayar saat tumbuh
         </h2>
         <p className="mt-4 text-lg text-muted">
-          5 karyawan pertama selalu gratis. Tanpa biaya tersembunyi, tanpa kartu kredit.
+          5 karyawan pertama selalu gratis. Setelah itu cukup Rp 20.000 per karyawan per bulan —
+          tanpa biaya tersembunyi.
         </p>
       </Reveal>
 
-      <RevealGroup className="mt-14 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {PLANS.map((plan) => {
-          const { main, sub } = priceLabel(plan.pricePerSeat);
-          const featured = plan.id === "starter";
-          return (
-            <RevealItem key={plan.id} className="h-full">
-              <motion.div
-                whileHover={{ y: -6 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className={`flex h-full flex-col rounded-2xl border p-6 ${
-                  featured
-                    ? "border-brand bg-white shadow-xl shadow-brand/10 ring-1 ring-brand"
-                    : "border-[color:var(--border)] bg-white shadow-sm"
-                }`}
-              >
-                {featured && (
-                  <span className="mb-3 inline-flex w-fit rounded-full bg-brand px-2.5 py-0.5 text-xs font-semibold text-white">
-                    Paling populer
+      <Reveal className="mx-auto mt-14 max-w-lg" delay={0.05}>
+        <motion.div
+          whileHover={{ y: -6 }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          className="overflow-hidden rounded-2xl border border-brand bg-white shadow-xl shadow-brand/10 ring-1 ring-brand"
+        >
+          {/* Free tier */}
+          <div className="border-b border-[color:var(--border)] p-8 text-center">
+            <span className="inline-flex rounded-full bg-brand-light px-3 py-1 text-xs font-semibold text-brand-dark">
+              5 karyawan pertama
+            </span>
+            <p className="mt-4 text-5xl font-extrabold tracking-tight text-ink">Gratis</p>
+            <p className="mt-1 text-sm text-muted">selamanya, tanpa batas waktu</p>
+          </div>
+
+          {/* Paid tier */}
+          <div className="p-8 text-center">
+            <p className="text-sm font-medium text-muted">Karyawan ke-6 dan seterusnya</p>
+            <div className="mt-2 flex items-baseline justify-center gap-1.5">
+              <span className="text-4xl font-extrabold tracking-tight text-ink">Rp 20.000</span>
+              <span className="text-sm text-muted">/ karyawan / bulan</span>
+            </div>
+            <p className="mt-3 text-xs text-muted">
+              Contoh: 10 karyawan = Rp 100.000 / bulan (5 gratis + 5 × Rp 20.000)
+            </p>
+
+            <ul className="mx-auto mt-6 max-w-xs space-y-2 text-left">
+              {INCLUDED.map((item) => (
+                <li key={item} className="flex items-start gap-2 text-sm text-ink">
+                  <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-teal-50 text-xs font-black text-accent">
+                    ✓
                   </span>
-                )}
-                <h3 className="text-lg font-bold text-ink">{plan.label}</h3>
-                <div className="mt-3 flex flex-wrap items-baseline gap-x-1.5">
-                  <span className="whitespace-nowrap text-3xl font-extrabold tracking-tight text-ink">
-                    {main}
-                  </span>
-                  <span className="text-sm text-muted">{sub}</span>
-                </div>
-                <p className="mt-3 flex-1 text-sm leading-relaxed text-muted">{plan.description}</p>
-                <Link
-                  href={
-                    plan.id === "enterprise"
-                      ? "mailto:halo@nexis.id"
-                      : isAuthed
-                        ? "/billing"
-                        : "/sign-up"
-                  }
-                  className={`mt-6 inline-flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-semibold transition ${
-                    featured
-                      ? "bg-brand text-white hover:bg-brand-dark"
-                      : "border border-[color:var(--border)] text-ink hover:border-brand/40 hover:text-brand"
-                  }`}
-                >
-                  {plan.id === "enterprise"
-                    ? "Hubungi kami"
-                    : plan.id === "free"
-                      ? "Mulai gratis"
-                      : "Pilih paket"}
-                </Link>
-              </motion.div>
-            </RevealItem>
-          );
-        })}
-      </RevealGroup>
+                  {item}
+                </li>
+              ))}
+            </ul>
+
+            <Link
+              href={isAuthed ? "/billing" : "/sign-up"}
+              className="mt-8 inline-flex w-full items-center justify-center rounded-md bg-brand px-4 py-3 text-sm font-semibold text-white transition hover:bg-brand-dark"
+            >
+              {isAuthed ? "Buka tagihan" : "Mulai gratis"}
+            </Link>
+          </div>
+        </motion.div>
+      </Reveal>
     </section>
   );
 }
