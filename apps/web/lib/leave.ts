@@ -49,7 +49,9 @@ export async function getCompanyLeaveRequests(
   const { data, error } = await supabase
     .from("leave_requests")
     .select(
-      "id, start_date, end_date, days, half_day, reason, attachment_path, status, decision_note, created_at, employees(full_name, user_id), leave_types(name, paid)",
+      // employees is embedded via the explicit FK: leave_requests has two FKs to
+      // employees (employee_id + decided_by), so a bare embed is ambiguous (PGRST201).
+      "id, start_date, end_date, days, half_day, reason, attachment_path, status, decision_note, created_at, employees!leave_requests_employee_id_fkey(full_name, user_id), leave_types(name, paid)",
     )
     .eq("company_id", companyId)
     .order("created_at", { ascending: false });

@@ -65,6 +65,53 @@ export async function sendInviteEmail(opts: {
   }
 }
 
+export async function sendVerificationEmail(opts: {
+  to: string;
+  verifyUrl: string;
+  fullName?: string;
+}): Promise<{ sent: boolean; error?: string }> {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return { sent: false };
+
+  const greeting = opts.fullName ? `Halo ${escapeHtml(opts.fullName)},` : "Halo,";
+  const html = `
+    <div style="font-family:Inter,Arial,sans-serif;color:#0F172A;max-width:520px">
+      <h2 style="color:#1F6FEB;margin:0 0 8px">Nexis</h2>
+      <p>${greeting}</p>
+      <p>Terima kasih telah mendaftar di Nexis. Konfirmasi alamat email Anda untuk
+      mengaktifkan akun.</p>
+      <p style="margin:20px 0">
+        <a href="${opts.verifyUrl}" style="background:#1F6FEB;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none">
+          Verifikasi email
+        </a>
+      </p>
+      <p style="color:#64748B;font-size:13px">Atau salin tautan ini: ${opts.verifyUrl}</p>
+      <p style="color:#64748B;font-size:13px">Jika Anda tidak membuat akun ini, abaikan email ini.</p>
+    </div>`;
+
+  try {
+    const res = await fetch(RESEND_ENDPOINT, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: fromAddress(),
+        to: [opts.to],
+        subject: "Verifikasi email Anda untuk Nexis",
+        html,
+      }),
+    });
+    if (!res.ok) {
+      return { sent: false, error: `Resend ${res.status}` };
+    }
+    return { sent: true };
+  } catch (e) {
+    return { sent: false, error: e instanceof Error ? e.message : "send failed" };
+  }
+}
+
 function escapeHtml(s: string): string {
   return s.replace(/[&<>"']/g, (c) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!,
