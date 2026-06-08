@@ -1,20 +1,24 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { deactivateAccount } from "./actions";
 
 /** Two-step confirm before deactivating the account (destructive-ish, reversible). */
 export function DeactivateSection() {
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [pending, setPending] = useState(false);
 
-  function onConfirm() {
+  async function onConfirm() {
     setError(null);
-    startTransition(async () => {
-      const res = await deactivateAccount();
-      if (res?.error) setError(res.error);
-    });
+    setPending(true);
+    // On success the server action redirects (this component unmounts); we only
+    // get here with a result when it failed.
+    const res = await deactivateAccount();
+    if (res?.error) {
+      setError(res.error);
+      setPending(false);
+    }
   }
 
   return (
