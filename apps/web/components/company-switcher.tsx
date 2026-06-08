@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ActiveCompany } from "@nexis/types";
 import { setActiveCompany } from "@/app/(app)/actions";
@@ -68,6 +69,13 @@ export function CompanySwitcher({
               <span className="text-xs text-muted">{ROLE_LABEL[c.role]}</span>
             </button>
           ))}
+          <Link
+            href="/companies/new"
+            onClick={() => setOpen(false)}
+            className="mt-1 flex w-full items-center gap-1 border-t border-[color:var(--border)] px-3 py-2 text-left text-sm font-medium text-brand hover:bg-brand-light"
+          >
+            + Tambah perusahaan
+          </Link>
         </div>
       )}
     </div>

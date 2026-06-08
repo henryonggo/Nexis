@@ -31,6 +31,7 @@ Nexis/
     ├── 05-indonesian-compliance.md ← PPh 21 TER, BPJS, THR, overtime reference
     ├── 06-design-system.md         ← UI conventions, components, i18n
     ├── 07-security-compliance.md   ← RLS, UU PDP, secrets, auditing
+    ├── user-guide.md               ← end-user walkthrough of every app page
     └── stages/
         ├── stage-01-auth.md        ← sign up / sign in / forgot password (START)
         ├── stage-02-company-employees.md

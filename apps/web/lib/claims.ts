@@ -44,7 +44,9 @@ export async function getCompanyClaims(
   const { data, error } = await supabase
     .from("reimbursement_claims")
     .select(
-      "id, amount, description, receipt_path, status, decision_note, created_at, payroll_run_id, employees(full_name, user_id), claim_types(name, taxable)",
+      // employees is embedded via the explicit FK: reimbursement_claims has two FKs
+      // to employees (employee_id + decided_by), so a bare embed is ambiguous (PGRST201).
+      "id, amount, description, receipt_path, status, decision_note, created_at, payroll_run_id, employees!reimbursement_claims_employee_id_fkey(full_name, user_id), claim_types(name, taxable)",
     )
     .eq("company_id", companyId)
     .order("created_at", { ascending: false });

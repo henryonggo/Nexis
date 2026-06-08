@@ -3,6 +3,8 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { sendVerificationEmail } from "@/lib/email";
 import {
   signUpSchema,
   signInSchema,
@@ -30,18 +32,44 @@ export async function signUp(_prev: ActionState, formData: FormData): Promise<Ac
     return { error: parsed.error.issues[0]?.message ?? "Data tidak valid" };
   }
 
+  const { email, password, fullName } = parsed.data;
+
+  // Verification link lands on the login page after confirming.
+  const verifyRedirect = `${siteUrl()}/auth/callback?next=/sign-in`;
+  // const verifyRedirect = `${siteUrl()}/auth/callback?next=/dashboard`; // dev: straight into the app
+
+  // App-managed confirmation: when configured, create the user + mint our own
+  // confirmation link (generateLink does NOT send an email), then send a branded
+  // email via Resend. Supabase's built-in "Confirm signup" email must be disabled
+  // in the dashboard so users don't get two mails.
+  if (process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.RESEND_API_KEY) {
+    const admin = createAdminClient();
+    const { data, error } = await admin.auth.admin.generateLink({
+      type: "signup",
+      email,
+      password,
+      options: { data: { full_name: fullName }, redirectTo: verifyRedirect },
+    });
+    if (error) return { error: error.message };
+
+    const link = data.properties?.action_link;
+    if (link) {
+      await sendVerificationEmail({ to: email, verifyUrl: link, fullName });
+    }
+    return { success: "Account created. Check your email to verify your account." };
+  }
+
+  // Fallback for local dev without service-role / Resend: Supabase sends its default
+  // confirmation email, still redirecting to the login page.
   const supabase = createClient();
   const { error } = await supabase.auth.signUp({
-    email: parsed.data.email,
-    password: parsed.data.password,
-    options: {
-      data: { full_name: parsed.data.fullName },
-      emailRedirectTo: `${siteUrl()}/auth/callback`,
-    },
+    email,
+    password,
+    options: { data: { full_name: fullName }, emailRedirectTo: verifyRedirect },
   });
 
   if (error) return { error: error.message };
-  return { success: "Akun dibuat. Cek email Anda untuk verifikasi." };
+  return { success: "Account created. Check your email to verify your account." };
 }
 
 export async function signIn(_prev: ActionState, formData: FormData): Promise<ActionState> {
@@ -101,4 +129,11 @@ export async function signOut() {
   const supabase = createClient();
   await supabase.auth.signOut();
   redirect("/sign-in");
+}
+
+/** Sign out triggered by the inactivity timer; lands on sign-in with a notice. */
+export async function signOutIdle() {
+  const supabase = createClient();
+  await supabase.auth.signOut();
+  redirect("/sign-in?timeout=1");
 }
