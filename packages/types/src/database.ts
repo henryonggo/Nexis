@@ -1612,6 +1612,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          deactivated_at: string | null
           full_name: string | null
           id: string
           locale: string
@@ -1621,6 +1622,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          deactivated_at?: string | null
           full_name?: string | null
           id: string
           locale?: string
@@ -1630,6 +1632,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          deactivated_at?: string | null
           full_name?: string | null
           id?: string
           locale?: string
@@ -2207,6 +2210,7 @@ export type Database = {
         Args: { p_industry?: string; p_name: string }
         Returns: string
       }
+      deactivate_current_user: { Args: never; Returns: undefined }
       generate_api_key: {
         Args: {
           p_company_id: string
@@ -2216,6 +2220,7 @@ export type Database = {
         }
         Returns: string
       }
+      is_current_user_active: { Args: never; Returns: boolean }
       record_attendance: {
         Args: {
           p_company_id: string
