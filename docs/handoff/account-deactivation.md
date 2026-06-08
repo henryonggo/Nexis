@@ -1,6 +1,13 @@
-# Handoff — Account deactivation (reversible)
+# Handoff — Account deactivation (reversible) — ✅ RESOLVED
 
 **Requested by:** Claude (app layer) · **Owner:** Antigravity (DB) · 2026-06-08
+
+> **Status: complete.** Antigravity landed migration `20260608123700_account_deactivation.sql`
+> (`profiles.deactivated_at`, `deactivate_current_user()` RPC, `is_current_user_active()`
+> + tenancy/RLS guards requiring `deactivated_at is null`, regenerated types, tests).
+> Claude swapped the quarantine cast in `settings/actions.ts` for the typed
+> `supabase.rpc("deactivate_current_user")` and removed the `TODO(db)`. The notes below
+> are kept for history.
 
 The app ships a self-serve **deactivate account** flow (`/settings`). The UI + server
 action are built and wired; they call an RPC that does not exist yet (invoked behind a

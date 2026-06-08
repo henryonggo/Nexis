@@ -93,7 +93,7 @@ flagged for Antigravity / human dashboard config.
 |---|---|---|---|
 | 1 | `/leave` (Cuti) & `/claims` (Klaim) throw; back button broken | ✅ `error.tsx` boundary + `global-error.tsx`; **root cause fixed**: ambiguous `employees` embed (two FKs: `employee_id` + `decided_by`) → explicit FK hint in `lib/leave.ts` + `lib/claims.ts` | none (resolved in-lane) |
 | 2 | Mobile Sign-out hidden; English auth wording | ✅ responsive header/nav; `Keluar`→`Sign out`; auth screens → English | — |
-| 3 | No account deactivation | ✅ `/settings` page + `deactivateAccount` action | `profiles.deactivated_at` + RPC `deactivate_current_user()` + login guard |
+| 3 | No account deactivation | ✅ `/settings` page + `deactivateAccount` action (uses typed RPC) | ✅ done — `profiles.deactivated_at` + RPC `deactivate_current_user()` + guards landed by Antigravity (`20260608123700`) |
 | 4 | No "add company" (multi-company) | ✅ switcher entry + `/companies/new` (reuses `create_company_with_owner`) | — |
 | 5 | No user documentation | ✅ `docs/user-guide.md` (screenshots TODO once UI matures) | — |
 | 6 | Confirmation email from Supabase, link → localhost | ✅ branded Resend verify email via admin `generateLink`, redirect → `/sign-in` | **Site URL** → prod + add to redirect allowlist (fixes the localhost link); keep "Confirm email" ON; Vercel env `SUPABASE_SERVICE_ROLE_KEY`/`RESEND_API_KEY`/`EMAIL_FROM`/`NEXT_PUBLIC_SITE_URL`. NB: `generateLink` does **not** auto-send, so no Supabase email to disable. |

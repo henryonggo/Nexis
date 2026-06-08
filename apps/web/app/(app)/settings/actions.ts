@@ -18,13 +18,7 @@ export async function deactivateAccount(): Promise<SettingsState> {
   } = await supabase.auth.getUser();
   if (!user) redirect("/sign-in");
 
-  // TODO(db): need RPC deactivate_current_user() that sets profiles.deactivated_at
-  //           (timestamptz, nullable) for auth.uid(), plus a login guard / RLS that
-  //           blocks deactivated users from acting — Antigravity. Quarantine cast
-  //           until the RPC is in the generated types.
-  const { error } = await (supabase.rpc as unknown as (
-    fn: string,
-  ) => Promise<{ error: { message: string } | null }>)("deactivate_current_user");
+  const { error } = await supabase.rpc("deactivate_current_user");
 
   if (error) return { error: error.message };
 
