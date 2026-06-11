@@ -52,8 +52,70 @@ export type Database = {
         }
         Relationships: []
       }
+      applications: {
+        Row: {
+          candidate_id: string
+          company_id: string
+          created_at: string
+          id: string
+          job_opening_id: string
+          notes: string | null
+          rating: number | null
+          rejected_reason: string | null
+          stage: Database["public"]["Enums"]["application_stage"]
+          updated_at: string
+        }
+        Insert: {
+          candidate_id: string
+          company_id: string
+          created_at?: string
+          id?: string
+          job_opening_id: string
+          notes?: string | null
+          rating?: number | null
+          rejected_reason?: string | null
+          stage?: Database["public"]["Enums"]["application_stage"]
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          job_opening_id?: string
+          notes?: string | null
+          rating?: number | null
+          rejected_reason?: string | null
+          stage?: Database["public"]["Enums"]["application_stage"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_job_opening_id_fkey"
+            columns: ["job_opening_id"]
+            isOneToOne: false
+            referencedRelation: "job_openings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attendance_records: {
         Row: {
+          client_uuid: string | null
           company_id: string
           created_at: string
           employee_id: string
@@ -67,6 +129,7 @@ export type Database = {
           selfie_url: string | null
         }
         Insert: {
+          client_uuid?: string | null
           company_id: string
           created_at?: string
           employee_id: string
@@ -80,6 +143,7 @@ export type Database = {
           selfie_url?: string | null
         }
         Update: {
+          client_uuid?: string | null
           company_id?: string
           created_at?: string
           employee_id?: string
@@ -225,6 +289,50 @@ export type Database = {
         }
         Relationships: []
       }
+      candidates: {
+        Row: {
+          company_id: string
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          phone: string | null
+          resume_path: string | null
+          source: string | null
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          phone?: string | null
+          resume_path?: string | null
+          source?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          phone?: string | null
+          resume_path?: string | null
+          source?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidates_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       claim_types: {
         Row: {
           company_id: string
@@ -358,6 +466,7 @@ export type Database = {
           company_id: string
           free_seat_limit: number
           npwp: string | null
+          pending_plan: Database["public"]["Enums"]["plan_tier"] | null
           plan: Database["public"]["Enums"]["plan_tier"]
           subscription_id: string | null
           trial_ends_at: string | null
@@ -371,6 +480,7 @@ export type Database = {
           company_id: string
           free_seat_limit?: number
           npwp?: string | null
+          pending_plan?: Database["public"]["Enums"]["plan_tier"] | null
           plan?: Database["public"]["Enums"]["plan_tier"]
           subscription_id?: string | null
           trial_ends_at?: string | null
@@ -384,6 +494,7 @@ export type Database = {
           company_id?: string
           free_seat_limit?: number
           npwp?: string | null
+          pending_plan?: Database["public"]["Enums"]["plan_tier"] | null
           plan?: Database["public"]["Enums"]["plan_tier"]
           subscription_id?: string | null
           trial_ends_at?: string | null
@@ -455,6 +566,50 @@ export type Database = {
           },
         ]
       }
+      company_scim_tokens: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          last_used_at: string | null
+          token_hash: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          token_hash: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          token_hash?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_scim_tokens_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_settings: {
         Row: {
           company_id: string
@@ -491,6 +646,50 @@ export type Database = {
             foreignKeyName: "company_settings_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_sso: {
+        Row: {
+          company_id: string
+          created_at: string
+          default_role: Database["public"]["Enums"]["company_role"]
+          domain: string
+          enabled: boolean
+          id: string
+          idp_metadata: string | null
+          provider: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          default_role?: Database["public"]["Enums"]["company_role"]
+          domain: string
+          enabled?: boolean
+          id?: string
+          idp_metadata?: string | null
+          provider: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          default_role?: Database["public"]["Enums"]["company_role"]
+          domain?: string
+          enabled?: boolean
+          id?: string
+          idp_metadata?: string | null
+          provider?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_sso_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
@@ -544,6 +743,7 @@ export type Database = {
           bpjs_tk_enrolled: boolean
           company_id: string
           created_at: string
+          currency: string
           effective_from: string
           employee_id: string
           fixed_allowances: Json
@@ -558,6 +758,7 @@ export type Database = {
           bpjs_tk_enrolled?: boolean
           company_id: string
           created_at?: string
+          currency?: string
           effective_from?: string
           employee_id: string
           fixed_allowances?: Json
@@ -572,6 +773,7 @@ export type Database = {
           bpjs_tk_enrolled?: boolean
           company_id?: string
           created_at?: string
+          currency?: string
           effective_from?: string
           employee_id?: string
           fixed_allowances?: Json
@@ -589,6 +791,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "compensation_currency_fkey"
+            columns: ["currency"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+          {
             foreignKeyName: "compensation_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
@@ -596,6 +805,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      currencies: {
+        Row: {
+          code: string
+          created_at: string
+          decimals: number
+          symbol: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          decimals?: number
+          symbol: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          decimals?: number
+          symbol?: string
+        }
+        Relationships: []
       }
       employee_loans: {
         Row: {
@@ -738,6 +968,51 @@ export type Database = {
           },
         ]
       }
+      exchange_rates: {
+        Row: {
+          base: string
+          created_at: string
+          effective_from: string
+          id: string
+          quote: string
+          rate: number
+          source: string | null
+        }
+        Insert: {
+          base?: string
+          created_at?: string
+          effective_from?: string
+          id?: string
+          quote: string
+          rate: number
+          source?: string | null
+        }
+        Update: {
+          base?: string
+          created_at?: string
+          effective_from?: string
+          id?: string
+          quote?: string
+          rate?: number
+          source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exchange_rates_base_fkey"
+            columns: ["base"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "exchange_rates_quote_fkey"
+            columns: ["quote"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       expo_push_tokens: {
         Row: {
           created_at: string
@@ -823,6 +1098,67 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      interviews: {
+        Row: {
+          application_id: string
+          company_id: string
+          created_at: string
+          feedback: string | null
+          id: string
+          interviewer_id: string | null
+          mode: string | null
+          outcome: Database["public"]["Enums"]["interview_outcome"]
+          scheduled_at: string
+          updated_at: string
+        }
+        Insert: {
+          application_id: string
+          company_id: string
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          interviewer_id?: string | null
+          mode?: string | null
+          outcome?: Database["public"]["Enums"]["interview_outcome"]
+          scheduled_at: string
+          updated_at?: string
+        }
+        Update: {
+          application_id?: string
+          company_id?: string
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          interviewer_id?: string | null
+          mode?: string | null
+          outcome?: Database["public"]["Enums"]["interview_outcome"]
+          scheduled_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interviews_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interviews_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interviews_interviewer_id_fkey"
+            columns: ["interviewer_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invitations: {
         Row: {
@@ -918,6 +1254,53 @@ export type Database = {
             columns: ["subscription_id"]
             isOneToOne: false
             referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_openings: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          department: string | null
+          description: string | null
+          employment_type: Database["public"]["Enums"]["employment_type"]
+          id: string
+          status: Database["public"]["Enums"]["job_opening_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          department?: string | null
+          description?: string | null
+          employment_type?: Database["public"]["Enums"]["employment_type"]
+          id?: string
+          status?: Database["public"]["Enums"]["job_opening_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          department?: string | null
+          description?: string | null
+          employment_type?: Database["public"]["Enums"]["employment_type"]
+          id?: string
+          status?: Database["public"]["Enums"]["job_opening_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_openings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]
@@ -1281,6 +1664,7 @@ export type Database = {
           breakdown: Json | null
           company_id: string
           created_at: string
+          currency: string
           employee_id: string
           gross_pay: number
           id: string
@@ -1306,6 +1690,7 @@ export type Database = {
           breakdown?: Json | null
           company_id: string
           created_at?: string
+          currency?: string
           employee_id: string
           gross_pay?: number
           id?: string
@@ -1331,6 +1716,7 @@ export type Database = {
           breakdown?: Json | null
           company_id?: string
           created_at?: string
+          currency?: string
           employee_id?: string
           gross_pay?: number
           id?: string
@@ -1355,6 +1741,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_items_currency_fkey"
+            columns: ["currency"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
           },
           {
             foreignKeyName: "payroll_items_employee_id_fkey"
@@ -1618,6 +2011,7 @@ export type Database = {
           locale: string
           phone: string | null
           updated_at: string
+          whatsapp_opt_in: boolean
         }
         Insert: {
           avatar_url?: string | null
@@ -1628,6 +2022,7 @@ export type Database = {
           locale?: string
           phone?: string | null
           updated_at?: string
+          whatsapp_opt_in?: boolean
         }
         Update: {
           avatar_url?: string | null
@@ -1638,6 +2033,7 @@ export type Database = {
           locale?: string
           phone?: string | null
           updated_at?: string
+          whatsapp_opt_in?: boolean
         }
         Relationships: []
       }
@@ -1887,6 +2283,7 @@ export type Database = {
           gateway_customer_id: string | null
           gateway_subscription_id: string | null
           id: string
+          plan: Database["public"]["Enums"]["plan_tier"] | null
           plan_id: string
           quantity: number
           status: string
@@ -1900,6 +2297,7 @@ export type Database = {
           gateway_customer_id?: string | null
           gateway_subscription_id?: string | null
           id?: string
+          plan?: Database["public"]["Enums"]["plan_tier"] | null
           plan_id: string
           quantity?: number
           status: string
@@ -1913,6 +2311,7 @@ export type Database = {
           gateway_customer_id?: string | null
           gateway_subscription_id?: string | null
           id?: string
+          plan?: Database["public"]["Enums"]["plan_tier"] | null
           plan_id?: string
           quantity?: number
           status?: string
@@ -2220,6 +2619,32 @@ export type Database = {
         }
         Returns: string
       }
+      generate_scim_token: {
+        Args: { p_company_id: string; p_expires_at?: string }
+        Returns: string
+      }
+      get_scim_user_by_id: {
+        Args: { p_company_id: string; p_user_id: string }
+        Returns: {
+          deactivated_at: string
+          email: string
+          full_name: string
+          id: string
+          role: Database["public"]["Enums"]["company_role"]
+        }[]
+      }
+      get_scim_users: {
+        Args: { p_company_id: string; p_email?: string }
+        Returns: {
+          deactivated_at: string
+          email: string
+          full_name: string
+          id: string
+          role: Database["public"]["Enums"]["company_role"]
+        }[]
+      }
+      get_user_id_by_email: { Args: { p_email: string }; Returns: string }
+      hire_application: { Args: { p_application_id: string }; Returns: string }
       is_current_user_active: { Args: never; Returns: boolean }
       record_attendance: {
         Args: {
@@ -2254,6 +2679,10 @@ export type Database = {
         }
         Returns: string
       }
+      scim_set_user_active: {
+        Args: { p_active: boolean; p_company_id: string; p_user_id: string }
+        Returns: undefined
+      }
       submit_review: { Args: { p_review_id: string }; Returns: undefined }
       user_has_company_access: { Args: { target: string }; Returns: boolean }
       user_is_company_admin: { Args: { target: string }; Returns: boolean }
@@ -2263,13 +2692,22 @@ export type Database = {
       }
     }
     Enums: {
+      application_stage:
+        | "applied"
+        | "screening"
+        | "interview"
+        | "offer"
+        | "hired"
+        | "rejected"
       attendance_kind: "clock_in" | "clock_out" | "break_start" | "break_end"
       claim_status: "pending" | "approved" | "rejected" | "paid"
       company_role: "owner" | "admin" | "manager" | "employee"
       employee_status: "active" | "probation" | "inactive" | "terminated"
       employment_type: "permanent" | "contract" | "intern" | "daily"
       goal_status: "on_track" | "at_risk" | "off_track" | "done" | "cancelled"
+      interview_outcome: "pending" | "pass" | "fail"
       invite_status: "pending" | "accepted" | "revoked" | "expired"
+      job_opening_status: "open" | "paused" | "closed" | "filled"
       leave_status: "pending" | "approved" | "rejected" | "cancelled"
       loan_status:
         | "pending"
@@ -2418,13 +2856,23 @@ export const Constants = {
   },
   public: {
     Enums: {
+      application_stage: [
+        "applied",
+        "screening",
+        "interview",
+        "offer",
+        "hired",
+        "rejected",
+      ],
       attendance_kind: ["clock_in", "clock_out", "break_start", "break_end"],
       claim_status: ["pending", "approved", "rejected", "paid"],
       company_role: ["owner", "admin", "manager", "employee"],
       employee_status: ["active", "probation", "inactive", "terminated"],
       employment_type: ["permanent", "contract", "intern", "daily"],
       goal_status: ["on_track", "at_risk", "off_track", "done", "cancelled"],
+      interview_outcome: ["pending", "pass", "fail"],
       invite_status: ["pending", "accepted", "revoked", "expired"],
+      job_opening_status: ["open", "paused", "closed", "filled"],
       leave_status: ["pending", "approved", "rejected", "cancelled"],
       loan_status: [
         "pending",

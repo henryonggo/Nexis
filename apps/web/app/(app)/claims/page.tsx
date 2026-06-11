@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { formatRupiah } from "@nexis/money";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
@@ -10,6 +11,7 @@ export default async function ClaimsPage() {
   const active = await getActiveCompany();
   if (!active) return null;
 
+  const t = await getTranslations("claims");
   const canApprove =
     active.role === "owner" || active.role === "admin" || active.role === "manager";
 
@@ -30,20 +32,17 @@ export default async function ClaimsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-ink">Klaim Reimbursement</h1>
-        <p className="text-sm text-muted">
-          Tinjau dan setujui klaim karyawan {active.name}. Klaim yang disetujui masuk ke
-          payroll berikutnya.
-        </p>
+        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
+        <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
       </div>
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-          Menunggu persetujuan ({pending.length})
+          {t("pending", { count: pending.length })}
         </h2>
         {pending.length === 0 ? (
           <p className="rounded-lg border border-[color:var(--border)] bg-white px-4 py-6 text-center text-sm text-muted">
-            Tidak ada klaim yang menunggu.
+            {t("noPending")}
           </p>
         ) : (
           <div className="space-y-3">
@@ -58,7 +57,7 @@ export default async function ClaimsPage() {
                     <p className="text-sm text-muted">
                       {c.claimTypeName} ·{" "}
                       <span className="font-medium text-ink">{formatRupiah(c.amount)}</span>
-                      {c.taxable ? " · kena pajak" : " · non-pajak"}
+                      {c.taxable ? ` · ${t("taxable")}` : ` · ${t("nonTaxable")}`}
                     </p>
                     {c.description && <p className="mt-1 text-sm text-ink">“{c.description}”</p>}
                     {receiptUrls.has(c.id) && (
@@ -68,7 +67,7 @@ export default async function ClaimsPage() {
                         rel="noopener noreferrer"
                         className="mt-1 inline-block text-sm text-brand hover:underline"
                       >
-                        Lihat bukti/struk
+                        {t("viewReceipt")}
                       </a>
                     )}
                   </div>
@@ -81,30 +80,31 @@ export default async function ClaimsPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Riwayat</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t("history")}</h2>
         <HistoryTable rows={decided} />
       </section>
     </div>
   );
 }
 
-function HistoryTable({ rows }: { rows: ClaimView[] }) {
+async function HistoryTable({ rows }: { rows: ClaimView[] }) {
+  const t = await getTranslations("claims");
   return (
     <div className="overflow-hidden rounded-lg border border-[color:var(--border)] bg-white">
       <table className="w-full text-sm">
         <thead className="bg-brand-light/60 text-left text-muted">
           <tr>
-            <th className="px-4 py-2 font-medium">Karyawan</th>
-            <th className="px-4 py-2 font-medium">Jenis</th>
-            <th className="px-4 py-2 text-right font-medium">Jumlah</th>
-            <th className="px-4 py-2 font-medium">Status</th>
+            <th className="px-4 py-2 font-medium">{t("columns.employee")}</th>
+            <th className="px-4 py-2 font-medium">{t("columns.type")}</th>
+            <th className="px-4 py-2 text-right font-medium">{t("columns.amount")}</th>
+            <th className="px-4 py-2 font-medium">{t("columns.status")}</th>
           </tr>
         </thead>
         <tbody>
           {rows.length === 0 ? (
             <tr>
               <td colSpan={4} className="px-4 py-8 text-center text-muted">
-                Belum ada riwayat klaim.
+                {t("noHistory")}
               </td>
             </tr>
           ) : (

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { OnboardingForm } from "./form";
 
@@ -16,17 +17,17 @@ export default async function OnboardingPage() {
 
   if ((count ?? 0) > 0) redirect("/dashboard");
 
+  const t = await getTranslations("onboarding");
+  const tc = await getTranslations("common");
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-4 py-10">
       <div className="mb-6 text-center">
-        <div className="text-3xl font-bold text-brand">Nexis</div>
-        <p className="mt-1 text-sm text-muted">Buat perusahaan pertama Anda</p>
+        <div className="text-3xl font-bold text-brand">{tc("appName")}</div>
+        <p className="mt-1 text-sm text-muted">{t("pageSubtitle")}</p>
       </div>
       <OnboardingForm />
-      <p className="mt-6 max-w-md text-center text-xs text-muted">
-        Paket gratis mencakup 5 karyawan pertama. Tidak perlu NPWP perusahaan atau data legal
-        lainnya sampai Anda meng-upgrade.
-      </p>
+      <p className="mt-6 max-w-md text-center text-xs text-muted">{t("footer")}</p>
     </main>
   );
 }

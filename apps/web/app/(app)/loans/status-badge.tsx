@@ -1,4 +1,7 @@
-import { LOAN_STATUS_LABELS, type LoanStatus } from "@/lib/loans";
+"use client";
+
+import { useTranslations } from "next-intl";
+import type { LoanStatus } from "@/lib/loans";
 
 const STYLES: Record<LoanStatus, string> = {
   pending: "bg-blue-100 text-blue-700",
@@ -10,11 +13,12 @@ const STYLES: Record<LoanStatus, string> = {
 };
 
 export function LoanStatusBadge({ status }: { status: LoanStatus }) {
+  const t = useTranslations("loans.status");
   return (
     <span
       className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${STYLES[status]}`}
     >
-      {LOAN_STATUS_LABELS[status]}
+      {t(status)}
     </span>
   );
 }

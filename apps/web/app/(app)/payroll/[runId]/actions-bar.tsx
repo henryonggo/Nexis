@@ -1,6 +1,7 @@
 "use client";
 
 import { useFormState } from "react-dom";
+import { useTranslations } from "next-intl";
 import type { Database } from "@nexis/types";
 import { approveRun, cancelRun, markRunPaid, type RunActionState } from "../actions";
 import { SubmitButton } from "@/components/submit-button";
@@ -10,6 +11,7 @@ type Status = Database["public"]["Enums"]["pay_period_status"];
 const initial: RunActionState = {};
 
 export function ActionBar({ runId, status }: { runId: string; status: Status }) {
+  const t = useTranslations("payroll.actions");
   const [approveState, approve] = useFormState(approveRun, initial);
   const [paidState, markPaid] = useFormState(markRunPaid, initial);
   const [cancelState, cancel] = useFormState(cancelRun, initial);
@@ -28,13 +30,13 @@ export function ActionBar({ runId, status }: { runId: string; status: Status }) 
         {canApprove && (
           <form action={approve}>
             <input type="hidden" name="runId" value={runId} />
-            <SubmitButton>Setujui &amp; proses</SubmitButton>
+            <SubmitButton>{t("approve")}</SubmitButton>
           </form>
         )}
         {canMarkPaid && (
           <form action={markPaid}>
             <input type="hidden" name="runId" value={runId} />
-            <SubmitButton>Tandai sudah dibayar</SubmitButton>
+            <SubmitButton>{t("markPaid")}</SubmitButton>
           </form>
         )}
         {canCancel && (
@@ -44,7 +46,7 @@ export function ActionBar({ runId, status }: { runId: string; status: Status }) 
               type="submit"
               className="rounded-md border border-[color:var(--border)] px-4 py-2 text-sm font-semibold text-ink hover:bg-brand-light"
             >
-              Batalkan run
+              {t("cancel")}
             </button>
           </form>
         )}

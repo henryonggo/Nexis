@@ -1,13 +1,9 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import type { Database } from "@nexis/types";
 
 type Status = Database["public"]["Enums"]["claim_status"];
-
-const LABELS: Record<Status, string> = {
-  pending: "Menunggu",
-  approved: "Disetujui",
-  rejected: "Ditolak",
-  paid: "Dibayar",
-};
 
 const STYLES: Record<Status, string> = {
   pending: "bg-amber-100 text-amber-700",
@@ -17,9 +13,10 @@ const STYLES: Record<Status, string> = {
 };
 
 export function ClaimStatusBadge({ status }: { status: Status }) {
+  const t = useTranslations("claims.status");
   return (
     <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${STYLES[status]}`}>
-      {LABELS[status]}
+      {t(status)}
     </span>
   );
 }

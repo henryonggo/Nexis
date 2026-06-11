@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 import type { Database } from "@nexis/types";
@@ -27,6 +28,7 @@ export default async function AttendancePage() {
 
   const canCorrect = active.role !== "employee";
   const since = startOfTodayJakartaIso();
+  const t = await getTranslations("attendance");
 
   const [{ data: employees }, { data: records }] = await Promise.all([
     supabase
@@ -51,10 +53,8 @@ export default async function AttendancePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-ink">Kehadiran</h1>
-        <p className="text-sm text-muted">
-          Status langsung kehadiran karyawan {active.name} hari ini.
-        </p>
+        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
+        <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
       </div>
 
       <LiveBoard

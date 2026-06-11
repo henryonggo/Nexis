@@ -3,15 +3,9 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import type { ActiveCompany } from "@nexis/types";
 import { setActiveCompany } from "@/app/(app)/actions";
-
-const ROLE_LABEL: Record<ActiveCompany["role"], string> = {
-  owner: "Pemilik",
-  admin: "Admin",
-  manager: "Manajer",
-  employee: "Karyawan",
-};
 
 /** Company switcher backed by a server-set cookie (active company is read on the server). */
 export function CompanySwitcher({
@@ -21,6 +15,8 @@ export function CompanySwitcher({
   companies: ActiveCompany[];
   activeId: string;
 }) {
+  const tRoles = useTranslations("roles");
+  const tc = useTranslations("common");
   const [open, setOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -50,7 +46,7 @@ export function CompanySwitcher({
       >
         <span className="font-medium text-ink">{active.name}</span>
         <span className="rounded bg-brand-light px-1.5 py-0.5 text-xs text-brand-dark">
-          {ROLE_LABEL[active.role]}
+          {tRoles(active.role)}
         </span>
         <span className="text-muted">▾</span>
       </button>
@@ -66,7 +62,7 @@ export function CompanySwitcher({
               }`}
             >
               <span className="text-ink">{c.name}</span>
-              <span className="text-xs text-muted">{ROLE_LABEL[c.role]}</span>
+              <span className="text-xs text-muted">{tRoles(c.role)}</span>
             </button>
           ))}
           <Link
@@ -74,7 +70,7 @@ export function CompanySwitcher({
             onClick={() => setOpen(false)}
             className="mt-1 flex w-full items-center gap-1 border-t border-[color:var(--border)] px-3 py-2 text-left text-sm font-medium text-brand hover:bg-brand-light"
           >
-            + Tambah perusahaan
+            {tc("addCompany")}
           </Link>
         </div>
       )}

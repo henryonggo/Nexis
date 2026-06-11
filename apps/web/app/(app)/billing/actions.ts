@@ -19,6 +19,7 @@ export type BillingActionState = { error?: string; ok?: boolean };
  * Xendit/Stripe). The payment-success webhook (service role, Antigravity's lane)
  * should create the `subscriptions` + `invoices` rows and set the plan — those
  * tables are service-role-only by RLS, so the app cannot write them here.
+ * Contract agreed in `docs/handoff/stage-06-billing-gateway.md`.
  */
 export async function upgradePlan(
   _prev: BillingActionState,

@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { acceptInvite } from "./actions";
 
 export function AcceptInvite({ token }: { token: string }) {
+  const t = useTranslations("invite");
+  const tc = useTranslations("common");
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
 
@@ -22,7 +25,7 @@ export function AcceptInvite({ token }: { token: string }) {
     <div className="space-y-3">
       {error && <div className="nx-error">{error}</div>}
       <button onClick={onAccept} disabled={isPending} className="nx-btn">
-        {isPending ? "Memproses…" : "Terima & bergabung"}
+        {isPending ? tc("processing") : t("accept")}
       </button>
     </div>
   );

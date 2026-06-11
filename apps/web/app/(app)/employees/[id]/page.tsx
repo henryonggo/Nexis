@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 import { EditEmployeeForm } from "./form";
@@ -33,11 +34,12 @@ export default async function EmployeeDetailPage({ params }: { params: { id: str
     .maybeSingle();
 
   const canEdit = active.role === "owner" || active.role === "admin";
+  const t = await getTranslations("employees");
 
   return (
     <div className="max-w-xl space-y-5">
       <div>
-        <Link href="/employees" className="nx-link text-sm">← Kembali</Link>
+        <Link href="/employees" className="nx-link text-sm">{t("back")}</Link>
         <h1 className="mt-1 text-2xl font-bold text-ink">{employee.full_name}</h1>
         <p className="text-sm text-muted">{employee.position ?? "—"}</p>
       </div>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 import {
@@ -22,15 +23,14 @@ export default async function PerformancePage({
   const active = await getActiveCompany();
   if (!active) return null;
 
+  const t = await getTranslations("performance");
   const canManage =
     active.role === "owner" || active.role === "admin" || active.role === "manager";
   if (!canManage) {
     return (
       <div className="nx-card max-w-lg">
-        <h1 className="mb-1 text-xl font-bold text-ink">Kinerja & KPI</h1>
-        <p className="text-sm text-muted">
-          Hanya pemilik, admin, atau manajer yang dapat mengelola penilaian kinerja.
-        </p>
+        <h1 className="mb-1 text-xl font-bold text-ink">{t("title")}</h1>
+        <p className="text-sm text-muted">{t("noAccess")}</p>
       </div>
     );
   }
@@ -71,10 +71,8 @@ export default async function PerformancePage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-ink">Kinerja & KPI</h1>
-        <p className="text-sm text-muted">
-          Tetapkan sasaran, pantau progres, dan nilai kinerja karyawan {active.name}.
-        </p>
+        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
+        <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -86,12 +84,12 @@ export default async function PerformancePage({
 
       {cycles.length === 0 ? (
         <p className="rounded-lg border border-[color:var(--border)] bg-white px-4 py-6 text-center text-sm text-muted">
-          Belum ada siklus penilaian. Buat satu untuk mulai menetapkan sasaran.
+          {t("noCycles")}
         </p>
       ) : (
         <>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm text-muted">Siklus:</span>
+            <span className="text-sm text-muted">{t("cycleLabel")}</span>
             {cycles.map((c) => (
               <Link
                 key={c.id}
@@ -111,18 +109,18 @@ export default async function PerformancePage({
             <>
               <section className="space-y-3">
                 <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-                  Sasaran — {selectedCycle.name}
+                  {t("goalsHeading", { cycle: selectedCycle.name })}
                 </h2>
                 <GoalsTable goals={goals} />
               </section>
 
               <section className="space-y-3">
                 <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-                  Penilaian
+                  {t("reviewsHeading")}
                 </h2>
                 {goalsByEmployee.size === 0 ? (
                   <p className="rounded-lg border border-[color:var(--border)] bg-white px-4 py-6 text-center text-sm text-muted">
-                    Tambahkan sasaran lebih dulu untuk menilai karyawan.
+                    {t("addGoalsFirst")}
                   </p>
                 ) : (
                   <div className="grid gap-3 md:grid-cols-2">
@@ -154,24 +152,25 @@ export default async function PerformancePage({
   );
 }
 
-function GoalsTable({ goals }: { goals: GoalView[] }) {
+async function GoalsTable({ goals }: { goals: GoalView[] }) {
+  const t = await getTranslations("performance");
   return (
     <div className="overflow-hidden rounded-lg border border-[color:var(--border)] bg-white">
       <table className="w-full text-sm">
         <thead className="bg-brand-light/60 text-left text-muted">
           <tr>
-            <th className="px-4 py-2 font-medium">Karyawan</th>
-            <th className="px-4 py-2 font-medium">Sasaran</th>
-            <th className="px-4 py-2 text-right font-medium">Bobot</th>
-            <th className="px-4 py-2 font-medium">Status</th>
-            <th className="px-4 py-2 font-medium">Progres</th>
+            <th className="px-4 py-2 font-medium">{t("goalsColumns.employee")}</th>
+            <th className="px-4 py-2 font-medium">{t("goalsColumns.goal")}</th>
+            <th className="px-4 py-2 text-right font-medium">{t("goalsColumns.weight")}</th>
+            <th className="px-4 py-2 font-medium">{t("goalsColumns.status")}</th>
+            <th className="px-4 py-2 font-medium">{t("goalsColumns.progress")}</th>
           </tr>
         </thead>
         <tbody>
           {goals.length === 0 ? (
             <tr>
               <td colSpan={5} className="px-4 py-8 text-center text-muted">
-                Belum ada sasaran pada siklus ini.
+                {t("noGoals")}
               </td>
             </tr>
           ) : (

@@ -40,13 +40,17 @@ export function BarList({
 }
 
 /** Vertical bars for the payroll cost trend (gross per period). */
-export function TrendChart({ points }: { points: PayrollPeriodPoint[] }) {
+export function TrendChart({
+  points,
+  emptyText,
+  grossLabel,
+}: {
+  points: PayrollPeriodPoint[];
+  emptyText: string;
+  grossLabel: string;
+}) {
   if (points.length === 0) {
-    return (
-      <p className="py-8 text-center text-sm text-muted">
-        Belum ada run payroll yang selesai untuk ditampilkan.
-      </p>
-    );
+    return <p className="py-8 text-center text-sm text-muted">{emptyText}</p>;
   }
   const max = Math.max(...points.map((p) => p.gross), 1);
 
@@ -57,7 +61,7 @@ export function TrendChart({ points }: { points: PayrollPeriodPoint[] }) {
           <div
             className="w-full rounded-t bg-brand transition-all hover:bg-brand-dark"
             style={{ height: `${Math.max(Math.round((p.gross / max) * 100), 2)}%` }}
-            title={`${p.periodLabel}: ${formatRupiah(p.gross)} bruto`}
+            title={`${p.periodLabel}: ${formatRupiah(p.gross)} ${grossLabel}`}
           />
           <span className="w-full truncate text-center text-[10px] leading-tight text-muted">
             {p.periodLabel}

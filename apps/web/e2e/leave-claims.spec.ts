@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import fs from "node:fs";
+import { STORAGE_STATE, HAS_AUTH } from "./_auth";
 
 /**
  * Stage 5 — leave & claims e2e.
@@ -9,8 +9,8 @@ import fs from "node:fs";
  * skipped rather than failing on missing fixtures (same pattern as payroll.spec).
  */
 
-const storageState = process.env.E2E_STORAGE_STATE;
-const hasAuth = !!storageState && fs.existsSync(storageState);
+const storageState = STORAGE_STATE;
+const hasAuth = HAS_AUTH;
 
 test.describe("leave & claims — auth guard", () => {
   test("unauthenticated visit to /leave redirects to sign-in", async ({ page }) => {
@@ -38,5 +38,23 @@ test.describe("leave & claims — approval dashboards", () => {
     await page.goto("/claims");
     await expect(page.getByRole("heading", { name: "Klaim Reimbursement" })).toBeVisible();
     await expect(page.getByText("Menunggu persetujuan")).toBeVisible();
+  });
+
+  // Money-flow: approve a pending leave request when one is seeded; otherwise
+  // verify the empty state. Either branch passes, so the test is robust whether
+  // or not the target DB has pending fixtures (seeding is Antigravity's lane).
+  test("manager can approve a pending leave request (when seeded)", async ({ page }) => {
+    await page.goto("/leave");
+    await expect(page.getByRole("heading", { name: "Cuti" })).toBeVisible();
+
+    const approve = page.getByRole("button", { name: "Setujui" }).first();
+    if (await approve.count()) {
+      await approve.click();
+      // The server action approves + revalidates; the approved row leaves the
+      // pending queue, so that approve control disappears.
+      await expect(approve).toHaveCount(0, { timeout: 15000 });
+    } else {
+      await expect(page.getByText("Tidak ada permintaan cuti yang menunggu.")).toBeVisible();
+    }
   });
 });

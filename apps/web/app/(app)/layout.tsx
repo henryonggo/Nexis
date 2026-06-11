@@ -1,28 +1,30 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getMemberships, getActiveCompany } from "@/lib/company";
 import { signOut } from "../(auth)/actions";
 import { CompanySwitcher } from "@/components/company-switcher";
 import { IdleTimeout } from "@/components/idle-timeout";
+import { LocaleSwitcher } from "@/components/locale-switcher";
 
 const NAV = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/employees", label: "Karyawan" },
-  { href: "/attendance", label: "Kehadiran" },
-  { href: "/leave", label: "Cuti" },
-  { href: "/claims", label: "Klaim" },
-  { href: "/loans", label: "Pinjaman" },
-  { href: "/payroll", label: "Penggajian" },
-  { href: "/performance", label: "Kinerja" },
-  { href: "/analytics", label: "Analitik" },
-  { href: "/reports", label: "Laporan" },
-  { href: "/billing", label: "Tagihan" },
-  { href: "/audit", label: "Audit" },
-  { href: "/developer", label: "API" },
-  { href: "/members", label: "Anggota" },
-  { href: "/settings", label: "Pengaturan" },
-];
+  { href: "/dashboard", key: "dashboard" },
+  { href: "/employees", key: "employees" },
+  { href: "/attendance", key: "attendance" },
+  { href: "/leave", key: "leave" },
+  { href: "/claims", key: "claims" },
+  { href: "/loans", key: "loans" },
+  { href: "/payroll", key: "payroll" },
+  { href: "/performance", key: "performance" },
+  { href: "/analytics", key: "analytics" },
+  { href: "/reports", key: "reports" },
+  { href: "/billing", key: "billing" },
+  { href: "/audit", key: "audit" },
+  { href: "/developer", key: "developer" },
+  { href: "/members", key: "members" },
+  { href: "/settings", key: "settings" },
+] as const;
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
@@ -34,6 +36,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const memberships = await getMemberships();
   if (memberships.length === 0) redirect("/onboarding");
   const active = await getActiveCompany(memberships);
+  const t = await getTranslations("nav");
+  const tc = await getTranslations("common");
 
   return (
     <div className="min-h-screen">
@@ -45,9 +49,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
         <div className="flex items-center gap-2 sm:gap-3">
           <span className="hidden text-sm text-muted sm:inline">{user.email}</span>
+          <LocaleSwitcher />
           <form action={signOut}>
             <button className="whitespace-nowrap rounded-md border border-[color:var(--border)] px-3 py-1.5 text-sm text-ink hover:bg-brand-light">
-              Sign out
+              {tc("signOut")}
             </button>
           </form>
         </div>
@@ -61,7 +66,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               href={item.href}
               className="block whitespace-nowrap rounded-md px-3 py-2 text-sm text-ink hover:bg-brand-light"
             >
-              {item.label}
+              {t(item.key)}
             </Link>
           ))}
         </nav>

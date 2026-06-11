@@ -1,6 +1,7 @@
 "use client";
 
 import { useFormState } from "react-dom";
+import { useTranslations } from "next-intl";
 import { generateKeyAction, type DeveloperActionState } from "./actions";
 import { API_SCOPES } from "@/lib/developer-constants";
 import { SubmitButton } from "@/components/submit-button";
@@ -9,27 +10,26 @@ import { SecretReveal } from "./secret-reveal";
 const initial: DeveloperActionState = {};
 
 export function KeyForm() {
+  const t = useTranslations("developer.keyForm");
   const [state, action] = useFormState(generateKeyAction, initial);
 
   return (
     <div className="nx-card">
-      <h2 className="mb-1 text-lg font-semibold text-ink">Buat API key</h2>
-      <p className="mb-4 text-sm text-muted">
-        Kunci dipakai sebagai bearer token di header <code>Authorization</code> Public API.
-      </p>
+      <h2 className="mb-1 text-lg font-semibold text-ink">{t("title")}</h2>
+      <p className="mb-4 text-sm text-muted">{t("subtitle")}</p>
 
       {state.error && <div className="nx-error mb-4">{state.error}</div>}
-      {state.secret && <SecretReveal label="API key baru" secret={state.secret} />}
+      {state.secret && <SecretReveal label={t("newSecretLabel")} secret={state.secret} />}
 
       <form action={action} className="space-y-4">
         <div>
           <label className="nx-label" htmlFor="key-name">
-            Nama kunci
+            {t("name")}
           </label>
-          <input id="key-name" name="name" className="nx-input" placeholder="mis. Integrasi HRIS" />
+          <input id="key-name" name="name" className="nx-input" placeholder={t("namePlaceholder")} />
         </div>
         <fieldset>
-          <legend className="nx-label">Scope</legend>
+          <legend className="nx-label">{t("scopes")}</legend>
           <div className="grid grid-cols-2 gap-2">
             {API_SCOPES.map((scope) => (
               <label key={scope} className="flex items-center gap-2 text-sm text-ink">
@@ -39,7 +39,7 @@ export function KeyForm() {
             ))}
           </div>
         </fieldset>
-        <SubmitButton>Buat kunci</SubmitButton>
+        <SubmitButton>{t("submit")}</SubmitButton>
       </form>
     </div>
   );

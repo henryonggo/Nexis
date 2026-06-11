@@ -1,22 +1,142 @@
 {
+  "common": {
+    "appName": "Nexis",
+    "tagline": "HR & Payroll untuk Indonesia",
+    "freeFooter": "Gratis untuk 5 karyawan pertama · Tanpa NPWP perusahaan",
+    "signOut": "Keluar",
+    "email": "Email",
+    "password": "Kata sandi",
+    "optional": "(opsional)",
+    "retry": "Coba lagi",
+    "backToDashboard": "Kembali ke dashboard",
+    "passwordHint": "Minimal 8 karakter, 1 huruf besar, 1 angka.",
+    "exportCsv": "Ekspor CSV",
+    "processing": "Memproses…",
+    "addCompany": "+ Tambah perusahaan"
+  },
+  "roles": {
+    "owner": "Pemilik",
+    "admin": "Admin",
+    "manager": "Manajer",
+    "employee": "Karyawan"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "employees": "Karyawan",
+    "attendance": "Kehadiran",
+    "leave": "Cuti",
+    "claims": "Klaim",
+    "loans": "Pinjaman",
+    "payroll": "Penggajian",
+    "performance": "Kinerja",
+    "analytics": "Analitik",
+    "reports": "Laporan",
+    "billing": "Tagihan",
+    "audit": "Audit",
+    "developer": "API",
+    "members": "Anggota",
+    "settings": "Pengaturan"
+  },
+  "plans": {
+    "free": "Gratis",
+    "starter": "Starter",
+    "growth": "Growth",
+    "enterprise": "Enterprise"
+  },
   "auth": {
-    "signUp": { "title": "Buat akun", "submit": "Daftar" },
-    "signIn": { "title": "Masuk", "submit": "Masuk", "badCredentials": "Email atau kata sandi salah." },
-    "forgot": { "title": "Lupa kata sandi", "neutralSuccess": "Jika akun terdaftar, kami telah mengirim tautan reset ke email Anda." },
-    "reset": { "title": "Atur kata sandi baru" },
-    "verify": { "checkEmail": "Cek email Anda untuk verifikasi." }
+    "signIn": {
+      "title": "Masuk",
+      "welcome": "Selamat datang kembali.",
+      "submit": "Masuk",
+      "forgotLink": "Lupa kata sandi?",
+      "noAccount": "Belum punya akun?",
+      "signUpLink": "Daftar",
+      "resetDone": "Kata sandi diperbarui. Silakan masuk.",
+      "timedOut": "Anda keluar otomatis karena tidak aktif.",
+      "deactivated": "Akun Anda telah dinonaktifkan."
+    },
+    "signUp": {
+      "title": "Buat akun",
+      "subtitle": "Mulai gratis — 5 karyawan pertama gratis.",
+      "fullName": "Nama lengkap",
+      "submit": "Daftar",
+      "haveAccount": "Sudah punya akun?",
+      "signInLink": "Masuk"
+    },
+    "forgot": {
+      "title": "Lupa kata sandi",
+      "subtitle": "Masukkan email Anda dan kami akan mengirim tautan untuk mengatur ulang kata sandi.",
+      "submit": "Kirim tautan reset",
+      "backToSignIn": "Kembali ke halaman masuk"
+    },
+    "reset": {
+      "title": "Atur ulang kata sandi",
+      "subtitle": "Masukkan kata sandi baru untuk akun Anda.",
+      "newPassword": "Kata sandi baru",
+      "submit": "Simpan kata sandi"
+    }
   },
   "onboarding": {
-    "company": { "nameLabel": "Nama perusahaan", "industryLabel": "Industri" },
-    "freeBadge": "Gratis untuk 5 karyawan pertama"
+    "pageSubtitle": "Buat perusahaan pertama Anda",
+    "footer": "Paket gratis mencakup 5 karyawan pertama. Tidak perlu NPWP perusahaan atau data legal lainnya sampai Anda meng-upgrade.",
+    "company": {
+      "title": "Detail perusahaan",
+      "subtitle": "Hanya butuh nama untuk memulai.",
+      "nameLabel": "Nama perusahaan",
+      "industryLabel": "Industri",
+      "industryPlaceholder": "mis. Ritel, Teknologi",
+      "submit": "Buat perusahaan"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "company": "Perusahaan: {name}",
+    "free": {
+      "label": "Paket",
+      "usage": "{used}/{limit} karyawan terpakai",
+      "atLimit": " — batas tercapai.",
+      "noNpwp": ", tanpa perlu NPWP perusahaan.",
+      "upgrade": "Upgrade paket"
+    },
+    "cards": {
+      "employees": "Karyawan",
+      "manageEmployees": "Kelola karyawan →",
+      "attendanceToday": "Kehadiran hari ini",
+      "present": "hadir",
+      "liveLink": "Lihat status langsung →",
+      "lastPayroll": "Payroll terakhir",
+      "runPayroll": "Jalankan payroll →",
+      "planManage": "{plan} · Kelola karyawan →"
+    }
+  },
+  "notFound": {
+    "title": "Halaman tidak ditemukan",
+    "subtitle": "Tautan mungkin salah atau halaman sudah dipindahkan.",
+    "toDashboard": "Ke dashboard",
+    "toHome": "Ke beranda"
+  },
+  "error": {
+    "title": "Terjadi kesalahan",
+    "subtitle": "Halaman ini gagal dimuat. Coba lagi atau kembali ke dashboard.",
+    "retry": "Coba lagi",
+    "back": "Kembali ke dashboard"
+  },
+  "decision": {
+    "approve": "Setujui",
+    "reject": "Tolak",
+    "cancel": "Batal",
+    "rejectReason": "Alasan penolakan (opsional)"
   },
   "attendance": {
     "title": "Kehadiran",
-    "subtitle": "Status langsung kehadiran karyawan hari ini.",
+    "subtitle": "Status langsung kehadiran karyawan {name} hari ini.",
     "live": "Langsung",
     "connecting": "Menyambung…",
     "present": "sedang hadir",
     "noneToday": "Belum ada kehadiran hari ini.",
+    "noEvents": "Belum ada kejadian.",
+    "unknown": "(tidak dikenal)",
+    "notePlaceholder": "Catatan",
     "eventLog": "Log kejadian hari ini",
     "columns": { "employee": "Karyawan", "status": "Status", "time": "Waktu", "event": "Kejadian", "validity": "Validitas", "correction": "Koreksi" },
     "valid": "Valid",
@@ -26,11 +146,113 @@
     "updated": "Kehadiran diperbarui.",
     "kind": { "clock_in": "Masuk", "clock_out": "Keluar", "break_start": "Mulai istirahat", "break_end": "Selesai istirahat" }
   },
+  "leave": {
+    "title": "Cuti",
+    "subtitle": "Tinjau dan setujui permintaan cuti karyawan {name}.",
+    "pending": "Menunggu persetujuan ({count})",
+    "noPending": "Tidak ada permintaan cuti yang menunggu.",
+    "history": "Riwayat",
+    "daysLabel": "hari",
+    "halfDay": "(setengah hari)",
+    "viewAttachment": "Lihat lampiran",
+    "noHistory": "Belum ada riwayat cuti.",
+    "columns": { "employee": "Karyawan", "type": "Jenis", "period": "Periode", "days": "Hari", "status": "Status" },
+    "status": { "pending": "Menunggu", "approved": "Disetujui", "rejected": "Ditolak", "cancelled": "Dibatalkan" }
+  },
+  "claims": {
+    "title": "Klaim Reimbursement",
+    "subtitle": "Tinjau dan setujui klaim karyawan {name}. Klaim yang disetujui masuk ke payroll berikutnya.",
+    "pending": "Menunggu persetujuan ({count})",
+    "noPending": "Tidak ada klaim yang menunggu.",
+    "taxable": "kena pajak",
+    "nonTaxable": "non-pajak",
+    "viewReceipt": "Lihat bukti/struk",
+    "history": "Riwayat",
+    "noHistory": "Belum ada riwayat klaim.",
+    "columns": { "employee": "Karyawan", "type": "Jenis", "amount": "Jumlah", "status": "Status" },
+    "status": { "pending": "Menunggu", "approved": "Disetujui", "rejected": "Ditolak", "paid": "Dibayar" }
+  },
+  "loans": {
+    "title": "Pinjaman & Kasbon",
+    "noAccess": "Hanya pemilik, admin, atau manajer yang dapat mengelola pinjaman karyawan.",
+    "subtitle": "Kelola pinjaman karyawan {name}. Pinjaman disetujui dipotong dari payroll.",
+    "pending": "Menunggu persetujuan ({count})",
+    "noPending": "Tidak ada pengajuan yang menunggu.",
+    "history": "Riwayat",
+    "noHistory": "Belum ada riwayat pinjaman.",
+    "perMonth": "/bln",
+    "columns": { "employee": "Karyawan", "principal": "Pokok", "installments": "Cicilan", "next": "Berikutnya", "status": "Status" },
+    "status": { "pending": "Menunggu", "approved": "Disetujui", "active": "Aktif", "settled": "Lunas", "rejected": "Ditolak", "cancelled": "Dibatalkan" },
+    "form": {
+      "titleEmpty": "Ajukan pinjaman",
+      "emptyHint": "Tambahkan karyawan dulu untuk mengajukan kasbon.",
+      "title": "Ajukan pinjaman / kasbon",
+      "subtitle": "Pinjaman yang disetujui dipotong otomatis dari gaji selama beberapa bulan.",
+      "created": "Pengajuan dibuat dan menunggu persetujuan.",
+      "employee": "Karyawan",
+      "amount": "Nominal (Rp)",
+      "installments": "Jumlah cicilan (bulan)",
+      "estimatePrefix": "Estimasi potongan:",
+      "estimateSuffix": "/ bulan selama {count} bulan.",
+      "reason": "Keterangan (opsional)",
+      "reasonPlaceholder": "mis. kebutuhan mendesak",
+      "submit": "Ajukan pinjaman"
+    }
+  },
+  "employees": {
+    "title": "Karyawan",
+    "seatsUsed": "{used}/{limit} kursi gratis terpakai",
+    "import": "Impor CSV",
+    "add": "+ Tambah karyawan",
+    "limitReached": "Anda telah memakai semua kursi gratis ({limit}).",
+    "upgradeCta": "Upgrade paket",
+    "toAdd": "untuk menambah karyawan.",
+    "columns": { "name": "Nama", "no": "No.", "position": "Posisi", "department": "Departemen", "type": "Tipe", "status": "Status" },
+    "empty": "Belum ada karyawan.",
+    "emptyAdmin": "Tambahkan karyawan pertama Anda.",
+    "newTitle": "Tambah karyawan",
+    "companyLabel": "Perusahaan: {name}",
+    "back": "← Kembali",
+    "employmentType": { "permanent": "Tetap", "contract": "Kontrak", "intern": "Magang", "daily": "Harian" },
+    "status": { "active": "Aktif", "probation": "Masa percobaan", "inactive": "Nonaktif", "terminated": "Berakhir" },
+    "form": {
+      "fullName": "Nama lengkap",
+      "employeeNo": "Nomor karyawan",
+      "type": "Tipe",
+      "position": "Posisi",
+      "department": "Departemen",
+      "status": "Status",
+      "baseSalaryNew": "Gaji pokok (Rp / bulan)",
+      "baseSalaryEdit": "Gaji pokok (Rp/bulan)",
+      "baseSalaryHint": "Dipakai oleh mesin payroll di Stage 4.",
+      "save": "Simpan karyawan",
+      "saveChanges": "Simpan perubahan",
+      "redirecting": "Mengalihkan…",
+      "upgradeLink": "Upgrade paket →",
+      "viewOnly": "Hanya bisa dilihat (peran Anda tidak dapat mengubah data karyawan).",
+      "payTaxSection": "Penggajian & pajak",
+      "ptkpStatus": "Status PTKP",
+      "npwp": "NPWP karyawan (opsional)",
+      "npwpHint": "Tanpa NPWP, PPh 21 dikenakan +20% (Stage 4)."
+    },
+    "import": {
+      "title": "Impor karyawan (CSV)",
+      "columnsLabel": "Kolom:",
+      "headerNote": ". Baris header opsional. Batas paket gratis tetap berlaku (5 karyawan).",
+      "pasteCsv": "Tempel data CSV",
+      "created": "{count} karyawan ditambahkan.",
+      "stoppedAtLimit": " Impor berhenti di batas kursi gratis.",
+      "submit": "Impor",
+      "skippedRows": "Baris yang dilewati:",
+      "rowLine": "Baris {line} ({name}): {reason}"
+    }
+  },
   "payroll": {
     "title": "Penggajian",
-    "subtitle": "Jalankan dan tinjau payroll bulanan perusahaan Anda.",
+    "subtitle": "Jalankan dan tinjau payroll bulanan {name}.",
     "runPayroll": "Jalankan payroll",
-    "newRun": { "title": "Jalankan payroll", "subtitle": "Pilih periode dan jenis run. Anda akan meninjau rincian per karyawan sebelum menyetujui.", "month": "Bulan", "year": "Tahun", "runType": "Jenis run", "monthly": "Gaji bulanan", "thr": "THR (Tunjangan Hari Raya)", "submit": "Buat draf run" },
+    "runFirst": "Jalankan yang pertama",
+    "newRun": { "title": "Jalankan payroll", "subtitle": "Pilih periode dan jenis run. Anda akan meninjau rincian per karyawan sebelum menyetujui.", "month": "Bulan", "year": "Tahun", "runType": "Jenis run", "monthly": "Gaji bulanan", "thr": "THR (Tunjangan Hari Raya)", "submit": "Buat draf run", "cancel": "Batal", "months": ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"] },
     "columns": { "period": "Periode", "status": "Status", "gross": "Bruto", "net": "Neto (take-home)", "employee": "Karyawan", "pph21": "PPh 21 (TER)", "deductions": "Potongan karyawan" },
     "status": { "draft": "Draf", "queued": "Antre", "processing": "Diproses", "completed": "Selesai", "paid": "Dibayar", "failed": "Gagal", "cancelled": "Dibatalkan" },
     "empty": "Belum ada run payroll.",
@@ -39,6 +261,240 @@
     "queuedNote": "Run sudah diantre. Pemrosesan otomatis (perhitungan & slip gaji) akan berjalan saat worker payroll aktif.",
     "actions": { "approve": "Setujui & proses", "markPaid": "Tandai sudah dibayar", "cancel": "Batalkan run" },
     "breakdown": "Rincian",
-    "noNpwp": "(+20% tanpa NPWP)"
+    "noNpwp": "(+20% tanpa NPWP)",
+    "detail": { "back": "← Penggajian", "heading": "Payroll {period}", "noEmployees": "Tidak ada karyawan untuk dihitung.", "terCategory": "Kategori {category} · {rate}" },
+    "monitoring": "memantau…",
+    "connecting": "menyambung…",
+    "summary": { "gross": "Bruto", "bpjsEmployee": "BPJS (karyawan)", "pph21": "PPh 21", "net": "Neto (take-home)" },
+    "breakdownRows": {
+      "bpjsKesEmployee": "BPJS Kes (karyawan 1%)",
+      "bpjsKesEmployer": "BPJS Kes (perusahaan 4%)",
+      "jhtEmployee": "JHT (karyawan 2%)",
+      "jhtEmployer": "JHT (perusahaan 3.7%)",
+      "jpEmployee": "JP (karyawan 1%)",
+      "jpEmployer": "JP (perusahaan 2%)",
+      "jkkEmployer": "JKK (perusahaan)",
+      "jkmEmployer": "JKM (perusahaan 0.30%)",
+      "pph21": "PPh 21"
+    }
+  },
+  "analytics": {
+    "title": "Analitik",
+    "noAccess": "Hanya pemilik atau admin yang dapat melihat analitik perusahaan.",
+    "subtitle": "Ringkasan headcount, biaya payroll, dan cuti {name}.",
+    "activeEmployees": "Karyawan aktif",
+    "totalSuffix": "{total} total",
+    "lastGross": "Bruto payroll terakhir",
+    "noRun": "Belum ada run",
+    "employerBpjs": "BPJS perusahaan (terakhir)",
+    "pph21": "PPh 21 {amount}",
+    "pendingApprovals": "Menunggu persetujuan",
+    "pendingBreakdown": "{leave} cuti · {claims} klaim",
+    "trendTitle": "Tren bruto payroll",
+    "byDepartment": "Karyawan per departemen",
+    "byType": "Karyawan per tipe",
+    "leaveTitle": "Hari cuti disetujui ({year})",
+    "noActiveEmployees": "Belum ada karyawan aktif.",
+    "noLeave": "Belum ada cuti disetujui tahun ini.",
+    "noTrend": "Belum ada run payroll yang selesai untuk ditampilkan.",
+    "unitPeople": "org",
+    "unitDays": "hari",
+    "grossLabel": "bruto"
+  },
+  "audit": {
+    "title": "Audit & Kepatuhan",
+    "noAccess": "Hanya pemilik atau admin yang dapat melihat log audit.",
+    "subtitle": "Catatan tindakan sensitif di {name} — persetujuan, penolakan, dan koreksi.",
+    "all": "Semua",
+    "columns": { "time": "Waktu", "action": "Tindakan", "object": "Objek", "by": "Oleh", "detail": "Detail" },
+    "empty": "Belum ada catatan audit.",
+    "actions": { "approve_leave": "Cuti disetujui", "reject_leave": "Cuti ditolak", "approve_claim": "Klaim disetujui", "reject_claim": "Klaim ditolak", "correct_attendance": "Kehadiran dikoreksi" },
+    "entities": { "leave_requests": "Cuti", "reimbursement_claims": "Klaim", "attendance_records": "Kehadiran", "employees": "Karyawan", "payroll_runs": "Payroll", "company_billing": "Tagihan" }
+  },
+  "reports": {
+    "title": "Laporan & Ekspor",
+    "noAccess": "Hanya pemilik, admin, atau manajer yang dapat membuat dan mengunduh laporan.",
+    "subtitle": "Buat laporan payroll, BPJS, dan PPh 21 untuk {name} dalam format Excel.",
+    "history": "Riwayat laporan",
+    "columns": { "type": "Jenis", "period": "Periode", "created": "Dibuat", "status": "Status" },
+    "empty": "Belum ada laporan dibuat.",
+    "download": "Unduh Excel",
+    "status": { "pending": "Antre", "processing": "Diproses", "completed": "Selesai", "failed": "Gagal" },
+    "form": {
+      "title": "Buat laporan",
+      "noRuns": "Belum ada run payroll yang selesai. Selesaikan satu run payroll dulu untuk membuat laporan & ekspor.",
+      "subtitle": "Pilih run payroll dan jenis laporan. Berkas Excel akan dibuat dan dapat diunduh saat statusnya “Selesai”.",
+      "created": "Laporan sedang dibuat. Segarkan halaman dalam beberapa saat untuk mengunduh.",
+      "period": "Periode payroll",
+      "reportType": "Jenis laporan",
+      "submit": "Buat laporan"
+    },
+    "types": {
+      "payroll_summary": { "label": "Ringkasan Payroll", "description": "Rekap bruto, potongan, BPJS, PPh 21, dan neto per karyawan untuk satu run." },
+      "bpjs_contribution": { "label": "Iuran BPJS", "description": "Rincian iuran BPJS Kesehatan & Ketenagakerjaan, sisi karyawan dan perusahaan." },
+      "pph21_ebupot": { "label": "PPh 21 / e-Bupot", "description": "Ekspor pemotongan PPh 21 dalam format yang siap untuk rekonsiliasi e-Bupot DJP." },
+      "bpjs_sipp": { "label": "BPJS SIPP", "description": "Format upah & iuran untuk diunggah ke aplikasi SIPP BPJS Ketenagakerjaan." }
+    }
+  },
+  "developer": {
+    "title": "API & Webhook",
+    "noAccess": "Hanya pemilik atau admin yang dapat mengelola integrasi developer.",
+    "subtitle": "Kelola API key dan webhook untuk integrasi {name} dengan sistem lain.",
+    "keys": "API key ({count})",
+    "noKeys": "Belum ada API key.",
+    "revoked": "(dicabut)",
+    "noScope": "tanpa scope",
+    "createdAt": "dibuat {date}",
+    "lastUsed": "Terakhir dipakai: {date}",
+    "webhooks": "Webhook ({count})",
+    "noWebhooks": "Belum ada webhook.",
+    "active": "Aktif",
+    "inactive": "Nonaktif",
+    "deliveries": "Pengiriman terbaru",
+    "deliveryColumns": { "time": "Waktu", "event": "Event", "status": "Status", "http": "HTTP", "attempt": "Percobaan" },
+    "noDeliveries": "Belum ada pengiriman webhook.",
+    "keyForm": {
+      "title": "Buat API key",
+      "subtitle": "Kunci dipakai sebagai bearer token di header Authorization pada Public API.",
+      "name": "Nama kunci",
+      "namePlaceholder": "mis. Integrasi HRIS",
+      "scopes": "Scope",
+      "submit": "Buat kunci",
+      "newSecretLabel": "API key baru"
+    },
+    "webhookForm": {
+      "title": "Tambah webhook",
+      "subtitle": "Kami mengirim POST ber-tanda-tangan HMAC ke URL ini saat event terjadi.",
+      "url": "URL endpoint",
+      "events": "Event",
+      "submit": "Tambah webhook",
+      "secretLabel": "Signing secret"
+    },
+    "secret": { "copyNow": "Salin sekarang — nilai ini tidak akan ditampilkan lagi." },
+    "rowActions": { "revoke": "Cabut", "deactivate": "Nonaktifkan", "activate": "Aktifkan", "delete": "Hapus" }
+  },
+  "members": {
+    "title": "Anggota",
+    "subtitle": "Kelola tim untuk {name}.",
+    "columns": { "name": "Nama", "role": "Peran" },
+    "noName": "(tanpa nama)",
+    "pendingInvites": "Undangan tertunda",
+    "revoke": "Batalkan",
+    "invite": {
+      "title": "Undang anggota",
+      "shareLink": "Bagikan tautan undangan ini:",
+      "role": "Peran",
+      "send": "Kirim undangan"
+    }
+  },
+  "settings": {
+    "title": "Pengaturan",
+    "subtitle": "Kelola akun Anda.",
+    "account": "Akun",
+    "notifications": {
+      "heading": "Notifikasi",
+      "description": "Kelola cara kami menghubungi Anda.",
+      "phone": "Nomor WhatsApp",
+      "phonePlaceholder": "mis. 0812 3456 7890",
+      "whatsappOptIn": "Terima notifikasi via WhatsApp",
+      "whatsappHint": "Persetujuan & pengingat penting juga dikirim ke WhatsApp Anda.",
+      "save": "Simpan",
+      "saved": "Preferensi notifikasi disimpan."
+    },
+    "dangerZone": "Zona berbahaya",
+    "deactivate": {
+      "title": "Nonaktifkan akun",
+      "description": "Akun Anda akan dinonaktifkan dan Anda akan keluar. Hubungi dukungan untuk mengaktifkannya kembali.",
+      "confirm": "Ya, nonaktifkan akun saya",
+      "cancel": "Batal",
+      "button": "Nonaktifkan akun"
+    }
+  },
+  "companies": {
+    "newTitle": "Tambah perusahaan",
+    "newSubtitle": "Buat perusahaan baru. Anda akan menjadi pemiliknya dan langsung beralih ke sana."
+  },
+  "billing": {
+    "title": "Tagihan & Paket",
+    "subtitle": "Kelola langganan dan data legal {name}.",
+    "adminOnly": "Hanya pemilik atau admin yang dapat melihat tagihan dan paket langganan.",
+    "currentPlan": "Paket saat ini",
+    "activeSeats": "Karyawan aktif",
+    "monthlyEst": "≈ {amount} / bulan",
+    "atLimit": "Anda telah mencapai batas karyawan paket ini.",
+    "atLimitOwner": "Upgrade untuk menambah karyawan.",
+    "atLimitNonOwner": "Minta pemilik untuk meng-upgrade.",
+    "npwp": "NPWP",
+    "billingEmail": "Email penagihan",
+    "bpjsKes": "BPJS Kesehatan",
+    "bpjsTk": "BPJS Ketenagakerjaan",
+    "ownerOnlyUpgrade": "Hanya pemilik perusahaan yang dapat mengubah paket langganan.",
+    "invoices": "Faktur",
+    "invoiceColumns": { "date": "Tanggal", "period": "Periode", "amount": "Jumlah", "status": "Status" },
+    "noInvoices": "Belum ada faktur.",
+    "viewPdf": "Lihat PDF",
+    "invoiceStatus": { "paid": "Lunas", "open": "Terbuka", "uncollectible": "Tak tertagih", "void": "Batal" },
+    "upgrade": {
+      "title": "Upgrade paket",
+      "subtitle": "Upgrade membuka lebih dari 5 karyawan. NPWP dan nomor BPJS perusahaan wajib diisi untuk pelaporan pajak & iuran.",
+      "success": "Paket berhasil diperbarui. Batas karyawan kini mengikuti paket baru.",
+      "npwpLabel": "NPWP perusahaan",
+      "bpjsKesLabel": "No. BPJS Kesehatan",
+      "bpjsTkLabel": "No. BPJS Ketenagakerjaan",
+      "billingEmailLabel": "Email penagihan",
+      "sandboxNote": "Pembayaran berjalan di mode sandbox — belum ada kartu yang ditagih.",
+      "confirm": "Konfirmasi upgrade"
+    },
+    "cards": {
+      "current": "Paket saat ini",
+      "selected": "Dipilih",
+      "contactPrice": "Hubungi kami",
+      "free": "Gratis",
+      "perSeat": "/karyawan/bln",
+      "contactSales": "Hubungi sales →"
+    }
+  },
+  "planDetails": {
+    "free": {
+      "description": "Hingga 5 karyawan. Tanpa NPWP. Cocok untuk mencoba Nexis.",
+      "features": ["Hingga 5 karyawan", "Tanpa NPWP", "Absensi & cuti", "1 perusahaan"]
+    },
+    "starter": {
+      "description": "Hingga 25 karyawan. Payroll, BPJS, dan PPh 21 lengkap.",
+      "features": ["Hingga 25 karyawan", "Payroll otomatis", "BPJS & PPh 21 (TER)", "Slip gaji PDF"]
+    },
+    "growth": {
+      "description": "Hingga 100 karyawan. Semua laporan & ekspor pajak.",
+      "features": ["Hingga 100 karyawan", "Semua fitur Starter", "Ekspor e-Bupot & SIPP", "API & webhook"]
+    },
+    "enterprise": {
+      "description": "Tanpa batas karyawan, SSO, dan dukungan khusus. Hubungi kami.",
+      "features": ["Karyawan tanpa batas", "SSO/SCIM", "Dukungan khusus", "SLA & onboarding"]
+    }
+  },
+  "performance": {
+    "title": "Kinerja & KPI",
+    "noAccess": "Hanya pemilik, admin, atau manajer yang dapat mengelola penilaian kinerja.",
+    "subtitle": "Tetapkan sasaran, pantau progres, dan nilai kinerja karyawan {name}.",
+    "noCycles": "Belum ada siklus penilaian. Buat satu untuk mulai menetapkan sasaran.",
+    "cycleLabel": "Siklus:",
+    "goalsHeading": "Sasaran — {cycle}",
+    "reviewsHeading": "Penilaian",
+    "addGoalsFirst": "Tambahkan sasaran lebih dulu untuk menilai karyawan.",
+    "goalsColumns": { "employee": "Karyawan", "goal": "Sasaran", "weight": "Bobot", "status": "Status", "progress": "Progres" },
+    "noGoals": "Belum ada sasaran pada siklus ini.",
+    "goalStatus": { "on_track": "Sesuai target", "at_risk": "Berisiko", "off_track": "Meleset", "done": "Selesai", "cancelled": "Dibatalkan" },
+    "reviewStatus": { "draft": "Draf", "submitted": "Terkirim", "acknowledged": "Disetujui karyawan" },
+    "cycleForm": { "title": "Buat siklus penilaian", "subtitle": "Periode penilaian kinerja, mis. semester atau tahunan.", "created": "Siklus dibuat.", "name": "Nama siklus", "namePlaceholder": "2026 Semester 1", "start": "Mulai", "end": "Selesai", "submit": "Buat siklus" },
+    "goalForm": { "titleEmpty": "Tambah sasaran", "emptyHint": "Tambahkan karyawan dulu untuk menetapkan sasaran.", "title": "Tambah sasaran (KPI)", "subtitle": "Bobot dipakai untuk menimbang skor akhir.", "created": "Sasaran ditambahkan.", "employee": "Karyawan", "weight": "Bobot (%)", "goal": "Sasaran", "goalPlaceholder": "mis. Tutup 10 deal Q1", "description": "Keterangan (opsional)", "submit": "Tambah sasaran" },
+    "goalProgress": { "ariaLabel": "Progres (%)", "save": "Simpan" },
+    "reviewForm": { "finalScore": "Nilai akhir:", "rating": "Nilai (1–5)", "summary": "Ringkasan", "summaryPlaceholder": "Catatan penilaian", "saveDraft": "Simpan draf", "submit": "Kirim penilaian" }
+  },
+  "invite": {
+    "header": "Undangan bergabung",
+    "title": "Terima undangan",
+    "signedInPrefix": "Anda masuk sebagai",
+    "signedInSuffix": "Terima undangan untuk bergabung dengan perusahaan ini.",
+    "accept": "Terima & bergabung"
   }
 }

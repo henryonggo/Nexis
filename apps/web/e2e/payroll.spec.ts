@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import fs from "node:fs";
+import { STORAGE_STATE, HAS_AUTH } from "./_auth";
 
 /**
  * Stage 4 — payroll e2e.
@@ -10,8 +10,8 @@ import fs from "node:fs";
  * skipped rather than failing on missing fixtures.
  */
 
-const storageState = process.env.E2E_STORAGE_STATE;
-const hasAuth = !!storageState && fs.existsSync(storageState);
+const storageState = STORAGE_STATE;
+const hasAuth = HAS_AUTH;
 
 test.describe("payroll — auth guard", () => {
   test("unauthenticated visit to /payroll redirects to sign-in", async ({ page }) => {
@@ -29,7 +29,7 @@ test.describe("payroll — run wizard happy path", () => {
   test.skip(!hasAuth, "set E2E_STORAGE_STATE to a signed-in admin session to run");
   test.use({ storageState });
 
-  test("admin can open the list and start a draft run", async ({ page }) => {
+  test("admin can start a draft run and approve it", async ({ page }) => {
     await page.goto("/payroll");
     await expect(page.getByRole("heading", { name: "Penggajian" })).toBeVisible();
 
@@ -46,5 +46,13 @@ test.describe("payroll — run wizard happy path", () => {
     // Lands on the review screen with the per-employee breakdown and summary.
     await expect(page.getByRole("heading", { name: /^Payroll / })).toBeVisible({ timeout: 15000 });
     await expect(page.getByText("Neto (take-home)")).toBeVisible();
+
+    // Approve & process — the money-flow action. Moves the run draft → queued
+    // (the worker finishes the calculation/payslips asynchronously). We assert the
+    // queued state surfaces, which proves the approve action committed.
+    await page.getByRole("button", { name: "Setujui & proses" }).click();
+    await expect(page.getByText(/Antre|Diproses|Selesai/)).toBeVisible({ timeout: 30000 });
+    // The approve control is gone once the run leaves draft.
+    await expect(page.getByRole("button", { name: "Setujui & proses" })).toHaveCount(0);
   });
 });

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useFormState } from "react-dom";
+import { useTranslations } from "next-intl";
 import { requestLoanAction, type LoanActionState } from "./actions";
 import { formatRupiah } from "@nexis/money";
 import { SubmitButton } from "@/components/submit-button";
@@ -14,6 +15,7 @@ export interface EmployeeOption {
 }
 
 export function LoanRequestForm({ employees }: { employees: EmployeeOption[] }) {
+  const t = useTranslations("loans.form");
   const [state, action] = useFormState(requestLoanAction, initial);
   const [principal, setPrincipal] = useState(0);
   const [installments, setInstallments] = useState(1);
@@ -23,30 +25,28 @@ export function LoanRequestForm({ employees }: { employees: EmployeeOption[] }) 
   if (employees.length === 0) {
     return (
       <div className="nx-card">
-        <h2 className="mb-1 text-lg font-semibold text-ink">Ajukan pinjaman</h2>
-        <p className="text-sm text-muted">Tambahkan karyawan dulu untuk mengajukan kasbon.</p>
+        <h2 className="mb-1 text-lg font-semibold text-ink">{t("titleEmpty")}</h2>
+        <p className="text-sm text-muted">{t("emptyHint")}</p>
       </div>
     );
   }
 
   return (
     <div className="nx-card">
-      <h2 className="mb-1 text-lg font-semibold text-ink">Ajukan pinjaman / kasbon</h2>
-      <p className="mb-4 text-sm text-muted">
-        Pinjaman yang disetujui dipotong otomatis dari gaji selama beberapa bulan.
-      </p>
+      <h2 className="mb-1 text-lg font-semibold text-ink">{t("title")}</h2>
+      <p className="mb-4 text-sm text-muted">{t("subtitle")}</p>
 
       {state.error && <div className="nx-error mb-4">{state.error}</div>}
       {state.ok && (
         <div className="mb-4 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-          Pengajuan dibuat dan menunggu persetujuan.
+          {t("created")}
         </div>
       )}
 
       <form action={action} className="space-y-4">
         <div>
           <label className="nx-label" htmlFor="employeeId">
-            Karyawan
+            {t("employee")}
           </label>
           <select id="employeeId" name="employeeId" className="nx-input" defaultValue={employees[0]!.id}>
             {employees.map((e) => (
@@ -60,7 +60,7 @@ export function LoanRequestForm({ employees }: { employees: EmployeeOption[] }) 
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="nx-label" htmlFor="principal">
-              Nominal (Rp)
+              {t("amount")}
             </label>
             <input
               id="principal"
@@ -75,7 +75,7 @@ export function LoanRequestForm({ employees }: { employees: EmployeeOption[] }) 
           </div>
           <div>
             <label className="nx-label" htmlFor="installments">
-              Jumlah cicilan (bulan)
+              {t("installments")}
             </label>
             <input
               id="installments"
@@ -92,19 +92,20 @@ export function LoanRequestForm({ employees }: { employees: EmployeeOption[] }) 
 
         {principal > 0 && installments > 0 && (
           <p className="text-sm text-muted">
-            Estimasi potongan: <span className="font-medium text-ink">{formatRupiah(perInstallment)}</span>{" "}
-            / bulan selama {installments} bulan.
+            {t("estimatePrefix")}{" "}
+            <span className="font-medium text-ink">{formatRupiah(perInstallment)}</span>{" "}
+            {t("estimateSuffix", { count: installments })}
           </p>
         )}
 
         <div>
           <label className="nx-label" htmlFor="reason">
-            Keterangan (opsional)
+            {t("reason")}
           </label>
-          <input id="reason" name="reason" className="nx-input" placeholder="mis. kebutuhan mendesak" />
+          <input id="reason" name="reason" className="nx-input" placeholder={t("reasonPlaceholder")} />
         </div>
 
-        <SubmitButton>Ajukan pinjaman</SubmitButton>
+        <SubmitButton>{t("submit")}</SubmitButton>
       </form>
     </div>
   );

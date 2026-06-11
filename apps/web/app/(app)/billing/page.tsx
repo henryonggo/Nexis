@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 import {
@@ -16,27 +17,22 @@ const DATE_FMT = new Intl.DateTimeFormat("id-ID", {
   year: "numeric",
 });
 
-const INVOICE_STATUS_LABELS: Record<string, string> = {
-  paid: "Lunas",
-  open: "Terbuka",
-  uncollectible: "Tak tertagih",
-  void: "Batal",
-};
-
 export default async function BillingPage() {
   const supabase = createClient();
   const active = await getActiveCompany();
   if (!active) return null;
+
+  const t = await getTranslations("billing");
+  const tPlans = await getTranslations("plans");
+  const tDetails = await getTranslations("planDetails");
 
   const isAdmin = active.role === "owner" || active.role === "admin";
   const isOwner = active.role === "owner";
   if (!isAdmin) {
     return (
       <div className="nx-card max-w-lg">
-        <h1 className="mb-1 text-xl font-bold text-ink">Tagihan & Paket</h1>
-        <p className="text-sm text-muted">
-          Hanya pemilik atau admin yang dapat melihat tagihan dan paket langganan.
-        </p>
+        <h1 className="mb-1 text-xl font-bold text-ink">{t("title")}</h1>
+        <p className="text-sm text-muted">{t("adminOnly")}</p>
       </div>
     );
   }
@@ -56,29 +52,27 @@ export default async function BillingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-ink">Tagihan & Paket</h1>
-        <p className="text-sm text-muted">
-          Kelola langganan dan data legal {active.name}.
-        </p>
+        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
+        <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
       </div>
 
       {/* Current plan summary */}
       <div className="nx-card">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-sm text-muted">Paket saat ini</p>
-            <p className="text-2xl font-bold text-ink">{plan.label}</p>
-            <p className="mt-1 max-w-md text-sm text-muted">{plan.description}</p>
+            <p className="text-sm text-muted">{t("currentPlan")}</p>
+            <p className="text-2xl font-bold text-ink">{tPlans(plan.id)}</p>
+            <p className="mt-1 max-w-md text-sm text-muted">{tDetails(`${plan.id}.description`)}</p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-muted">Karyawan aktif</p>
+            <p className="text-sm text-muted">{t("activeSeats")}</p>
             <p className="text-2xl font-bold tabular-nums text-ink">
               {seats}
               {seatCap != null && <span className="text-base text-muted"> / {seatCap}</span>}
             </p>
             {monthlyCost != null && monthlyCost > 0 && (
               <p className="mt-1 text-sm text-muted">
-                ≈ {formatRupiah(monthlyCost)} / bulan
+                {t("monthlyEst", { amount: formatRupiah(monthlyCost) })}
               </p>
             )}
           </div>
@@ -86,26 +80,25 @@ export default async function BillingPage() {
 
         {atLimit && (
           <div className="mt-4 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
-            Anda telah mencapai batas karyawan paket ini.{" "}
-            {isOwner ? "Upgrade untuk menambah karyawan." : "Minta pemilik untuk meng-upgrade."}
+            {t("atLimit")} {isOwner ? t("atLimitOwner") : t("atLimitNonOwner")}
           </div>
         )}
 
         <dl className="mt-5 grid grid-cols-1 gap-x-6 gap-y-3 border-t border-[color:var(--border)] pt-4 text-sm sm:grid-cols-2">
           <div className="flex justify-between gap-4">
-            <dt className="text-muted">NPWP</dt>
+            <dt className="text-muted">{t("npwp")}</dt>
             <dd className="font-medium text-ink">{formatNpwp(billing?.npwp ?? null)}</dd>
           </div>
           <div className="flex justify-between gap-4">
-            <dt className="text-muted">Email penagihan</dt>
+            <dt className="text-muted">{t("billingEmail")}</dt>
             <dd className="font-medium text-ink">{billing?.billing_email ?? "—"}</dd>
           </div>
           <div className="flex justify-between gap-4">
-            <dt className="text-muted">BPJS Kesehatan</dt>
+            <dt className="text-muted">{t("bpjsKes")}</dt>
             <dd className="font-medium text-ink">{billing?.bpjs_kes_no ?? "—"}</dd>
           </div>
           <div className="flex justify-between gap-4">
-            <dt className="text-muted">BPJS Ketenagakerjaan</dt>
+            <dt className="text-muted">{t("bpjsTk")}</dt>
             <dd className="font-medium text-ink">{billing?.bpjs_tk_no ?? "—"}</dd>
           </div>
         </dl>
@@ -116,23 +109,21 @@ export default async function BillingPage() {
         <UpgradeForm defaultEmail={billing?.billing_email ?? user?.email ?? ""} currentPlan={plan.id} />
       ) : (
         <div className="nx-card max-w-xl">
-          <p className="text-sm text-muted">
-            Hanya pemilik perusahaan yang dapat mengubah paket langganan.
-          </p>
+          <p className="text-sm text-muted">{t("ownerOnlyUpgrade")}</p>
         </div>
       )}
 
       {/* Invoices */}
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Faktur</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t("invoices")}</h2>
         <div className="overflow-hidden rounded-lg border border-[color:var(--border)] bg-white">
           <table className="w-full text-sm">
             <thead className="bg-brand-light/60 text-left text-muted">
               <tr>
-                <th className="px-4 py-2 font-medium">Tanggal</th>
-                <th className="px-4 py-2 font-medium">Periode</th>
-                <th className="px-4 py-2 text-right font-medium">Jumlah</th>
-                <th className="px-4 py-2 font-medium">Status</th>
+                <th className="px-4 py-2 font-medium">{t("invoiceColumns.date")}</th>
+                <th className="px-4 py-2 font-medium">{t("invoiceColumns.period")}</th>
+                <th className="px-4 py-2 text-right font-medium">{t("invoiceColumns.amount")}</th>
+                <th className="px-4 py-2 font-medium">{t("invoiceColumns.status")}</th>
                 <th className="px-4 py-2" />
               </tr>
             </thead>
@@ -140,7 +131,7 @@ export default async function BillingPage() {
               {invoices.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-muted">
-                    Belum ada faktur.
+                    {t("noInvoices")}
                   </td>
                 </tr>
               ) : (
@@ -158,7 +149,7 @@ export default async function BillingPage() {
                       {formatRupiah(inv.amount)}
                     </td>
                     <td className="px-4 py-3 text-ink">
-                      {INVOICE_STATUS_LABELS[inv.status] ?? inv.status}
+                      {t(`invoiceStatus.${inv.status}`)}
                     </td>
                     <td className="px-4 py-3 text-right">
                       {inv.pdf_url ? (
@@ -168,7 +159,7 @@ export default async function BillingPage() {
                           rel="noopener noreferrer"
                           className="text-brand hover:underline"
                         >
-                          Lihat PDF
+                          {t("viewPdf")}
                         </a>
                       ) : (
                         <span className="text-xs text-muted">—</span>

@@ -6,6 +6,21 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function normalizePhone(phone: string): string | null {
+  const clean = phone.replace(/\D/g, "");
+  if (clean.length < 8 || clean.length > 15) return null;
+  if (clean.startsWith("0")) {
+    return "+62" + clean.slice(1);
+  }
+  if (clean.startsWith("62")) {
+    return "+" + clean;
+  }
+  if (clean.startsWith("8")) {
+    return "+62" + clean;
+  }
+  return "+" + clean;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -22,7 +37,16 @@ serve(async (req) => {
 
     const supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { userId, title, body, emailSubject, emailBody, emailTo } = await req.json();
+    const {
+      userId,
+      title,
+      body,
+      emailSubject,
+      emailBody,
+      emailTo,
+      whatsappTemplate,
+      whatsappComponents,
+    } = await req.json();
 
     if (!userId) {
       return new Response(JSON.stringify({ error: "userId parameter is required" }), {
@@ -105,7 +129,98 @@ serve(async (req) => {
       console.log("[Notification] Email sending skipped (missing resend configuration or inputs).");
     }
 
-    return new Response(JSON.stringify({ success: true, pushResult, emailResult }), {
+    // 3. Send WhatsApp Notification via Meta Cloud API if opted in
+    let whatsappResult = null;
+    const { data: profile, error: profileErr } = await supabaseClient
+      .from("profiles")
+      .select("phone, whatsapp_opt_in")
+      .eq("id", userId)
+      .single();
+
+    if (profileErr) {
+      console.error("Error fetching user profile for WhatsApp check:", profileErr.message);
+    }
+
+    const whatsappToken = Deno.env.get("WHATSAPP_TOKEN");
+    const whatsappPhoneId = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
+
+    if (!profileErr && profile && profile.whatsapp_opt_in && profile.phone) {
+      const formattedPhone = normalizePhone(profile.phone);
+      if (formattedPhone) {
+        if (whatsappToken && whatsappPhoneId) {
+          // Resolve template and components
+          let templateName = whatsappTemplate;
+          let components = whatsappComponents;
+
+          if (!templateName) {
+            // Infer template from title/body
+            const titleLower = (title || "").toLowerCase();
+            if (titleLower.includes("cuti") && titleLower.includes("setuju")) {
+              templateName = "leave_approved";
+              components = [{ type: "body", parameters: [{ type: "text", text: body || "" }] }];
+            } else if (titleLower.includes("cuti") && titleLower.includes("tolak")) {
+              templateName = "leave_rejected";
+              components = [{ type: "body", parameters: [{ type: "text", text: body || "" }] }];
+            } else if (titleLower.includes("klaim") && titleLower.includes("setuju")) {
+              templateName = "claim_approved";
+              components = [{ type: "body", parameters: [{ type: "text", text: body || "" }] }];
+            } else if (titleLower.includes("klaim") && titleLower.includes("tolak")) {
+              templateName = "claim_rejected";
+              components = [{ type: "body", parameters: [{ type: "text", text: body || "" }] }];
+            } else if (titleLower.includes("slip") || titleLower.includes("gaji") || titleLower.includes("payslip")) {
+              templateName = "payslip_ready";
+              components = [{ type: "body", parameters: [{ type: "text", text: body || "" }] }];
+            } else {
+              templateName = "generic_notification";
+              components = [
+                {
+                  type: "body",
+                  parameters: [
+                    { type: "text", text: title || "Nexis" },
+                    { type: "text", text: body || "" },
+                  ],
+                },
+              ];
+            }
+          }
+
+          console.log(`[Notification] Sending WhatsApp template ${templateName} to ${formattedPhone}...`);
+          const whatsappResponse = await fetch(`https://graph.facebook.com/v19.0/${whatsappPhoneId}/messages`, {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${whatsappToken}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              messaging_product: "whatsapp",
+              to: formattedPhone,
+              type: "template",
+              template: {
+                name: templateName,
+                language: {
+                  code: "id",
+                },
+                components: components || [],
+              },
+            }),
+          });
+
+          whatsappResult = await whatsappResponse.json();
+          console.log("[Notification] WhatsApp response status:", whatsappResponse.status);
+        } else {
+          console.log("[Notification] WhatsApp skipped: missing WHATSAPP_TOKEN or WHATSAPP_PHONE_NUMBER_ID in env.");
+          whatsappResult = { status: "skipped", reason: "missing_env" };
+        }
+      } else {
+        console.warn(`[Notification] WhatsApp skipped: invalid phone number format: ${profile.phone}`);
+        whatsappResult = { status: "skipped", reason: "invalid_phone_format" };
+      }
+    } else {
+      console.log(`[Notification] WhatsApp skipped: user profile not found, phone missing, or not opted in.`);
+      whatsappResult = { status: "skipped", reason: "not_opted_in_or_missing_phone" };
+    }
+
+    return new Response(JSON.stringify({ success: true, pushResult, emailResult, whatsappResult }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
