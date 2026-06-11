@@ -6,6 +6,15 @@ import { getCompanyLoans, type LoanView } from "@/lib/loans";
 import { LoanStatusBadge } from "./status-badge";
 import { LoanDecisionButtons } from "./decision-buttons";
 import { LoanRequestForm, type EmployeeOption } from "./request-form";
+import { Card } from "@/components/ui/card";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 
 export default async function LoansPage() {
   const supabase = createClient();
@@ -17,10 +26,10 @@ export default async function LoansPage() {
     active.role === "owner" || active.role === "admin" || active.role === "manager";
   if (!canManage) {
     return (
-      <div className="nx-card max-w-lg">
+      <Card className="max-w-lg p-8">
         <h1 className="mb-1 text-xl font-bold text-ink">{t("title")}</h1>
         <p className="text-sm text-muted">{t("noAccess")}</p>
-      </div>
+      </Card>
     );
   }
 
@@ -55,13 +64,11 @@ export default async function LoansPage() {
           {t("pending", { count: pending.length })}
         </h2>
         {pending.length === 0 ? (
-          <p className="rounded-lg border border-[color:var(--border)] bg-white px-4 py-6 text-center text-sm text-muted">
-            {t("noPending")}
-          </p>
+          <Card className="px-4 py-6 text-center text-sm text-muted">{t("noPending")}</Card>
         ) : (
           <div className="space-y-3">
             {pending.map((l) => (
-              <div key={l.id} className="rounded-lg border border-[color:var(--border)] bg-white p-4">
+              <Card key={l.id} className="p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="font-semibold text-ink">{l.employeeName}</p>
@@ -73,7 +80,7 @@ export default async function LoansPage() {
                   </div>
                   <LoanDecisionButtons loanId={l.id} />
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         )}
@@ -90,43 +97,43 @@ export default async function LoansPage() {
 async function HistoryTable({ rows }: { rows: LoanView[] }) {
   const t = await getTranslations("loans");
   return (
-    <div className="overflow-hidden rounded-lg border border-[color:var(--border)] bg-white">
-      <table className="w-full text-sm">
-        <thead className="bg-brand-light/60 text-left text-muted">
-          <tr>
-            <th className="px-4 py-2 font-medium">{t("columns.employee")}</th>
-            <th className="px-4 py-2 text-right font-medium">{t("columns.principal")}</th>
-            <th className="px-4 py-2 font-medium">{t("columns.installments")}</th>
-            <th className="px-4 py-2 font-medium">{t("columns.next")}</th>
-            <th className="px-4 py-2 font-medium">{t("columns.status")}</th>
-          </tr>
-        </thead>
-        <tbody>
+    <Card className="overflow-hidden p-0">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>{t("columns.employee")}</TableHead>
+            <TableHead className="text-right">{t("columns.principal")}</TableHead>
+            <TableHead>{t("columns.installments")}</TableHead>
+            <TableHead>{t("columns.next")}</TableHead>
+            <TableHead>{t("columns.status")}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {rows.length === 0 ? (
-            <tr>
-              <td colSpan={5} className="px-4 py-8 text-center text-muted">
+            <TableRow>
+              <TableCell colSpan={5} className="py-8 text-center text-muted">
                 {t("noHistory")}
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ) : (
             rows.map((l) => (
-              <tr key={l.id} className="border-t border-[color:var(--border)]">
-                <td className="px-4 py-3 font-medium text-ink">{l.employeeName}</td>
-                <td className="px-4 py-3 text-right tabular-nums text-ink">
+              <TableRow key={l.id}>
+                <TableCell className="font-medium text-ink">{l.employeeName}</TableCell>
+                <TableCell className="text-right tabular-nums text-ink">
                   {formatRupiah(l.principal)}
-                </td>
-                <td className="px-4 py-3 text-ink">
+                </TableCell>
+                <TableCell className="text-ink">
                   {l.installments}× {formatRupiah(l.installmentAmount)}
-                </td>
-                <td className="px-4 py-3 text-muted">{l.nextDuePeriod ?? "—"}</td>
-                <td className="px-4 py-3">
+                </TableCell>
+                <TableCell className="text-muted">{l.nextDuePeriod ?? "—"}</TableCell>
+                <TableCell>
                   <LoanStatusBadge status={l.status} />
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))
           )}
-        </tbody>
-      </table>
-    </div>
+        </TableBody>
+      </Table>
+    </Card>
   );
 }

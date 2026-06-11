@@ -6,6 +6,10 @@ import { useTranslations } from "next-intl";
 import { requestLoanAction, type LoanActionState } from "./actions";
 import { formatRupiah } from "@nexis/money";
 import { SubmitButton } from "@/components/submit-button";
+import { Card } from "@/components/ui/card";
+import { Input, fieldClasses } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert } from "@/components/ui/alert";
 
 const initial: LoanActionState = {};
 
@@ -24,31 +28,25 @@ export function LoanRequestForm({ employees }: { employees: EmployeeOption[] }) 
 
   if (employees.length === 0) {
     return (
-      <div className="nx-card">
+      <Card className="p-8">
         <h2 className="mb-1 text-lg font-semibold text-ink">{t("titleEmpty")}</h2>
         <p className="text-sm text-muted">{t("emptyHint")}</p>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="nx-card">
+    <Card className="p-8">
       <h2 className="mb-1 text-lg font-semibold text-ink">{t("title")}</h2>
       <p className="mb-4 text-sm text-muted">{t("subtitle")}</p>
 
-      {state.error && <div className="nx-error mb-4">{state.error}</div>}
-      {state.ok && (
-        <div className="mb-4 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-          {t("created")}
-        </div>
-      )}
+      {state.error && <Alert variant="destructive" className="mb-4">{state.error}</Alert>}
+      {state.ok && <Alert variant="success" className="mb-4">{t("created")}</Alert>}
 
       <form action={action} className="space-y-4">
-        <div>
-          <label className="nx-label" htmlFor="employeeId">
-            {t("employee")}
-          </label>
-          <select id="employeeId" name="employeeId" className="nx-input" defaultValue={employees[0]!.id}>
+        <div className="space-y-1.5">
+          <Label htmlFor="employeeId">{t("employee")}</Label>
+          <select id="employeeId" name="employeeId" className={fieldClasses} defaultValue={employees[0]!.id}>
             {employees.map((e) => (
               <option key={e.id} value={e.id}>
                 {e.fullName}
@@ -58,32 +56,26 @@ export function LoanRequestForm({ employees }: { employees: EmployeeOption[] }) 
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="nx-label" htmlFor="principal">
-              {t("amount")}
-            </label>
-            <input
+          <div className="space-y-1.5">
+            <Label htmlFor="principal">{t("amount")}</Label>
+            <Input
               id="principal"
               name="principal"
               type="number"
               min={0}
               step={50000}
-              className="nx-input"
               defaultValue={0}
               onChange={(e) => setPrincipal(Number(e.target.value) || 0)}
             />
           </div>
-          <div>
-            <label className="nx-label" htmlFor="installments">
-              {t("installments")}
-            </label>
-            <input
+          <div className="space-y-1.5">
+            <Label htmlFor="installments">{t("installments")}</Label>
+            <Input
               id="installments"
               name="installments"
               type="number"
               min={1}
               max={60}
-              className="nx-input"
               defaultValue={1}
               onChange={(e) => setInstallments(Number(e.target.value) || 1)}
             />
@@ -98,15 +90,13 @@ export function LoanRequestForm({ employees }: { employees: EmployeeOption[] }) 
           </p>
         )}
 
-        <div>
-          <label className="nx-label" htmlFor="reason">
-            {t("reason")}
-          </label>
-          <input id="reason" name="reason" className="nx-input" placeholder={t("reasonPlaceholder")} />
+        <div className="space-y-1.5">
+          <Label htmlFor="reason">{t("reason")}</Label>
+          <Input id="reason" name="reason" placeholder={t("reasonPlaceholder")} />
         </div>
 
         <SubmitButton>{t("submit")}</SubmitButton>
       </form>
-    </div>
+    </Card>
   );
 }

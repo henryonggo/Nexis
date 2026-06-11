@@ -4,6 +4,10 @@ import { useFormState } from "react-dom";
 import { useTranslations } from "next-intl";
 import { createGoalAction, type PerfActionState } from "./actions";
 import { SubmitButton } from "@/components/submit-button";
+import { Card } from "@/components/ui/card";
+import { Input, fieldClasses } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert } from "@/components/ui/alert";
 
 const initial: PerfActionState = {};
 
@@ -25,36 +29,30 @@ export function GoalForm({
 
   if (employees.length === 0) {
     return (
-      <div className="nx-card">
+      <Card className="p-8">
         <h2 className="mb-1 text-lg font-semibold text-ink">{t("titleEmpty")}</h2>
         <p className="text-sm text-muted">{t("emptyHint")}</p>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="nx-card">
+    <Card className="p-8">
       <h2 className="mb-1 text-lg font-semibold text-ink">{t("title")}</h2>
       <p className="mb-4 text-sm text-muted">{t("subtitle")}</p>
 
-      {state.error && <div className="nx-error mb-4">{state.error}</div>}
-      {state.ok && (
-        <div className="mb-4 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-          {t("created")}
-        </div>
-      )}
+      {state.error && <Alert variant="destructive" className="mb-4">{state.error}</Alert>}
+      {state.ok && <Alert variant="success" className="mb-4">{t("created")}</Alert>}
 
       <form action={action} className="space-y-4">
         <input type="hidden" name="cycleId" value={cycleId} />
         <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="nx-label" htmlFor="goal-employee">
-              {t("employee")}
-            </label>
+          <div className="space-y-1.5">
+            <Label htmlFor="goal-employee">{t("employee")}</Label>
             <select
               id="goal-employee"
               name="employeeId"
-              className="nx-input"
+              className={fieldClasses}
               defaultValue={employees[0]!.id}
             >
               {employees.map((e) => (
@@ -64,40 +62,21 @@ export function GoalForm({
               ))}
             </select>
           </div>
-          <div>
-            <label className="nx-label" htmlFor="weight">
-              {t("weight")}
-            </label>
-            <input
-              id="weight"
-              name="weight"
-              type="number"
-              min={0}
-              max={100}
-              defaultValue={20}
-              className="nx-input"
-            />
+          <div className="space-y-1.5">
+            <Label htmlFor="weight">{t("weight")}</Label>
+            <Input id="weight" name="weight" type="number" min={0} max={100} defaultValue={20} />
           </div>
         </div>
-        <div>
-          <label className="nx-label" htmlFor="title">
-            {t("goal")}
-          </label>
-          <input
-            id="title"
-            name="title"
-            className="nx-input"
-            placeholder={t("goalPlaceholder")}
-          />
+        <div className="space-y-1.5">
+          <Label htmlFor="title">{t("goal")}</Label>
+          <Input id="title" name="title" placeholder={t("goalPlaceholder")} />
         </div>
-        <div>
-          <label className="nx-label" htmlFor="description">
-            {t("description")}
-          </label>
-          <input id="description" name="description" className="nx-input" />
+        <div className="space-y-1.5">
+          <Label htmlFor="description">{t("description")}</Label>
+          <Input id="description" name="description" />
         </div>
         <SubmitButton>{t("submit")}</SubmitButton>
       </form>
-    </div>
+    </Card>
   );
 }

@@ -4,6 +4,7 @@ import { useFormState } from "react-dom";
 import { useTranslations } from "next-intl";
 import { updateGoalProgressAction, type PerfActionState } from "./actions";
 import { SubmitButton } from "@/components/submit-button";
+import { Input } from "@/components/ui/input";
 
 const initial: PerfActionState = {};
 
@@ -15,18 +16,18 @@ export function GoalProgress({ goalId, progress }: { goalId: string; progress: n
   return (
     <form action={action} className="flex items-center gap-2">
       <input type="hidden" name="goalId" value={goalId} />
-      <input
+      <Input
         type="number"
         name="progress"
         min={0}
         max={100}
         defaultValue={progress}
-        className="w-20 rounded-md border border-[color:var(--border)] px-2 py-1 text-sm"
+        className="h-8 w-20"
         aria-label={t("ariaLabel")}
       />
       <span className="text-sm text-muted">%</span>
       <SubmitButton>{t("save")}</SubmitButton>
-      {state.error && <span className="text-xs text-red-600">{state.error}</span>}
+      {state.error && <span className="text-xs text-danger">{state.error}</span>}
     </form>
   );
 }
