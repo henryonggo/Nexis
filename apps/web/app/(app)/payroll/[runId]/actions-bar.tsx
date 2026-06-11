@@ -5,6 +5,8 @@ import { useTranslations } from "next-intl";
 import type { Database } from "@nexis/types";
 import { approveRun, cancelRun, markRunPaid, type RunActionState } from "../actions";
 import { SubmitButton } from "@/components/submit-button";
+import { Button } from "@/components/ui/button";
+import { Alert } from "@/components/ui/alert";
 
 type Status = Database["public"]["Enums"]["pay_period_status"];
 
@@ -25,7 +27,7 @@ export function ActionBar({ runId, status }: { runId: string; status: Status }) 
 
   return (
     <div className="space-y-2">
-      {error && <div className="nx-error">{error}</div>}
+      {error && <Alert variant="destructive">{error}</Alert>}
       <div className="flex flex-wrap items-center gap-3">
         {canApprove && (
           <form action={approve}>
@@ -42,12 +44,9 @@ export function ActionBar({ runId, status }: { runId: string; status: Status }) 
         {canCancel && (
           <form action={cancel}>
             <input type="hidden" name="runId" value={runId} />
-            <button
-              type="submit"
-              className="rounded-md border border-[color:var(--border)] px-4 py-2 text-sm font-semibold text-ink hover:bg-brand-light"
-            >
+            <Button type="submit" variant="outline">
               {t("cancel")}
-            </button>
+            </Button>
           </form>
         )}
       </div>

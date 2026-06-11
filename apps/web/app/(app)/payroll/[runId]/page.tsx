@@ -7,6 +7,16 @@ import { getActiveCompany } from "@/lib/company";
 import { computeRunPreview, formatPeriod, formatRupiah } from "@/lib/payroll";
 import { ActionBar } from "./actions-bar";
 import { RunStatusStream } from "./status-stream";
+import { Card } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 
 type Status = Database["public"]["Enums"]["pay_period_status"];
 
@@ -145,16 +155,10 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
         {!isPersisted && <p className="mt-1 text-sm text-muted">{t("estimateNote")}</p>}
       </div>
 
-      {run.status === "queued" && (
-        <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
-          {t("queuedNote")}
-        </div>
-      )}
+      {run.status === "queued" && <Alert variant="info">{t("queuedNote")}</Alert>}
 
       {notices.map((n) => (
-        <div key={n} className="rounded-lg border border-warning/40 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          {n}
-        </div>
+        <Alert key={n} variant="warning">{n}</Alert>
       ))}
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -166,33 +170,33 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
 
       <ActionBar runId={run.id} status={run.status} />
 
-      <div className="overflow-hidden rounded-lg border border-[color:var(--border)] bg-white">
-        <table className="w-full text-sm">
-          <thead className="bg-brand-light/60 text-left text-muted">
-            <tr>
-              <th className="px-4 py-2 font-medium">{t("columns.employee")}</th>
-              <th className="px-4 py-2 font-medium">{t("columns.pph21")}</th>
-              <th className="px-4 py-2 text-right font-medium">{t("columns.gross")}</th>
-              <th className="px-4 py-2 text-right font-medium">{t("columns.deductions")}</th>
-              <th className="px-4 py-2 text-right font-medium">{t("summary.net")}</th>
-            </tr>
-          </thead>
-          <tbody>
+      <Card className="overflow-hidden p-0">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t("columns.employee")}</TableHead>
+              <TableHead>{t("columns.pph21")}</TableHead>
+              <TableHead className="text-right">{t("columns.gross")}</TableHead>
+              <TableHead className="text-right">{t("columns.deductions")}</TableHead>
+              <TableHead className="text-right">{t("summary.net")}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {lines.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted">
+              <TableRow>
+                <TableCell colSpan={5} className="py-8 text-center text-muted">
                   {t("detail.noEmployees")}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               lines.map((line) => {
                 const employeeDeductions = line.bpjsKesEmployee + line.jhtEmployee + line.jpEmployee + line.pph21;
                 return (
-                  <tr key={line.employeeId} className="border-t border-[color:var(--border)] align-top">
-                    <td className="px-4 py-3">
+                  <TableRow key={line.employeeId} className="align-top">
+                    <TableCell>
                       <div className="font-medium text-ink">{line.name}</div>
                       {line.warnings.map((w) => (
-                        <div key={w} className="mt-0.5 text-xs text-amber-700">⚠ {w}</div>
+                        <div key={w} className="mt-0.5 text-xs text-warning">⚠ {w}</div>
                       ))}
                       <details className="mt-1">
                         <summary className="cursor-pointer text-xs text-brand hover:underline">{t("breakdown")}</summary>
@@ -208,31 +212,31 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
                           <BreakdownRow label={t("breakdownRows.pph21")} value={line.pph21} />
                         </dl>
                       </details>
-                    </td>
-                    <td className="px-4 py-3 text-xs text-muted">
+                    </TableCell>
+                    <TableCell className="text-xs text-muted">
                       {t("detail.terCategory", { category: line.terCategory ?? "—", rate: formatRateBps(line.terRateBps) })}
-                      {line.hasNpwp === false && <span className="ml-1 text-amber-700">{t("noNpwp")}</span>}
-                    </td>
-                    <td className="px-4 py-3 text-right tabular-nums text-ink">{formatRupiah(line.gross)}</td>
-                    <td className="px-4 py-3 text-right tabular-nums text-ink">−{formatRupiah(employeeDeductions, { withSymbol: false })}</td>
-                    <td className="px-4 py-3 text-right font-medium tabular-nums text-ink">{formatRupiah(line.net)}</td>
-                  </tr>
+                      {line.hasNpwp === false && <span className="ml-1 text-warning">{t("noNpwp")}</span>}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums text-ink">{formatRupiah(line.gross)}</TableCell>
+                    <TableCell className="text-right tabular-nums text-ink">−{formatRupiah(employeeDeductions, { withSymbol: false })}</TableCell>
+                    <TableCell className="text-right font-medium tabular-nums text-ink">{formatRupiah(line.net)}</TableCell>
+                  </TableRow>
                 );
               })
             )}
-          </tbody>
-        </table>
-      </div>
+          </TableBody>
+        </Table>
+      </Card>
     </div>
   );
 }
 
 function SummaryCard({ label, value, emphasize }: { label: string; value: number; emphasize?: boolean }) {
   return (
-    <div className={`rounded-lg border border-[color:var(--border)] p-3 ${emphasize ? "bg-brand-light/50" : "bg-white"}`}>
+    <Card className={`p-3 ${emphasize ? "border-brand/30 bg-brand-light/50" : ""}`}>
       <div className="text-xs text-muted">{label}</div>
       <div className="mt-1 text-lg font-bold tabular-nums text-ink">{formatRupiah(value)}</div>
-    </div>
+    </Card>
   );
 }
 

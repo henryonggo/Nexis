@@ -6,6 +6,16 @@ import { getActiveCompany } from "@/lib/company";
 import { formatPeriod, formatRupiah } from "@/lib/payroll";
 import { ExportCsvButton } from "@/components/export-csv-button";
 import { StatusBadge } from "./status-badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 
 type RunRow = Pick<
   Database["public"]["Tables"]["payroll_runs"]["Row"],
@@ -48,67 +58,64 @@ export default async function PayrollPage() {
             ])}
           />
           {isAdmin && (
-            <Link
-              href="/payroll/new"
-              className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
-            >
-              + {t("runPayroll")}
-            </Link>
+            <Button asChild>
+              <Link href="/payroll/new">+ {t("runPayroll")}</Link>
+            </Button>
           )}
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-[color:var(--border)] bg-white">
-        <table className="w-full text-sm">
-          <thead className="bg-brand-light/60 text-left text-muted">
-            <tr>
-              <th className="px-4 py-2 font-medium">{t("columns.period")}</th>
-              <th className="px-4 py-2 font-medium">{t("columns.status")}</th>
-              <th className="px-4 py-2 text-right font-medium">{t("columns.gross")}</th>
-              <th className="px-4 py-2 text-right font-medium">{t("columns.net")}</th>
-              <th className="px-4 py-2" />
-            </tr>
-          </thead>
-          <tbody>
+      <Card className="overflow-hidden p-0">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t("columns.period")}</TableHead>
+              <TableHead>{t("columns.status")}</TableHead>
+              <TableHead className="text-right">{t("columns.gross")}</TableHead>
+              <TableHead className="text-right">{t("columns.net")}</TableHead>
+              <TableHead />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {rows.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted">
+              <TableRow>
+                <TableCell colSpan={5} className="py-8 text-center text-muted">
                   {t("empty")}{" "}
                   {isAdmin && (
-                    <Link href="/payroll/new" className="text-brand hover:underline">
+                    <Link href="/payroll/new" className="font-medium text-brand hover:underline">
                       {t("runFirst")}
                     </Link>
                   )}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               rows.map((run) => (
-                <tr key={run.id} className="border-t border-[color:var(--border)] hover:bg-brand-light/30">
-                  <td className="px-4 py-3 font-medium text-ink">
+                <TableRow key={run.id}>
+                  <TableCell className="font-medium text-ink">
                     <Link href={`/payroll/${run.id}`} className="hover:underline">
                       {formatPeriod(run.period_year, run.period_month)}
                     </Link>
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell>
                     <StatusBadge status={run.status} />
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums text-ink">
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums text-ink">
                     {formatRupiah(run.total_gross)}
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums text-ink">
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums text-ink">
                     {formatRupiah(run.total_net)}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <Link href={`/payroll/${run.id}`} className="text-brand hover:underline">
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Link href={`/payroll/${run.id}`} className="font-medium text-brand hover:underline">
                       {t("review")}
                     </Link>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))
             )}
-          </tbody>
-        </table>
-      </div>
+          </TableBody>
+        </Table>
+      </Card>
     </div>
   );
 }
