@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import fs from "node:fs";
+import { STORAGE_STATE, HAS_AUTH } from "./_auth";
 
 /**
  * Stage 3 — attendance dashboard e2e.
@@ -10,8 +10,8 @@ import fs from "node:fs";
  * isn't set, the happy path is skipped rather than failing on missing fixtures.
  */
 
-const storageState = process.env.E2E_STORAGE_STATE;
-const hasAuth = !!storageState && fs.existsSync(storageState);
+const storageState = STORAGE_STATE;
+const hasAuth = HAS_AUTH;
 
 test.describe("attendance — auth guard", () => {
   test("unauthenticated visit to /attendance redirects to sign-in", async ({ page }) => {

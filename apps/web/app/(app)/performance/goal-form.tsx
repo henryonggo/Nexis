@@ -1,6 +1,7 @@
 "use client";
 
 import { useFormState } from "react-dom";
+import { useTranslations } from "next-intl";
 import { createGoalAction, type PerfActionState } from "./actions";
 import { SubmitButton } from "@/components/submit-button";
 
@@ -19,26 +20,27 @@ export function GoalForm({
   employees: EmployeeOption[];
   cycleId: string;
 }) {
+  const t = useTranslations("performance.goalForm");
   const [state, action] = useFormState(createGoalAction, initial);
 
   if (employees.length === 0) {
     return (
       <div className="nx-card">
-        <h2 className="mb-1 text-lg font-semibold text-ink">Tambah sasaran</h2>
-        <p className="text-sm text-muted">Tambahkan karyawan dulu untuk menetapkan sasaran.</p>
+        <h2 className="mb-1 text-lg font-semibold text-ink">{t("titleEmpty")}</h2>
+        <p className="text-sm text-muted">{t("emptyHint")}</p>
       </div>
     );
   }
 
   return (
     <div className="nx-card">
-      <h2 className="mb-1 text-lg font-semibold text-ink">Tambah sasaran (KPI)</h2>
-      <p className="mb-4 text-sm text-muted">Bobot dipakai untuk menimbang skor akhir.</p>
+      <h2 className="mb-1 text-lg font-semibold text-ink">{t("title")}</h2>
+      <p className="mb-4 text-sm text-muted">{t("subtitle")}</p>
 
       {state.error && <div className="nx-error mb-4">{state.error}</div>}
       {state.ok && (
         <div className="mb-4 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-          Sasaran ditambahkan.
+          {t("created")}
         </div>
       )}
 
@@ -47,7 +49,7 @@ export function GoalForm({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="nx-label" htmlFor="goal-employee">
-              Karyawan
+              {t("employee")}
             </label>
             <select
               id="goal-employee"
@@ -64,7 +66,7 @@ export function GoalForm({
           </div>
           <div>
             <label className="nx-label" htmlFor="weight">
-              Bobot (%)
+              {t("weight")}
             </label>
             <input
               id="weight"
@@ -79,22 +81,22 @@ export function GoalForm({
         </div>
         <div>
           <label className="nx-label" htmlFor="title">
-            Sasaran
+            {t("goal")}
           </label>
           <input
             id="title"
             name="title"
             className="nx-input"
-            placeholder="mis. Tutup 10 deal Q1"
+            placeholder={t("goalPlaceholder")}
           />
         </div>
         <div>
           <label className="nx-label" htmlFor="description">
-            Keterangan (opsional)
+            {t("description")}
           </label>
           <input id="description" name="description" className="nx-input" />
         </div>
-        <SubmitButton>Tambah sasaran</SubmitButton>
+        <SubmitButton>{t("submit")}</SubmitButton>
       </form>
     </div>
   );

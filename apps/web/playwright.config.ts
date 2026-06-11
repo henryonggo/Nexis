@@ -18,7 +18,16 @@ export default defineConfig({
     baseURL,
     trace: "on-first-retry",
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    // Signs in a seeded admin and writes the storageState the happy-path specs
+    // reuse. No-op (skips) when E2E_EMAIL/E2E_PASSWORD aren't set.
+    { name: "setup", testMatch: /auth\.setup\.ts/ },
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
+      dependencies: ["setup"],
+    },
+  ],
   webServer: process.env.E2E_BASE_URL
     ? undefined
     : {

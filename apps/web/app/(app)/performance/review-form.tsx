@@ -1,6 +1,7 @@
 "use client";
 
 import { useFormState } from "react-dom";
+import { useTranslations } from "next-intl";
 import {
   saveReviewAction,
   submitReviewAction,
@@ -24,6 +25,7 @@ export interface ReviewFormProps {
 
 /** Record + submit a performance review for one employee in a cycle. */
 export function ReviewForm(props: ReviewFormProps) {
+  const t = useTranslations("performance.reviewForm");
   const [saveState, save] = useFormState(saveReviewAction, initial);
   const [submitState, submit] = useFormState(submitReviewAction, initial);
   const error = saveState.error ?? submitState.error;
@@ -41,7 +43,7 @@ export function ReviewForm(props: ReviewFormProps) {
 
       {locked ? (
         <p className="text-sm text-muted">
-          Nilai akhir: <span className="font-medium text-ink">{props.overallRating ?? "—"}/5</span>
+          {t("finalScore")} <span className="font-medium text-ink">{props.overallRating ?? "—"}/5</span>
           {props.summary ? ` · ${props.summary}` : ""}
         </p>
       ) : (
@@ -51,7 +53,7 @@ export function ReviewForm(props: ReviewFormProps) {
             <input type="hidden" name="employeeId" value={props.employeeId} />
             <div className="grid grid-cols-[120px_1fr] items-center gap-3">
               <label className="nx-label mb-0" htmlFor={`rating-${props.employeeId}`}>
-                Nilai (1–5)
+                {t("rating")}
               </label>
               <input
                 id={`rating-${props.employeeId}`}
@@ -66,17 +68,17 @@ export function ReviewForm(props: ReviewFormProps) {
             </div>
             <div>
               <label className="nx-label" htmlFor={`summary-${props.employeeId}`}>
-                Ringkasan
+                {t("summary")}
               </label>
               <input
                 id={`summary-${props.employeeId}`}
                 name="summary"
                 className="nx-input"
                 defaultValue={props.summary ?? ""}
-                placeholder="Catatan penilaian"
+                placeholder={t("summaryPlaceholder")}
               />
             </div>
-            <SubmitButton>Simpan draf</SubmitButton>
+            <SubmitButton>{t("saveDraft")}</SubmitButton>
           </form>
 
           {props.reviewId && (
@@ -86,7 +88,7 @@ export function ReviewForm(props: ReviewFormProps) {
                 type="submit"
                 className="rounded-md border border-[color:var(--border)] px-3 py-1.5 text-sm font-semibold text-ink hover:bg-brand-light"
               >
-                Kirim penilaian
+                {t("submit")}
               </button>
             </form>
           )}

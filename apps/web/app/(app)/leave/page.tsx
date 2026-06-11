@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 import {
@@ -14,6 +15,7 @@ export default async function LeavePage() {
   const active = await getActiveCompany();
   if (!active) return null;
 
+  const t = await getTranslations("leave");
   const canApprove =
     active.role === "owner" || active.role === "admin" || active.role === "manager";
 
@@ -35,19 +37,17 @@ export default async function LeavePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-ink">Cuti</h1>
-        <p className="text-sm text-muted">
-          Tinjau dan setujui permintaan cuti karyawan {active.name}.
-        </p>
+        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
+        <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
       </div>
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-          Menunggu persetujuan ({pending.length})
+          {t("pending", { count: pending.length })}
         </h2>
         {pending.length === 0 ? (
           <p className="rounded-lg border border-[color:var(--border)] bg-white px-4 py-6 text-center text-sm text-muted">
-            Tidak ada permintaan cuti yang menunggu.
+            {t("noPending")}
           </p>
         ) : (
           <div className="space-y-3">
@@ -61,8 +61,8 @@ export default async function LeavePage() {
                     <p className="font-semibold text-ink">{r.employeeName}</p>
                     <p className="text-sm text-muted">
                       {r.leaveTypeName} · {formatDateRange(r.startDate, r.endDate)} ·{" "}
-                      <span className="font-medium text-ink">{r.days} hari</span>
-                      {r.halfDay && " (setengah hari)"}
+                      <span className="font-medium text-ink">{r.days} {t("daysLabel")}</span>
+                      {r.halfDay && ` ${t("halfDay")}`}
                     </p>
                     {r.reason && <p className="mt-1 text-sm text-ink">“{r.reason}”</p>}
                     {attachmentUrls.has(r.id) && (
@@ -72,7 +72,7 @@ export default async function LeavePage() {
                         rel="noopener noreferrer"
                         className="mt-1 inline-block text-sm text-brand hover:underline"
                       >
-                        Lihat lampiran
+                        {t("viewAttachment")}
                       </a>
                     )}
                   </div>
@@ -85,31 +85,32 @@ export default async function LeavePage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Riwayat</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t("history")}</h2>
         <HistoryTable rows={decided} />
       </section>
     </div>
   );
 }
 
-function HistoryTable({ rows }: { rows: LeaveRequestView[] }) {
+async function HistoryTable({ rows }: { rows: LeaveRequestView[] }) {
+  const t = await getTranslations("leave");
   return (
     <div className="overflow-hidden rounded-lg border border-[color:var(--border)] bg-white">
       <table className="w-full text-sm">
         <thead className="bg-brand-light/60 text-left text-muted">
           <tr>
-            <th className="px-4 py-2 font-medium">Karyawan</th>
-            <th className="px-4 py-2 font-medium">Jenis</th>
-            <th className="px-4 py-2 font-medium">Periode</th>
-            <th className="px-4 py-2 text-right font-medium">Hari</th>
-            <th className="px-4 py-2 font-medium">Status</th>
+            <th className="px-4 py-2 font-medium">{t("columns.employee")}</th>
+            <th className="px-4 py-2 font-medium">{t("columns.type")}</th>
+            <th className="px-4 py-2 font-medium">{t("columns.period")}</th>
+            <th className="px-4 py-2 text-right font-medium">{t("columns.days")}</th>
+            <th className="px-4 py-2 font-medium">{t("columns.status")}</th>
           </tr>
         </thead>
         <tbody>
           {rows.length === 0 ? (
             <tr>
               <td colSpan={5} className="px-4 py-8 text-center text-muted">
-                Belum ada riwayat cuti.
+                {t("noHistory")}
               </td>
             </tr>
           ) : (

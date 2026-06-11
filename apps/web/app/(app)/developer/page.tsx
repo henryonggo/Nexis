@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 import {
@@ -31,14 +32,13 @@ export default async function DeveloperPage() {
   const active = await getActiveCompany();
   if (!active) return null;
 
+  const t = await getTranslations("developer");
   const isOwnerAdmin = active.role === "owner" || active.role === "admin";
   if (!isOwnerAdmin) {
     return (
       <div className="nx-card max-w-lg">
-        <h1 className="mb-1 text-xl font-bold text-ink">API & Webhook</h1>
-        <p className="text-sm text-muted">
-          Hanya pemilik atau admin yang dapat mengelola integrasi developer.
-        </p>
+        <h1 className="mb-1 text-xl font-bold text-ink">{t("title")}</h1>
+        <p className="text-sm text-muted">{t("noAccess")}</p>
       </div>
     );
   }
@@ -52,19 +52,17 @@ export default async function DeveloperPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-ink">API & Webhook</h1>
-        <p className="text-sm text-muted">
-          Kelola API key dan webhook untuk integrasi {active.name} dengan sistem lain.
-        </p>
+        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
+        <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
       </div>
 
       {/* ── API keys ── */}
       <div className="grid gap-4 md:grid-cols-2">
         <KeyForm />
         <div className="nx-card">
-          <h2 className="mb-3 text-lg font-semibold text-ink">API key ({keys.length})</h2>
+          <h2 className="mb-3 text-lg font-semibold text-ink">{t("keys", { count: keys.length })}</h2>
           {keys.length === 0 ? (
-            <p className="text-sm text-muted">Belum ada API key.</p>
+            <p className="text-sm text-muted">{t("noKeys")}</p>
           ) : (
             <ul className="divide-y divide-[color:var(--border)]">
               {keys.map((k) => (
@@ -72,14 +70,12 @@ export default async function DeveloperPage() {
                   <div className="min-w-0">
                     <p className="font-medium text-ink">
                       {k.name}{" "}
-                      {!k.isActive && <span className="text-xs text-red-600">(dicabut)</span>}
+                      {!k.isActive && <span className="text-xs text-red-600">{t("revoked")}</span>}
                     </p>
                     <p className="truncate text-xs text-muted">
-                      {k.scopes.join(", ") || "tanpa scope"} · dibuat {fmtDate(k.createdAt)}
+                      {k.scopes.join(", ") || t("noScope")} · {t("createdAt", { date: fmtDate(k.createdAt) })}
                     </p>
-                    <p className="text-xs text-muted">
-                      Terakhir dipakai: {fmtDate(k.lastUsedAt)}
-                    </p>
+                    <p className="text-xs text-muted">{t("lastUsed", { date: fmtDate(k.lastUsedAt) })}</p>
                   </div>
                   {k.isActive && <RevokeKeyButton keyId={k.id} />}
                 </li>
@@ -93,9 +89,9 @@ export default async function DeveloperPage() {
       <div className="grid gap-4 md:grid-cols-2">
         <WebhookForm />
         <div className="nx-card">
-          <h2 className="mb-3 text-lg font-semibold text-ink">Webhook ({webhooks.length})</h2>
+          <h2 className="mb-3 text-lg font-semibold text-ink">{t("webhooks", { count: webhooks.length })}</h2>
           {webhooks.length === 0 ? (
-            <p className="text-sm text-muted">Belum ada webhook.</p>
+            <p className="text-sm text-muted">{t("noWebhooks")}</p>
           ) : (
             <ul className="divide-y divide-[color:var(--border)]">
               {webhooks.map((w) => (
@@ -106,9 +102,9 @@ export default async function DeveloperPage() {
                       <p className="truncate text-xs text-muted">{w.events.join(", ")}</p>
                       <p className="text-xs">
                         {w.isActive ? (
-                          <span className="text-emerald-700">Aktif</span>
+                          <span className="text-emerald-700">{t("active")}</span>
                         ) : (
-                          <span className="text-muted">Nonaktif</span>
+                          <span className="text-muted">{t("inactive")}</span>
                         )}
                       </p>
                     </div>
@@ -127,7 +123,7 @@ export default async function DeveloperPage() {
       {/* ── Delivery log ── */}
       <section className="space-y-3">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-          Pengiriman terbaru
+          {t("deliveries")}
         </h2>
         <DeliveryTable rows={logs} />
       </section>
@@ -135,24 +131,25 @@ export default async function DeveloperPage() {
   );
 }
 
-function DeliveryTable({ rows }: { rows: WebhookLogView[] }) {
+async function DeliveryTable({ rows }: { rows: WebhookLogView[] }) {
+  const t = await getTranslations("developer");
   return (
     <div className="overflow-hidden rounded-lg border border-[color:var(--border)] bg-white">
       <table className="w-full text-sm">
         <thead className="bg-brand-light/60 text-left text-muted">
           <tr>
-            <th className="px-4 py-2 font-medium">Waktu</th>
-            <th className="px-4 py-2 font-medium">Event</th>
-            <th className="px-4 py-2 font-medium">Status</th>
-            <th className="px-4 py-2 text-right font-medium">HTTP</th>
-            <th className="px-4 py-2 text-right font-medium">Percobaan</th>
+            <th className="px-4 py-2 font-medium">{t("deliveryColumns.time")}</th>
+            <th className="px-4 py-2 font-medium">{t("deliveryColumns.event")}</th>
+            <th className="px-4 py-2 font-medium">{t("deliveryColumns.status")}</th>
+            <th className="px-4 py-2 text-right font-medium">{t("deliveryColumns.http")}</th>
+            <th className="px-4 py-2 text-right font-medium">{t("deliveryColumns.attempt")}</th>
           </tr>
         </thead>
         <tbody>
           {rows.length === 0 ? (
             <tr>
               <td colSpan={5} className="px-4 py-8 text-center text-muted">
-                Belum ada pengiriman webhook.
+                {t("noDeliveries")}
               </td>
             </tr>
           ) : (

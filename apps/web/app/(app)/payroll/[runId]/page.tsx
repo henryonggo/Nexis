@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import type { Database } from "@nexis/types";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
@@ -41,6 +42,7 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
   const supabase = createClient();
   const active = await getActiveCompany();
   if (!active) return null;
+  const t = await getTranslations("payroll");
 
   const { data: run } = await supabase
     .from("payroll_runs")
@@ -133,24 +135,19 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
   return (
     <div className="space-y-6">
       <div>
-        <Link href="/payroll" className="text-sm text-muted hover:underline">← Penggajian</Link>
+        <Link href="/payroll" className="text-sm text-muted hover:underline">{t("detail.back")}</Link>
         <div className="mt-2 flex items-center gap-3">
           <h1 className="text-2xl font-bold text-ink">
-            Payroll {formatPeriod(run.period_year, run.period_month)}
+            {t("detail.heading", { period: formatPeriod(run.period_year, run.period_month) })}
           </h1>
           <RunStatusStream runId={run.id} initialStatus={run.status} />
         </div>
-        {!isPersisted && (
-          <p className="mt-1 text-sm text-muted">
-            Estimasi langsung — angka final ditulis saat run diproses.
-          </p>
-        )}
+        {!isPersisted && <p className="mt-1 text-sm text-muted">{t("estimateNote")}</p>}
       </div>
 
       {run.status === "queued" && (
         <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
-          Run sudah diantre. Pemrosesan otomatis (perhitungan & slip gaji) akan berjalan saat
-          worker payroll aktif.
+          {t("queuedNote")}
         </div>
       )}
 
@@ -161,10 +158,10 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
       ))}
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <SummaryCard label="Bruto" value={totals.gross} />
-        <SummaryCard label="BPJS (karyawan)" value={totals.bpjsEmployee} />
-        <SummaryCard label="PPh 21" value={totals.pph21} />
-        <SummaryCard label="Neto (take-home)" value={totals.net} emphasize />
+        <SummaryCard label={t("summary.gross")} value={totals.gross} />
+        <SummaryCard label={t("summary.bpjsEmployee")} value={totals.bpjsEmployee} />
+        <SummaryCard label={t("summary.pph21")} value={totals.pph21} />
+        <SummaryCard label={t("summary.net")} value={totals.net} emphasize />
       </div>
 
       <ActionBar runId={run.id} status={run.status} />
@@ -173,18 +170,18 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
         <table className="w-full text-sm">
           <thead className="bg-brand-light/60 text-left text-muted">
             <tr>
-              <th className="px-4 py-2 font-medium">Karyawan</th>
-              <th className="px-4 py-2 font-medium">PPh 21 (TER)</th>
-              <th className="px-4 py-2 text-right font-medium">Bruto</th>
-              <th className="px-4 py-2 text-right font-medium">Potongan karyawan</th>
-              <th className="px-4 py-2 text-right font-medium">Neto</th>
+              <th className="px-4 py-2 font-medium">{t("columns.employee")}</th>
+              <th className="px-4 py-2 font-medium">{t("columns.pph21")}</th>
+              <th className="px-4 py-2 text-right font-medium">{t("columns.gross")}</th>
+              <th className="px-4 py-2 text-right font-medium">{t("columns.deductions")}</th>
+              <th className="px-4 py-2 text-right font-medium">{t("summary.net")}</th>
             </tr>
           </thead>
           <tbody>
             {lines.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-4 py-8 text-center text-muted">
-                  Tidak ada karyawan untuk dihitung.
+                  {t("detail.noEmployees")}
                 </td>
               </tr>
             ) : (
@@ -198,23 +195,23 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
                         <div key={w} className="mt-0.5 text-xs text-amber-700">⚠ {w}</div>
                       ))}
                       <details className="mt-1">
-                        <summary className="cursor-pointer text-xs text-brand hover:underline">Rincian</summary>
+                        <summary className="cursor-pointer text-xs text-brand hover:underline">{t("breakdown")}</summary>
                         <dl className="mt-2 space-y-1 text-xs text-muted">
-                          <BreakdownRow label="BPJS Kes (karyawan 1%)" value={line.bpjsKesEmployee} />
-                          <BreakdownRow label="BPJS Kes (perusahaan 4%)" value={line.bpjsKesEmployer} />
-                          <BreakdownRow label="JHT (karyawan 2%)" value={line.jhtEmployee} />
-                          <BreakdownRow label="JHT (perusahaan 3.7%)" value={line.jhtEmployer} />
-                          <BreakdownRow label="JP (karyawan 1%)" value={line.jpEmployee} />
-                          <BreakdownRow label="JP (perusahaan 2%)" value={line.jpEmployer} />
-                          <BreakdownRow label="JKK (perusahaan)" value={line.jkkEmployer} />
-                          <BreakdownRow label="JKM (perusahaan 0.30%)" value={line.jkmEmployer} />
-                          <BreakdownRow label="PPh 21" value={line.pph21} />
+                          <BreakdownRow label={t("breakdownRows.bpjsKesEmployee")} value={line.bpjsKesEmployee} />
+                          <BreakdownRow label={t("breakdownRows.bpjsKesEmployer")} value={line.bpjsKesEmployer} />
+                          <BreakdownRow label={t("breakdownRows.jhtEmployee")} value={line.jhtEmployee} />
+                          <BreakdownRow label={t("breakdownRows.jhtEmployer")} value={line.jhtEmployer} />
+                          <BreakdownRow label={t("breakdownRows.jpEmployee")} value={line.jpEmployee} />
+                          <BreakdownRow label={t("breakdownRows.jpEmployer")} value={line.jpEmployer} />
+                          <BreakdownRow label={t("breakdownRows.jkkEmployer")} value={line.jkkEmployer} />
+                          <BreakdownRow label={t("breakdownRows.jkmEmployer")} value={line.jkmEmployer} />
+                          <BreakdownRow label={t("breakdownRows.pph21")} value={line.pph21} />
                         </dl>
                       </details>
                     </td>
                     <td className="px-4 py-3 text-xs text-muted">
-                      Kategori {line.terCategory ?? "—"} · {formatRateBps(line.terRateBps)}
-                      {line.hasNpwp === false && <span className="ml-1 text-amber-700">(+20% tanpa NPWP)</span>}
+                      {t("detail.terCategory", { category: line.terCategory ?? "—", rate: formatRateBps(line.terRateBps) })}
+                      {line.hasNpwp === false && <span className="ml-1 text-amber-700">{t("noNpwp")}</span>}
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums text-ink">{formatRupiah(line.gross)}</td>
                     <td className="px-4 py-3 text-right tabular-nums text-ink">−{formatRupiah(employeeDeductions, { withSymbol: false })}</td>

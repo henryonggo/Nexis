@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { formatRupiah } from "@nexis/money";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
@@ -14,14 +15,13 @@ export default async function AnalyticsPage() {
   const active = await getActiveCompany();
   if (!active) return null;
 
+  const t = await getTranslations("analytics");
   const isAdmin = active.role === "owner" || active.role === "admin";
   if (!isAdmin) {
     return (
       <div className="nx-card max-w-lg">
-        <h1 className="mb-1 text-xl font-bold text-ink">Analitik</h1>
-        <p className="text-sm text-muted">
-          Hanya pemilik atau admin yang dapat melihat analitik perusahaan.
-        </p>
+        <h1 className="mb-1 text-xl font-bold text-ink">{t("title")}</h1>
+        <p className="text-sm text-muted">{t("noAccess")}</p>
       </div>
     );
   }
@@ -40,60 +40,62 @@ export default async function AnalyticsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-ink">Analitik</h1>
-        <p className="text-sm text-muted">
-          Ringkasan headcount, biaya payroll, dan cuti {active.name}.
-        </p>
+        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
+        <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
       </div>
 
       {/* KPI strip */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi label="Karyawan aktif" value={String(headcount.active)} hint={`${headcount.total} total`} />
         <Kpi
-          label="Bruto payroll terakhir"
+          label={t("activeEmployees")}
+          value={String(headcount.active)}
+          hint={t("totalSuffix", { total: headcount.total })}
+        />
+        <Kpi
+          label={t("lastGross")}
           value={latest ? formatRupiah(latest.gross) : "—"}
-          hint={latest ? latest.periodLabel : "Belum ada run"}
+          hint={latest ? latest.periodLabel : t("noRun")}
         />
         <Kpi
-          label="BPJS perusahaan (terakhir)"
+          label={t("employerBpjs")}
           value={latest ? formatRupiah(latest.bpjsEmployer) : "—"}
-          hint={latest ? `PPh 21 ${formatRupiah(latest.pph21)}` : "—"}
+          hint={latest ? t("pph21", { amount: formatRupiah(latest.pph21) }) : "—"}
         />
         <Kpi
-          label="Menunggu persetujuan"
+          label={t("pendingApprovals")}
           value={String(pendingTotal)}
-          hint={`${approvals.pendingLeave} cuti · ${approvals.pendingClaims} klaim`}
+          hint={t("pendingBreakdown", { leave: approvals.pendingLeave, claims: approvals.pendingClaims })}
         />
       </div>
 
       {/* Payroll cost trend */}
       <section className="nx-card">
         <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
-          Tren bruto payroll
+          {t("trendTitle")}
         </h2>
-        <TrendChart points={trend} />
+        <TrendChart points={trend} emptyText={t("noTrend")} grossLabel={t("grossLabel")} />
       </section>
 
       {/* Headcount breakdowns */}
       <div className="grid gap-4 lg:grid-cols-2">
         <section className="nx-card">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
-            Karyawan per departemen
+            {t("byDepartment")}
           </h2>
           <BarList
             items={headcount.byDepartment}
-            unit="org"
-            emptyText="Belum ada karyawan aktif."
+            unit={t("unitPeople")}
+            emptyText={t("noActiveEmployees")}
           />
         </section>
         <section className="nx-card">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
-            Karyawan per tipe
+            {t("byType")}
           </h2>
           <BarList
             items={headcount.byEmploymentType}
-            unit="org"
-            emptyText="Belum ada karyawan aktif."
+            unit={t("unitPeople")}
+            emptyText={t("noActiveEmployees")}
           />
         </section>
       </div>
@@ -101,9 +103,9 @@ export default async function AnalyticsPage() {
       {/* Leave usage */}
       <section className="nx-card">
         <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
-          Hari cuti disetujui ({year})
+          {t("leaveTitle", { year })}
         </h2>
-        <BarList items={leaveUsage} unit="hari" emptyText="Belum ada cuti disetujui tahun ini." />
+        <BarList items={leaveUsage} unit={t("unitDays")} emptyText={t("noLeave")} />
       </section>
     </div>
   );

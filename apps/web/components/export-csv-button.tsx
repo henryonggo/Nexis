@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { buildCsv, type CsvCell } from "@/lib/csv";
 
 /**
@@ -11,13 +12,14 @@ export function ExportCsvButton({
   filename,
   headers,
   rows,
-  label = "Ekspor CSV",
+  label,
 }: {
   filename: string;
   headers: string[];
   rows: CsvCell[][];
   label?: string;
 }) {
+  const t = useTranslations("common");
   const disabled = rows.length === 0;
 
   function handleExport() {
@@ -40,7 +42,7 @@ export function ExportCsvButton({
       disabled={disabled}
       className="rounded-md border border-[color:var(--border)] px-4 py-2 text-sm font-semibold text-ink hover:bg-brand-light disabled:cursor-not-allowed disabled:opacity-50"
     >
-      {label}
+      {label ?? t("exportCsv")}
     </button>
   );
 }

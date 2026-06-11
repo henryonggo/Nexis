@@ -1,6 +1,7 @@
 "use client";
 
 import { useFormState } from "react-dom";
+import { useTranslations } from "next-intl";
 import { updateGoalProgressAction, type PerfActionState } from "./actions";
 import { SubmitButton } from "@/components/submit-button";
 
@@ -8,6 +9,7 @@ const initial: PerfActionState = {};
 
 /** Inline progress editor for one goal (manager surface). */
 export function GoalProgress({ goalId, progress }: { goalId: string; progress: number }) {
+  const t = useTranslations("performance.goalProgress");
   const [state, action] = useFormState(updateGoalProgressAction, initial);
 
   return (
@@ -20,10 +22,10 @@ export function GoalProgress({ goalId, progress }: { goalId: string; progress: n
         max={100}
         defaultValue={progress}
         className="w-20 rounded-md border border-[color:var(--border)] px-2 py-1 text-sm"
-        aria-label="Progres (%)"
+        aria-label={t("ariaLabel")}
       />
       <span className="text-sm text-muted">%</span>
-      <SubmitButton>Simpan</SubmitButton>
+      <SubmitButton>{t("save")}</SubmitButton>
       {state.error && <span className="text-xs text-red-600">{state.error}</span>}
     </form>
   );

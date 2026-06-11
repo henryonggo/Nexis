@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
+import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@nexis/types";
 import { correctRecord, type CorrectionState } from "./actions";
@@ -12,13 +13,6 @@ export type AttendanceRecord = Pick<
 >;
 
 type Kind = Database["public"]["Enums"]["attendance_kind"];
-
-const KIND_LABEL: Record<Kind, string> = {
-  clock_in: "Masuk",
-  clock_out: "Keluar",
-  break_start: "Mulai istirahat",
-  break_end: "Selesai istirahat",
-};
 
 const WIB = new Intl.DateTimeFormat("id-ID", {
   hour: "2-digit",
@@ -41,6 +35,8 @@ export function LiveBoard({
   initialRecords: AttendanceRecord[];
   canCorrect: boolean;
 }) {
+  const t = useTranslations("attendance");
+  const tk = useTranslations("attendance.kind");
   const [records, setRecords] = useState<AttendanceRecord[]>(initialRecords);
   const [live, setLive] = useState(false);
 
@@ -98,10 +94,10 @@ export function LiveBoard({
           <span
             className={`h-2 w-2 rounded-full ${live ? "bg-success animate-pulse" : "bg-muted"}`}
           />
-          {live ? "Langsung" : "Menyambung…"}
+          {live ? t("live") : t("connecting")}
         </span>
         <span className="text-muted">
-          <strong className="text-ink">{presentCount}</strong> sedang hadir
+          <strong className="text-ink">{presentCount}</strong> {t("present")}
         </span>
       </div>
 
@@ -110,23 +106,23 @@ export function LiveBoard({
         <table className="w-full text-sm">
           <thead className="bg-brand-light/60 text-left text-muted">
             <tr>
-              <th className="px-4 py-2 font-medium">Karyawan</th>
-              <th className="px-4 py-2 font-medium">Status</th>
-              <th className="px-4 py-2 font-medium">Waktu</th>
+              <th className="px-4 py-2 font-medium">{t("columns.employee")}</th>
+              <th className="px-4 py-2 font-medium">{t("columns.status")}</th>
+              <th className="px-4 py-2 font-medium">{t("columns.time")}</th>
             </tr>
           </thead>
           <tbody>
             {current.length === 0 && (
               <tr>
                 <td colSpan={3} className="px-4 py-6 text-center text-muted">
-                  Belum ada kehadiran hari ini.
+                  {t("noneToday")}
                 </td>
               </tr>
             )}
             {current.map((r) => (
               <tr key={r.employee_id} className="border-t border-[color:var(--border)]">
                 <td className="px-4 py-2 text-ink">
-                  {nameById[r.employee_id] ?? "(tidak dikenal)"}
+                  {nameById[r.employee_id] ?? t("unknown")}
                 </td>
                 <td className="px-4 py-2">
                   <span
@@ -136,7 +132,7 @@ export function LiveBoard({
                         : "bg-brand-light text-muted"
                     }`}
                   >
-                    {KIND_LABEL[r.kind]}
+                    {tk(r.kind)}
                   </span>
                 </td>
                 <td className="px-4 py-2 text-muted">{WIB.format(new Date(r.event_at))}</td>
@@ -148,38 +144,38 @@ export function LiveBoard({
 
       {/* Full event log */}
       <div>
-        <h2 className="mb-2 text-sm font-semibold text-ink">Log kejadian hari ini</h2>
+        <h2 className="mb-2 text-sm font-semibold text-ink">{t("eventLog")}</h2>
         <div className="overflow-hidden rounded-lg border border-[color:var(--border)] bg-white">
           <table className="w-full text-sm">
             <thead className="bg-brand-light/60 text-left text-muted">
               <tr>
-                <th className="px-4 py-2 font-medium">Karyawan</th>
-                <th className="px-4 py-2 font-medium">Kejadian</th>
-                <th className="px-4 py-2 font-medium">Waktu</th>
-                <th className="px-4 py-2 font-medium">Validitas</th>
-                {canCorrect && <th className="px-4 py-2 font-medium">Koreksi</th>}
+                <th className="px-4 py-2 font-medium">{t("columns.employee")}</th>
+                <th className="px-4 py-2 font-medium">{t("columns.event")}</th>
+                <th className="px-4 py-2 font-medium">{t("columns.time")}</th>
+                <th className="px-4 py-2 font-medium">{t("columns.validity")}</th>
+                {canCorrect && <th className="px-4 py-2 font-medium">{t("columns.correction")}</th>}
               </tr>
             </thead>
             <tbody>
               {records.length === 0 && (
                 <tr>
                   <td colSpan={canCorrect ? 5 : 4} className="px-4 py-6 text-center text-muted">
-                    Belum ada kejadian.
+                    {t("noEvents")}
                   </td>
                 </tr>
               )}
               {records.map((r) => (
                 <tr key={r.id} className="border-t border-[color:var(--border)] align-top">
                   <td className="px-4 py-2 text-ink">
-                    {nameById[r.employee_id] ?? "(tidak dikenal)"}
+                    {nameById[r.employee_id] ?? t("unknown")}
                   </td>
-                  <td className="px-4 py-2 text-muted">{KIND_LABEL[r.kind]}</td>
+                  <td className="px-4 py-2 text-muted">{tk(r.kind)}</td>
                   <td className="px-4 py-2 text-muted">{WIB.format(new Date(r.event_at))}</td>
                   <td className="px-4 py-2">
                     {r.is_valid ? (
-                      <span className="text-xs text-success">Valid</span>
+                      <span className="text-xs text-success">{t("valid")}</span>
                     ) : (
-                      <span className="text-xs text-danger">Di luar area</span>
+                      <span className="text-xs text-danger">{t("outOfArea")}</span>
                     )}
                   </td>
                   {canCorrect && (
@@ -198,6 +194,7 @@ export function LiveBoard({
 }
 
 function CorrectionForm({ record }: { record: AttendanceRecord }) {
+  const t = useTranslations("attendance");
   const [state, formAction] = useFormState<CorrectionState, FormData>(correctRecord, {});
   return (
     <form action={formAction} className="flex flex-wrap items-center gap-2">
@@ -207,7 +204,7 @@ function CorrectionForm({ record }: { record: AttendanceRecord }) {
         type="text"
         name="note"
         defaultValue={record.note ?? ""}
-        placeholder="Catatan"
+        placeholder={t("notePlaceholder")}
         className="w-28 rounded border border-[color:var(--border)] px-2 py-1 text-xs"
       />
       <CorrectionButton invalidating={record.is_valid} />
@@ -218,6 +215,7 @@ function CorrectionForm({ record }: { record: AttendanceRecord }) {
 }
 
 function CorrectionButton({ invalidating }: { invalidating: boolean }) {
+  const t = useTranslations("attendance");
   const { pending } = useFormStatus();
   return (
     <button
@@ -225,7 +223,7 @@ function CorrectionButton({ invalidating }: { invalidating: boolean }) {
       disabled={pending}
       className="rounded border border-[color:var(--border)] px-2 py-1 text-xs text-ink hover:bg-brand-light disabled:opacity-60"
     >
-      {invalidating ? "Tandai tidak valid" : "Setujui"}
+      {invalidating ? t("markInvalid") : t("approve")}
     </button>
   );
 }

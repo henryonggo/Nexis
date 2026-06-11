@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import type { Database } from "@nexis/types";
 import { createClient } from "@/lib/supabase/client";
 import { StatusBadge } from "../status-badge";
@@ -21,6 +22,7 @@ export function RunStatusStream({
   runId: string;
   initialStatus: Status;
 }) {
+  const t = useTranslations("payroll");
   const router = useRouter();
   const [status, setStatus] = useState<Status>(initialStatus);
   const [live, setLive] = useState(false);
@@ -59,7 +61,7 @@ export function RunStatusStream({
       {transient && (
         <span className="inline-flex items-center gap-1 text-xs text-muted">
           <span className={`h-1.5 w-1.5 rounded-full ${live ? "animate-pulse bg-emerald-500" : "bg-gray-300"}`} />
-          {live ? "memantau…" : "menyambung…"}
+          {live ? t("monitoring") : t("connecting")}
         </span>
       )}
     </span>

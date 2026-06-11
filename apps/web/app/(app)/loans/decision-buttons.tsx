@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useFormState } from "react-dom";
+import { useTranslations } from "next-intl";
 import { approveLoanAction, rejectLoanAction, type LoanActionState } from "./actions";
 import { SubmitButton } from "@/components/submit-button";
 
@@ -9,6 +10,7 @@ const initial: LoanActionState = {};
 
 /** Approve / reject controls for one pending loan request. */
 export function LoanDecisionButtons({ loanId }: { loanId: string }) {
+  const t = useTranslations("decision");
   const [approveState, approve] = useFormState(approveLoanAction, initial);
   const [rejectState, reject] = useFormState(rejectLoanAction, initial);
   const [rejecting, setRejecting] = useState(false);
@@ -20,7 +22,7 @@ export function LoanDecisionButtons({ loanId }: { loanId: string }) {
       <div className="flex flex-wrap items-center gap-2">
         <form action={approve}>
           <input type="hidden" name="loanId" value={loanId} />
-          <SubmitButton>Setujui</SubmitButton>
+          <SubmitButton>{t("approve")}</SubmitButton>
         </form>
         {rejecting ? (
           <form action={reject} className="flex items-center gap-2">
@@ -28,16 +30,16 @@ export function LoanDecisionButtons({ loanId }: { loanId: string }) {
             <input
               type="text"
               name="note"
-              placeholder="Alasan penolakan (opsional)"
+              placeholder={t("rejectReason")}
               className="rounded-md border border-[color:var(--border)] px-2 py-1.5 text-sm"
             />
-            <SubmitButton>Tolak</SubmitButton>
+            <SubmitButton>{t("reject")}</SubmitButton>
             <button
               type="button"
               onClick={() => setRejecting(false)}
               className="text-sm text-muted hover:underline"
             >
-              Batal
+              {t("cancel")}
             </button>
           </form>
         ) : (
@@ -46,7 +48,7 @@ export function LoanDecisionButtons({ loanId }: { loanId: string }) {
             onClick={() => setRejecting(true)}
             className="rounded-md border border-[color:var(--border)] px-3 py-1.5 text-sm font-semibold text-ink hover:bg-brand-light"
           >
-            Tolak
+            {t("reject")}
           </button>
         )}
       </div>

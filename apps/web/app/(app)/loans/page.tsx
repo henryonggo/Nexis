@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { formatRupiah } from "@nexis/money";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
@@ -11,15 +12,14 @@ export default async function LoansPage() {
   const active = await getActiveCompany();
   if (!active) return null;
 
+  const t = await getTranslations("loans");
   const canManage =
     active.role === "owner" || active.role === "admin" || active.role === "manager";
   if (!canManage) {
     return (
       <div className="nx-card max-w-lg">
-        <h1 className="mb-1 text-xl font-bold text-ink">Pinjaman & Kasbon</h1>
-        <p className="text-sm text-muted">
-          Hanya pemilik, admin, atau manajer yang dapat mengelola pinjaman karyawan.
-        </p>
+        <h1 className="mb-1 text-xl font-bold text-ink">{t("title")}</h1>
+        <p className="text-sm text-muted">{t("noAccess")}</p>
       </div>
     );
   }
@@ -44,21 +44,19 @@ export default async function LoansPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-ink">Pinjaman & Kasbon</h1>
-        <p className="text-sm text-muted">
-          Kelola pinjaman karyawan {active.name}. Pinjaman disetujui dipotong dari payroll.
-        </p>
+        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
+        <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
       </div>
 
       <LoanRequestForm employees={employees} />
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-          Menunggu persetujuan ({pending.length})
+          {t("pending", { count: pending.length })}
         </h2>
         {pending.length === 0 ? (
           <p className="rounded-lg border border-[color:var(--border)] bg-white px-4 py-6 text-center text-sm text-muted">
-            Tidak ada pengajuan yang menunggu.
+            {t("noPending")}
           </p>
         ) : (
           <div className="space-y-3">
@@ -69,7 +67,7 @@ export default async function LoansPage() {
                     <p className="font-semibold text-ink">{l.employeeName}</p>
                     <p className="text-sm text-muted">
                       <span className="font-medium text-ink">{formatRupiah(l.principal)}</span> ·{" "}
-                      {l.installments}× {formatRupiah(l.installmentAmount)}/bln
+                      {l.installments}× {formatRupiah(l.installmentAmount)}{t("perMonth")}
                     </p>
                     {l.reason && <p className="mt-1 text-sm text-ink">“{l.reason}”</p>}
                   </div>
@@ -82,31 +80,32 @@ export default async function LoansPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Riwayat</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t("history")}</h2>
         <HistoryTable rows={decided} />
       </section>
     </div>
   );
 }
 
-function HistoryTable({ rows }: { rows: LoanView[] }) {
+async function HistoryTable({ rows }: { rows: LoanView[] }) {
+  const t = await getTranslations("loans");
   return (
     <div className="overflow-hidden rounded-lg border border-[color:var(--border)] bg-white">
       <table className="w-full text-sm">
         <thead className="bg-brand-light/60 text-left text-muted">
           <tr>
-            <th className="px-4 py-2 font-medium">Karyawan</th>
-            <th className="px-4 py-2 text-right font-medium">Pokok</th>
-            <th className="px-4 py-2 font-medium">Cicilan</th>
-            <th className="px-4 py-2 font-medium">Berikutnya</th>
-            <th className="px-4 py-2 font-medium">Status</th>
+            <th className="px-4 py-2 font-medium">{t("columns.employee")}</th>
+            <th className="px-4 py-2 text-right font-medium">{t("columns.principal")}</th>
+            <th className="px-4 py-2 font-medium">{t("columns.installments")}</th>
+            <th className="px-4 py-2 font-medium">{t("columns.next")}</th>
+            <th className="px-4 py-2 font-medium">{t("columns.status")}</th>
           </tr>
         </thead>
         <tbody>
           {rows.length === 0 ? (
             <tr>
               <td colSpan={5} className="px-4 py-8 text-center text-muted">
-                Belum ada riwayat pinjaman.
+                {t("noHistory")}
               </td>
             </tr>
           ) : (

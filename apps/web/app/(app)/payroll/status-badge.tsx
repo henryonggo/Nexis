@@ -1,16 +1,9 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import type { Database } from "@nexis/types";
 
 type Status = Database["public"]["Enums"]["pay_period_status"];
-
-const LABELS: Record<Status, string> = {
-  draft: "Draf",
-  queued: "Antre",
-  processing: "Diproses",
-  completed: "Selesai",
-  paid: "Dibayar",
-  failed: "Gagal",
-  cancelled: "Dibatalkan",
-};
 
 const STYLES: Record<Status, string> = {
   draft: "bg-gray-100 text-gray-700",
@@ -23,9 +16,10 @@ const STYLES: Record<Status, string> = {
 };
 
 export function StatusBadge({ status }: { status: Status }) {
+  const t = useTranslations("payroll.status");
   return (
     <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${STYLES[status]}`}>
-      {LABELS[status]}
+      {t(status)}
     </span>
   );
 }

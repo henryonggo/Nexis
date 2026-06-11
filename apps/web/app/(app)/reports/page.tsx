@@ -1,10 +1,10 @@
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 import {
   getReportJobs,
   getReportableRuns,
   getReportSignedUrl,
-  reportTypeLabel,
 } from "@/lib/reports";
 import { ReportForm } from "./report-form";
 import { ReportStatusBadge } from "./status-badge";
@@ -22,15 +22,15 @@ export default async function ReportsPage() {
   const active = await getActiveCompany();
   if (!active) return null;
 
+  const t = await getTranslations("reports");
+  const tt = await getTranslations("reports.types");
   const canExport =
     active.role === "owner" || active.role === "admin" || active.role === "manager";
   if (!canExport) {
     return (
       <div className="nx-card max-w-lg">
-        <h1 className="mb-1 text-xl font-bold text-ink">Laporan & Ekspor</h1>
-        <p className="text-sm text-muted">
-          Hanya pemilik, admin, atau manajer yang dapat membuat dan mengunduh laporan.
-        </p>
+        <h1 className="mb-1 text-xl font-bold text-ink">{t("title")}</h1>
+        <p className="text-sm text-muted">{t("noAccess")}</p>
       </div>
     );
   }
@@ -54,26 +54,24 @@ export default async function ReportsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-ink">Laporan & Ekspor</h1>
-        <p className="text-sm text-muted">
-          Buat laporan payroll, BPJS, dan PPh 21 untuk {active.name} dalam format Excel.
-        </p>
+        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
+        <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
       </div>
 
       <ReportForm runs={runs} />
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-          Riwayat laporan
+          {t("history")}
         </h2>
         <div className="overflow-hidden rounded-lg border border-[color:var(--border)] bg-white">
           <table className="w-full text-sm">
             <thead className="bg-brand-light/60 text-left text-muted">
               <tr>
-                <th className="px-4 py-2 font-medium">Jenis</th>
-                <th className="px-4 py-2 font-medium">Periode</th>
-                <th className="px-4 py-2 font-medium">Dibuat</th>
-                <th className="px-4 py-2 font-medium">Status</th>
+                <th className="px-4 py-2 font-medium">{t("columns.type")}</th>
+                <th className="px-4 py-2 font-medium">{t("columns.period")}</th>
+                <th className="px-4 py-2 font-medium">{t("columns.created")}</th>
+                <th className="px-4 py-2 font-medium">{t("columns.status")}</th>
                 <th className="px-4 py-2" />
               </tr>
             </thead>
@@ -81,7 +79,7 @@ export default async function ReportsPage() {
               {jobs.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-muted">
-                    Belum ada laporan dibuat.
+                    {t("empty")}
                   </td>
                 </tr>
               ) : (
@@ -91,7 +89,7 @@ export default async function ReportsPage() {
                     className="border-t border-[color:var(--border)] align-top"
                   >
                     <td className="px-4 py-3 font-medium text-ink">
-                      {reportTypeLabel(job.reportType)}
+                      {tt(`${job.reportType}.label`)}
                     </td>
                     <td className="px-4 py-3 text-ink">{job.periodLabel ?? "—"}</td>
                     <td className="px-4 py-3 text-muted">
@@ -110,7 +108,7 @@ export default async function ReportsPage() {
                           className="text-brand hover:underline"
                           download
                         >
-                          Unduh Excel
+                          {t("download")}
                         </a>
                       ) : (
                         <span className="text-xs text-muted">—</span>

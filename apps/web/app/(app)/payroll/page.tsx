@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import type { Database } from "@nexis/types";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
@@ -17,6 +18,7 @@ export default async function PayrollPage() {
   if (!active) return null;
 
   const isAdmin = active.role === "owner" || active.role === "admin";
+  const t = await getTranslations("payroll");
 
   const { data: runs } = await supabase
     .from("payroll_runs")
@@ -31,8 +33,8 @@ export default async function PayrollPage() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-ink">Penggajian</h1>
-          <p className="text-sm text-muted">Jalankan dan tinjau payroll bulanan {active.name}.</p>
+          <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
+          <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
         </div>
         <div className="flex items-center gap-2">
           <ExportCsvButton
@@ -50,7 +52,7 @@ export default async function PayrollPage() {
               href="/payroll/new"
               className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
             >
-              + Jalankan payroll
+              + {t("runPayroll")}
             </Link>
           )}
         </div>
@@ -60,10 +62,10 @@ export default async function PayrollPage() {
         <table className="w-full text-sm">
           <thead className="bg-brand-light/60 text-left text-muted">
             <tr>
-              <th className="px-4 py-2 font-medium">Periode</th>
-              <th className="px-4 py-2 font-medium">Status</th>
-              <th className="px-4 py-2 text-right font-medium">Bruto</th>
-              <th className="px-4 py-2 text-right font-medium">Neto (take-home)</th>
+              <th className="px-4 py-2 font-medium">{t("columns.period")}</th>
+              <th className="px-4 py-2 font-medium">{t("columns.status")}</th>
+              <th className="px-4 py-2 text-right font-medium">{t("columns.gross")}</th>
+              <th className="px-4 py-2 text-right font-medium">{t("columns.net")}</th>
               <th className="px-4 py-2" />
             </tr>
           </thead>
@@ -71,10 +73,10 @@ export default async function PayrollPage() {
             {rows.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-4 py-8 text-center text-muted">
-                  Belum ada run payroll.{" "}
+                  {t("empty")}{" "}
                   {isAdmin && (
                     <Link href="/payroll/new" className="text-brand hover:underline">
-                      Jalankan yang pertama
+                      {t("runFirst")}
                     </Link>
                   )}
                 </td>
@@ -98,7 +100,7 @@ export default async function PayrollPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Link href={`/payroll/${run.id}`} className="text-brand hover:underline">
-                      Tinjau
+                      {t("review")}
                     </Link>
                   </td>
                 </tr>

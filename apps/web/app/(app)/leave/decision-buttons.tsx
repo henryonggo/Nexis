@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useFormState } from "react-dom";
+import { useTranslations } from "next-intl";
 import { approveLeave, rejectLeave, type DecisionState } from "./actions";
 import { SubmitButton } from "@/components/submit-button";
 
@@ -9,6 +10,7 @@ const initial: DecisionState = {};
 
 /** Approve / reject controls for one pending leave request (manager queue). */
 export function LeaveDecisionButtons({ requestId }: { requestId: string }) {
+  const t = useTranslations("decision");
   const [approveState, approve] = useFormState(approveLeave, initial);
   const [rejectState, reject] = useFormState(rejectLeave, initial);
   const [rejecting, setRejecting] = useState(false);
@@ -20,7 +22,7 @@ export function LeaveDecisionButtons({ requestId }: { requestId: string }) {
       <div className="flex flex-wrap items-center gap-2">
         <form action={approve}>
           <input type="hidden" name="requestId" value={requestId} />
-          <SubmitButton>Setujui</SubmitButton>
+          <SubmitButton>{t("approve")}</SubmitButton>
         </form>
         {rejecting ? (
           <form action={reject} className="flex items-center gap-2">
@@ -28,16 +30,16 @@ export function LeaveDecisionButtons({ requestId }: { requestId: string }) {
             <input
               type="text"
               name="note"
-              placeholder="Alasan penolakan (opsional)"
+              placeholder={t("rejectReason")}
               className="rounded-md border border-[color:var(--border)] px-2 py-1.5 text-sm"
             />
-            <SubmitButton>Tolak</SubmitButton>
+            <SubmitButton>{t("reject")}</SubmitButton>
             <button
               type="button"
               onClick={() => setRejecting(false)}
               className="text-sm text-muted hover:underline"
             >
-              Batal
+              {t("cancel")}
             </button>
           </form>
         ) : (
@@ -46,7 +48,7 @@ export function LeaveDecisionButtons({ requestId }: { requestId: string }) {
             onClick={() => setRejecting(true)}
             className="rounded-md border border-[color:var(--border)] px-3 py-1.5 text-sm font-semibold text-ink hover:bg-brand-light"
           >
-            Tolak
+            {t("reject")}
           </button>
         )}
       </div>

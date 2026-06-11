@@ -1,14 +1,17 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 import { ExportCsvButton } from "@/components/export-csv-button";
-import {
-  getAuditLog,
-  actionLabel,
-  actionTone,
-  entityLabel,
-  AUDIT_ENTITIES,
-} from "@/lib/audit";
+import { getAuditLog, actionTone, AUDIT_ENTITIES } from "@/lib/audit";
+
+const KNOWN_ACTIONS = new Set([
+  "approve_leave",
+  "reject_leave",
+  "approve_claim",
+  "reject_claim",
+  "correct_attendance",
+]);
 
 const TONE_STYLES: Record<"approve" | "reject" | "neutral", string> = {
   approve: "bg-emerald-100 text-emerald-700",
@@ -42,14 +45,20 @@ export default async function AuditPage({
   const active = await getActiveCompany();
   if (!active) return null;
 
+  const t = await getTranslations("audit");
+  const tActions = await getTranslations("audit.actions");
+  const tEntities = await getTranslations("audit.entities");
+  const actLabel = (a: string) =>
+    KNOWN_ACTIONS.has(a) ? tActions(a) : a.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
+  const entLabel = (e: string | null) =>
+    !e ? "—" : (AUDIT_ENTITIES as readonly string[]).includes(e) ? tEntities(e) : e;
+
   const isAdmin = active.role === "owner" || active.role === "admin";
   if (!isAdmin) {
     return (
       <div className="nx-card max-w-lg">
-        <h1 className="mb-1 text-xl font-bold text-ink">Audit & Kepatuhan</h1>
-        <p className="text-sm text-muted">
-          Hanya pemilik atau admin yang dapat melihat log audit.
-        </p>
+        <h1 className="mb-1 text-xl font-bold text-ink">{t("title")}</h1>
+        <p className="text-sm text-muted">{t("noAccess")}</p>
       </div>
     );
   }
@@ -65,18 +74,16 @@ export default async function AuditPage({
     <div className="space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-ink">Audit & Kepatuhan</h1>
-          <p className="text-sm text-muted">
-            Catatan tindakan sensitif di {active.name} — persetujuan, penolakan, dan koreksi.
-          </p>
+          <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
+          <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
         </div>
         <ExportCsvButton
           filename={`audit-${active.name}`}
           headers={["Waktu", "Tindakan", "Objek", "Oleh", "Detail"]}
           rows={entries.map((entry) => [
             entry.createdAt,
-            actionLabel(entry.action),
-            entityLabel(entry.entity),
+            actLabel(entry.action),
+            entLabel(entry.entity),
             entry.actorName,
             summarizeMetadata(entry.metadata) ?? "",
           ])}
@@ -85,11 +92,11 @@ export default async function AuditPage({
 
       {/* Entity filter chips */}
       <div className="flex flex-wrap gap-2">
-        <FilterChip label="Semua" href="/audit" active={!activeEntity} />
+        <FilterChip label={t("all")} href="/audit" active={!activeEntity} />
         {AUDIT_ENTITIES.map((e) => (
           <FilterChip
             key={e}
-            label={entityLabel(e)}
+            label={entLabel(e)}
             href={`/audit?entity=${e}`}
             active={activeEntity === e}
           />
@@ -100,18 +107,18 @@ export default async function AuditPage({
         <table className="w-full text-sm">
           <thead className="bg-brand-light/60 text-left text-muted">
             <tr>
-              <th className="px-4 py-2 font-medium">Waktu</th>
-              <th className="px-4 py-2 font-medium">Tindakan</th>
-              <th className="px-4 py-2 font-medium">Objek</th>
-              <th className="px-4 py-2 font-medium">Oleh</th>
-              <th className="px-4 py-2 font-medium">Detail</th>
+              <th className="px-4 py-2 font-medium">{t("columns.time")}</th>
+              <th className="px-4 py-2 font-medium">{t("columns.action")}</th>
+              <th className="px-4 py-2 font-medium">{t("columns.object")}</th>
+              <th className="px-4 py-2 font-medium">{t("columns.by")}</th>
+              <th className="px-4 py-2 font-medium">{t("columns.detail")}</th>
             </tr>
           </thead>
           <tbody>
             {entries.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-4 py-8 text-center text-muted">
-                  Belum ada catatan audit.
+                  {t("empty")}
                 </td>
               </tr>
             ) : (
@@ -126,10 +133,10 @@ export default async function AuditPage({
                       <span
                         className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${TONE_STYLES[actionTone(entry.action)]}`}
                       >
-                        {actionLabel(entry.action)}
+                        {actLabel(entry.action)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-ink">{entityLabel(entry.entity)}</td>
+                    <td className="px-4 py-3 text-ink">{entLabel(entry.entity)}</td>
                     <td className="px-4 py-3 text-ink">{entry.actorName}</td>
                     <td className="max-w-xs px-4 py-3 text-xs text-muted">{detail ?? "—"}</td>
                   </tr>

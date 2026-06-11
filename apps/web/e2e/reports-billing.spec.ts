@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import fs from "node:fs";
+import { STORAGE_STATE, HAS_AUTH } from "./_auth";
 
 /**
  * Stage 6 — reports & billing e2e.
@@ -9,8 +9,8 @@ import fs from "node:fs";
  * skipped rather than failing on missing fixtures (same pattern as payroll.spec).
  */
 
-const storageState = process.env.E2E_STORAGE_STATE;
-const hasAuth = !!storageState && fs.existsSync(storageState);
+const storageState = STORAGE_STATE;
+const hasAuth = HAS_AUTH;
 
 test.describe("reports & billing — auth guard", () => {
   test("unauthenticated visit to /reports redirects to sign-in", async ({ page }) => {

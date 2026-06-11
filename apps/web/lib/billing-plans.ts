@@ -14,6 +14,8 @@ export interface PlanMeta {
   /** Max active employees on this plan. null = unlimited. */
   seatCap: number | null;
   description: string;
+  /** Short feature bullets for the plan-comparison cards. id-ID copy. */
+  features: string[];
 }
 
 /** Plan catalog driving the billing page and upgrade form. id-ID copy. */
@@ -24,6 +26,7 @@ export const PLANS: PlanMeta[] = [
     pricePerSeat: 0,
     seatCap: 5,
     description: "Hingga 5 karyawan. Tanpa NPWP. Cocok untuk mencoba Nexis.",
+    features: ["Hingga 5 karyawan", "Tanpa NPWP", "Absensi & cuti", "1 perusahaan"],
   },
   {
     id: "starter",
@@ -31,6 +34,7 @@ export const PLANS: PlanMeta[] = [
     pricePerSeat: 25_000,
     seatCap: 25,
     description: "Hingga 25 karyawan. Payroll, BPJS, dan PPh 21 lengkap.",
+    features: ["Hingga 25 karyawan", "Payroll otomatis", "BPJS & PPh 21 (TER)", "Slip gaji PDF"],
   },
   {
     id: "growth",
@@ -38,6 +42,12 @@ export const PLANS: PlanMeta[] = [
     pricePerSeat: 45_000,
     seatCap: 100,
     description: "Hingga 100 karyawan. Semua laporan & ekspor pajak.",
+    features: [
+      "Hingga 100 karyawan",
+      "Semua fitur Starter",
+      "Ekspor e-Bupot & SIPP",
+      "API & webhook",
+    ],
   },
   {
     id: "enterprise",
@@ -45,6 +55,7 @@ export const PLANS: PlanMeta[] = [
     pricePerSeat: null,
     seatCap: null,
     description: "Tanpa batas karyawan, SSO, dan dukungan khusus. Hubungi kami.",
+    features: ["Karyawan tanpa batas", "SSO/SCIM", "Dukungan khusus", "SLA & onboarding"],
   },
 ];
 

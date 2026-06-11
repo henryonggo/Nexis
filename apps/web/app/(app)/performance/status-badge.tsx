@@ -1,9 +1,7 @@
-import {
-  GOAL_STATUS_LABELS,
-  REVIEW_STATUS_LABELS,
-  type GoalStatus,
-  type ReviewStatus,
-} from "@/lib/performance-constants";
+"use client";
+
+import { useTranslations } from "next-intl";
+import type { GoalStatus, ReviewStatus } from "@/lib/performance-constants";
 
 const GOAL_STYLES: Record<GoalStatus, string> = {
   on_track: "bg-emerald-100 text-emerald-700",
@@ -20,17 +18,19 @@ const REVIEW_STYLES: Record<ReviewStatus, string> = {
 };
 
 export function GoalStatusBadge({ status }: { status: GoalStatus }) {
+  const t = useTranslations("performance.goalStatus");
   return (
     <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${GOAL_STYLES[status]}`}>
-      {GOAL_STATUS_LABELS[status]}
+      {t(status)}
     </span>
   );
 }
 
 export function ReviewStatusBadge({ status }: { status: ReviewStatus }) {
+  const t = useTranslations("performance.reviewStatus");
   return (
     <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${REVIEW_STYLES[status]}`}>
-      {REVIEW_STATUS_LABELS[status]}
+      {t(status)}
     </span>
   );
 }

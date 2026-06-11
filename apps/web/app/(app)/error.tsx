@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
+import { useTranslations } from "next-intl";
 
 /**
  * Segment error boundary for every authenticated page. A thrown server-component
@@ -15,6 +16,8 @@ export default function AppError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations("error");
+
   useEffect(() => {
     // Surface the error in the console for debugging; server logs capture the rest.
     console.error(error);
@@ -23,23 +26,21 @@ export default function AppError({
   return (
     <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 text-center">
       <div>
-        <h1 className="text-xl font-bold text-ink">Terjadi kesalahan</h1>
-        <p className="mt-1 text-sm text-muted">
-          Halaman ini gagal dimuat. Coba lagi atau kembali ke dashboard.
-        </p>
+        <h1 className="text-xl font-bold text-ink">{t("title")}</h1>
+        <p className="mt-1 text-sm text-muted">{t("subtitle")}</p>
       </div>
       <div className="flex items-center gap-2">
         <button
           onClick={reset}
           className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
         >
-          Coba lagi
+          {t("retry")}
         </button>
         <Link
           href="/dashboard"
           className="rounded-md border border-[color:var(--border)] px-4 py-2 text-sm font-semibold text-ink hover:bg-brand-light"
         >
-          Kembali ke dashboard
+          {t("back")}
         </Link>
       </div>
     </div>

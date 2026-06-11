@@ -1,11 +1,7 @@
-import type { ReportJobStatus } from "@/lib/reports-format";
+"use client";
 
-const LABELS: Record<ReportJobStatus, string> = {
-  pending: "Antre",
-  processing: "Diproses",
-  completed: "Selesai",
-  failed: "Gagal",
-};
+import { useTranslations } from "next-intl";
+import type { ReportJobStatus } from "@/lib/reports-format";
 
 const STYLES: Record<ReportJobStatus, string> = {
   pending: "bg-blue-100 text-blue-700",
@@ -15,11 +11,12 @@ const STYLES: Record<ReportJobStatus, string> = {
 };
 
 export function ReportStatusBadge({ status }: { status: ReportJobStatus }) {
+  const t = useTranslations("reports.status");
   return (
     <span
       className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${STYLES[status]}`}
     >
-      {LABELS[status]}
+      {t(status)}
     </span>
   );
 }

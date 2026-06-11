@@ -1,22 +1,142 @@
 {
+  "common": {
+    "appName": "Nexis",
+    "tagline": "HR & Payroll for Indonesia",
+    "freeFooter": "Free for your first 5 employees · No company NPWP",
+    "signOut": "Sign out",
+    "email": "Email",
+    "password": "Password",
+    "optional": "(optional)",
+    "retry": "Try again",
+    "backToDashboard": "Back to dashboard",
+    "passwordHint": "At least 8 characters, 1 uppercase letter, 1 number.",
+    "exportCsv": "Export CSV",
+    "processing": "Processing…",
+    "addCompany": "+ Add company"
+  },
+  "roles": {
+    "owner": "Owner",
+    "admin": "Admin",
+    "manager": "Manager",
+    "employee": "Employee"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "employees": "Employees",
+    "attendance": "Attendance",
+    "leave": "Leave",
+    "claims": "Claims",
+    "loans": "Loans",
+    "payroll": "Payroll",
+    "performance": "Performance",
+    "analytics": "Analytics",
+    "reports": "Reports",
+    "billing": "Billing",
+    "audit": "Audit",
+    "developer": "API",
+    "members": "Members",
+    "settings": "Settings"
+  },
+  "plans": {
+    "free": "Free",
+    "starter": "Starter",
+    "growth": "Growth",
+    "enterprise": "Enterprise"
+  },
   "auth": {
-    "signUp": { "title": "Create account", "submit": "Sign up" },
-    "signIn": { "title": "Sign in", "submit": "Sign in", "badCredentials": "Invalid email or password." },
-    "forgot": { "title": "Forgot password", "neutralSuccess": "If an account exists, we've sent a reset link to your email." },
-    "reset": { "title": "Set a new password" },
-    "verify": { "checkEmail": "Check your email to verify your account." }
+    "signIn": {
+      "title": "Sign in",
+      "welcome": "Welcome back.",
+      "submit": "Sign in",
+      "forgotLink": "Forgot password?",
+      "noAccount": "Don't have an account?",
+      "signUpLink": "Sign up",
+      "resetDone": "Password updated. Please sign in.",
+      "timedOut": "You were signed out due to inactivity.",
+      "deactivated": "Your account has been deactivated."
+    },
+    "signUp": {
+      "title": "Create account",
+      "subtitle": "Start free — your first 5 employees are on us.",
+      "fullName": "Full name",
+      "submit": "Sign up",
+      "haveAccount": "Already have an account?",
+      "signInLink": "Sign in"
+    },
+    "forgot": {
+      "title": "Forgot password",
+      "subtitle": "Enter your email and we'll send you a link to reset your password.",
+      "submit": "Send reset link",
+      "backToSignIn": "Back to sign in"
+    },
+    "reset": {
+      "title": "Reset password",
+      "subtitle": "Enter a new password for your account.",
+      "newPassword": "New password",
+      "submit": "Save password"
+    }
   },
   "onboarding": {
-    "company": { "nameLabel": "Company name", "industryLabel": "Industry" },
-    "freeBadge": "Free for your first 5 employees"
+    "pageSubtitle": "Create your first company",
+    "footer": "The free plan covers your first 5 employees. No company NPWP or other legal data needed until you upgrade.",
+    "company": {
+      "title": "Company details",
+      "subtitle": "Just a name to get started.",
+      "nameLabel": "Company name",
+      "industryLabel": "Industry",
+      "industryPlaceholder": "e.g. Retail, Technology",
+      "submit": "Create company"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "company": "Company: {name}",
+    "free": {
+      "label": "Plan",
+      "usage": "{used}/{limit} employees used",
+      "atLimit": " — limit reached.",
+      "noNpwp": ", no company NPWP required.",
+      "upgrade": "Upgrade plan"
+    },
+    "cards": {
+      "employees": "Employees",
+      "manageEmployees": "Manage employees →",
+      "attendanceToday": "Attendance today",
+      "present": "present",
+      "liveLink": "View live status →",
+      "lastPayroll": "Last payroll",
+      "runPayroll": "Run payroll →",
+      "planManage": "{plan} · Manage employees →"
+    }
+  },
+  "notFound": {
+    "title": "Page not found",
+    "subtitle": "The link may be wrong or the page has moved.",
+    "toDashboard": "To dashboard",
+    "toHome": "To home"
+  },
+  "error": {
+    "title": "Something went wrong",
+    "subtitle": "This page failed to load. Try again or go back to the dashboard.",
+    "retry": "Try again",
+    "back": "Back to dashboard"
+  },
+  "decision": {
+    "approve": "Approve",
+    "reject": "Reject",
+    "cancel": "Cancel",
+    "rejectReason": "Rejection reason (optional)"
   },
   "attendance": {
     "title": "Attendance",
-    "subtitle": "Live attendance status for your employees today.",
+    "subtitle": "Live attendance status for {name}'s employees today.",
     "live": "Live",
     "connecting": "Connecting…",
     "present": "currently present",
     "noneToday": "No attendance yet today.",
+    "noEvents": "No events yet.",
+    "unknown": "(unknown)",
+    "notePlaceholder": "Note",
     "eventLog": "Today's event log",
     "columns": { "employee": "Employee", "status": "Status", "time": "Time", "event": "Event", "validity": "Validity", "correction": "Correction" },
     "valid": "Valid",
@@ -26,11 +146,113 @@
     "updated": "Attendance updated.",
     "kind": { "clock_in": "Clock in", "clock_out": "Clock out", "break_start": "Break start", "break_end": "Break end" }
   },
+  "leave": {
+    "title": "Leave",
+    "subtitle": "Review and approve leave requests for {name}.",
+    "pending": "Awaiting approval ({count})",
+    "noPending": "No pending leave requests.",
+    "history": "History",
+    "daysLabel": "days",
+    "halfDay": "(half day)",
+    "viewAttachment": "View attachment",
+    "noHistory": "No leave history yet.",
+    "columns": { "employee": "Employee", "type": "Type", "period": "Period", "days": "Days", "status": "Status" },
+    "status": { "pending": "Pending", "approved": "Approved", "rejected": "Rejected", "cancelled": "Cancelled" }
+  },
+  "claims": {
+    "title": "Reimbursement Claims",
+    "subtitle": "Review and approve claims for {name}. Approved claims flow into the next payroll.",
+    "pending": "Awaiting approval ({count})",
+    "noPending": "No pending claims.",
+    "taxable": "taxable",
+    "nonTaxable": "non-taxable",
+    "viewReceipt": "View receipt",
+    "history": "History",
+    "noHistory": "No claim history yet.",
+    "columns": { "employee": "Employee", "type": "Type", "amount": "Amount", "status": "Status" },
+    "status": { "pending": "Pending", "approved": "Approved", "rejected": "Rejected", "paid": "Paid" }
+  },
+  "loans": {
+    "title": "Loans & Advances",
+    "noAccess": "Only owners, admins, or managers can manage employee loans.",
+    "subtitle": "Manage employee loans for {name}. Approved loans are deducted from payroll.",
+    "pending": "Awaiting approval ({count})",
+    "noPending": "No pending requests.",
+    "history": "History",
+    "noHistory": "No loan history yet.",
+    "perMonth": "/mo",
+    "columns": { "employee": "Employee", "principal": "Principal", "installments": "Installments", "next": "Next", "status": "Status" },
+    "status": { "pending": "Pending", "approved": "Approved", "active": "Active", "settled": "Settled", "rejected": "Rejected", "cancelled": "Cancelled" },
+    "form": {
+      "titleEmpty": "Request a loan",
+      "emptyHint": "Add an employee first to request an advance.",
+      "title": "Request a loan / advance",
+      "subtitle": "Approved loans are automatically deducted from salary over several months.",
+      "created": "Request created and awaiting approval.",
+      "employee": "Employee",
+      "amount": "Amount (Rp)",
+      "installments": "Number of installments (months)",
+      "estimatePrefix": "Estimated deduction:",
+      "estimateSuffix": "/ month for {count} months.",
+      "reason": "Note (optional)",
+      "reasonPlaceholder": "e.g. urgent need",
+      "submit": "Submit request"
+    }
+  },
+  "employees": {
+    "title": "Employees",
+    "seatsUsed": "{used}/{limit} free seats used",
+    "import": "Import CSV",
+    "add": "+ Add employee",
+    "limitReached": "You've used all free seats ({limit}).",
+    "upgradeCta": "Upgrade plan",
+    "toAdd": "to add more employees.",
+    "columns": { "name": "Name", "no": "No.", "position": "Position", "department": "Department", "type": "Type", "status": "Status" },
+    "empty": "No employees yet.",
+    "emptyAdmin": "Add your first employee.",
+    "newTitle": "Add employee",
+    "companyLabel": "Company: {name}",
+    "back": "← Back",
+    "employmentType": { "permanent": "Permanent", "contract": "Contract", "intern": "Intern", "daily": "Daily" },
+    "status": { "active": "Active", "probation": "Probation", "inactive": "Inactive", "terminated": "Terminated" },
+    "form": {
+      "fullName": "Full name",
+      "employeeNo": "Employee number",
+      "type": "Type",
+      "position": "Position",
+      "department": "Department",
+      "status": "Status",
+      "baseSalaryNew": "Base salary (Rp / month)",
+      "baseSalaryEdit": "Base salary (Rp/month)",
+      "baseSalaryHint": "Used by the payroll engine in Stage 4.",
+      "save": "Save employee",
+      "saveChanges": "Save changes",
+      "redirecting": "Redirecting…",
+      "upgradeLink": "Upgrade plan →",
+      "viewOnly": "View only (your role can't edit employee data).",
+      "payTaxSection": "Payroll & tax",
+      "ptkpStatus": "PTKP status",
+      "npwp": "Employee NPWP (optional)",
+      "npwpHint": "Without an NPWP, PPh 21 is charged +20% (Stage 4)."
+    },
+    "import": {
+      "title": "Import employees (CSV)",
+      "columnsLabel": "Columns:",
+      "headerNote": ". Header row optional. The free-plan limit still applies (5 employees).",
+      "pasteCsv": "Paste CSV data",
+      "created": "{count} employees added.",
+      "stoppedAtLimit": " Import stopped at the free-seat limit.",
+      "submit": "Import",
+      "skippedRows": "Skipped rows:",
+      "rowLine": "Row {line} ({name}): {reason}"
+    }
+  },
   "payroll": {
     "title": "Payroll",
-    "subtitle": "Run and review monthly payroll for your company.",
+    "subtitle": "Run and review monthly payroll for {name}.",
     "runPayroll": "Run payroll",
-    "newRun": { "title": "Run payroll", "subtitle": "Pick a period and run type. You'll review the per-employee breakdown before approving.", "month": "Month", "year": "Year", "runType": "Run type", "monthly": "Monthly salary", "thr": "THR (religious holiday allowance)", "submit": "Create draft run" },
+    "runFirst": "Run your first one",
+    "newRun": { "title": "Run payroll", "subtitle": "Pick a period and run type. You'll review the per-employee breakdown before approving.", "month": "Month", "year": "Year", "runType": "Run type", "monthly": "Monthly salary", "thr": "THR (religious holiday allowance)", "submit": "Create draft run", "cancel": "Cancel", "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"] },
     "columns": { "period": "Period", "status": "Status", "gross": "Gross", "net": "Net (take-home)", "employee": "Employee", "pph21": "PPh 21 (TER)", "deductions": "Employee deductions" },
     "status": { "draft": "Draft", "queued": "Queued", "processing": "Processing", "completed": "Completed", "paid": "Paid", "failed": "Failed", "cancelled": "Cancelled" },
     "empty": "No payroll runs yet.",
@@ -39,6 +261,240 @@
     "queuedNote": "Run is queued. Automatic processing (calculation & payslips) will run once the payroll worker is active.",
     "actions": { "approve": "Approve & process", "markPaid": "Mark as paid", "cancel": "Cancel run" },
     "breakdown": "Breakdown",
-    "noNpwp": "(+20% without NPWP)"
+    "noNpwp": "(+20% without NPWP)",
+    "detail": { "back": "← Payroll", "heading": "Payroll {period}", "noEmployees": "No employees to calculate.", "terCategory": "Category {category} · {rate}" },
+    "monitoring": "monitoring…",
+    "connecting": "connecting…",
+    "summary": { "gross": "Gross", "bpjsEmployee": "BPJS (employee)", "pph21": "PPh 21", "net": "Net (take-home)" },
+    "breakdownRows": {
+      "bpjsKesEmployee": "BPJS Kes (employee 1%)",
+      "bpjsKesEmployer": "BPJS Kes (employer 4%)",
+      "jhtEmployee": "JHT (employee 2%)",
+      "jhtEmployer": "JHT (employer 3.7%)",
+      "jpEmployee": "JP (employee 1%)",
+      "jpEmployer": "JP (employer 2%)",
+      "jkkEmployer": "JKK (employer)",
+      "jkmEmployer": "JKM (employer 0.30%)",
+      "pph21": "PPh 21"
+    }
+  },
+  "analytics": {
+    "title": "Analytics",
+    "noAccess": "Only owners or admins can view company analytics.",
+    "subtitle": "Headcount, payroll cost, and leave summary for {name}.",
+    "activeEmployees": "Active employees",
+    "totalSuffix": "{total} total",
+    "lastGross": "Last payroll gross",
+    "noRun": "No runs yet",
+    "employerBpjs": "Employer BPJS (last)",
+    "pph21": "PPh 21 {amount}",
+    "pendingApprovals": "Pending approvals",
+    "pendingBreakdown": "{leave} leave · {claims} claims",
+    "trendTitle": "Payroll gross trend",
+    "byDepartment": "Employees by department",
+    "byType": "Employees by type",
+    "leaveTitle": "Approved leave days ({year})",
+    "noActiveEmployees": "No active employees yet.",
+    "noLeave": "No approved leave this year.",
+    "noTrend": "No completed payroll runs to display yet.",
+    "unitPeople": "ppl",
+    "unitDays": "days",
+    "grossLabel": "gross"
+  },
+  "audit": {
+    "title": "Audit & Compliance",
+    "noAccess": "Only owners or admins can view the audit log.",
+    "subtitle": "Record of sensitive actions in {name} — approvals, rejections, and corrections.",
+    "all": "All",
+    "columns": { "time": "Time", "action": "Action", "object": "Object", "by": "By", "detail": "Detail" },
+    "empty": "No audit records yet.",
+    "actions": { "approve_leave": "Leave approved", "reject_leave": "Leave rejected", "approve_claim": "Claim approved", "reject_claim": "Claim rejected", "correct_attendance": "Attendance corrected" },
+    "entities": { "leave_requests": "Leave", "reimbursement_claims": "Claims", "attendance_records": "Attendance", "employees": "Employees", "payroll_runs": "Payroll", "company_billing": "Billing" }
+  },
+  "reports": {
+    "title": "Reports & Exports",
+    "noAccess": "Only owners, admins, or managers can generate and download reports.",
+    "subtitle": "Generate payroll, BPJS, and PPh 21 reports for {name} as Excel files.",
+    "history": "Report history",
+    "columns": { "type": "Type", "period": "Period", "created": "Created", "status": "Status" },
+    "empty": "No reports generated yet.",
+    "download": "Download Excel",
+    "status": { "pending": "Queued", "processing": "Processing", "completed": "Completed", "failed": "Failed" },
+    "form": {
+      "title": "Generate report",
+      "noRuns": "No completed payroll runs yet. Complete a payroll run first to generate reports & exports.",
+      "subtitle": "Pick a payroll run and report type. The Excel file is generated and downloadable once its status is “Completed”.",
+      "created": "Report is being generated. Refresh in a moment to download.",
+      "period": "Payroll period",
+      "reportType": "Report type",
+      "submit": "Generate report"
+    },
+    "types": {
+      "payroll_summary": { "label": "Payroll Summary", "description": "Recap of gross, deductions, BPJS, PPh 21, and net per employee for one run." },
+      "bpjs_contribution": { "label": "BPJS Contributions", "description": "Breakdown of BPJS Kesehatan & Ketenagakerjaan contributions, employee and employer sides." },
+      "pph21_ebupot": { "label": "PPh 21 / e-Bupot", "description": "PPh 21 withholding export in a format ready for DJP e-Bupot reconciliation." },
+      "bpjs_sipp": { "label": "BPJS SIPP", "description": "Wage & contribution format for upload to the BPJS Ketenagakerjaan SIPP app." }
+    }
+  },
+  "developer": {
+    "title": "API & Webhooks",
+    "noAccess": "Only owners or admins can manage developer integrations.",
+    "subtitle": "Manage API keys and webhooks to integrate {name} with other systems.",
+    "keys": "API keys ({count})",
+    "noKeys": "No API keys yet.",
+    "revoked": "(revoked)",
+    "noScope": "no scope",
+    "createdAt": "created {date}",
+    "lastUsed": "Last used: {date}",
+    "webhooks": "Webhooks ({count})",
+    "noWebhooks": "No webhooks yet.",
+    "active": "Active",
+    "inactive": "Inactive",
+    "deliveries": "Recent deliveries",
+    "deliveryColumns": { "time": "Time", "event": "Event", "status": "Status", "http": "HTTP", "attempt": "Attempt" },
+    "noDeliveries": "No webhook deliveries yet.",
+    "keyForm": {
+      "title": "Create API key",
+      "subtitle": "Used as a bearer token in the Authorization header of the Public API.",
+      "name": "Key name",
+      "namePlaceholder": "e.g. HRIS integration",
+      "scopes": "Scopes",
+      "submit": "Create key",
+      "newSecretLabel": "New API key"
+    },
+    "webhookForm": {
+      "title": "Add webhook",
+      "subtitle": "We send an HMAC-signed POST to this URL when events occur.",
+      "url": "Endpoint URL",
+      "events": "Events",
+      "submit": "Add webhook",
+      "secretLabel": "Signing secret"
+    },
+    "secret": { "copyNow": "Copy it now — this value won't be shown again." },
+    "rowActions": { "revoke": "Revoke", "deactivate": "Deactivate", "activate": "Activate", "delete": "Delete" }
+  },
+  "members": {
+    "title": "Members",
+    "subtitle": "Manage your team for {name}.",
+    "columns": { "name": "Name", "role": "Role" },
+    "noName": "(no name)",
+    "pendingInvites": "Pending invitations",
+    "revoke": "Revoke",
+    "invite": {
+      "title": "Invite member",
+      "shareLink": "Share this invitation link:",
+      "role": "Role",
+      "send": "Send invitation"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage your account.",
+    "account": "Account",
+    "notifications": {
+      "heading": "Notifications",
+      "description": "Manage how we reach you.",
+      "phone": "WhatsApp number",
+      "phonePlaceholder": "e.g. 0812 3456 7890",
+      "whatsappOptIn": "Receive notifications via WhatsApp",
+      "whatsappHint": "Approvals & important reminders are also sent to your WhatsApp.",
+      "save": "Save",
+      "saved": "Notification preferences saved."
+    },
+    "dangerZone": "Danger zone",
+    "deactivate": {
+      "title": "Deactivate account",
+      "description": "Your account will be deactivated and you'll be signed out. Contact support to reactivate it.",
+      "confirm": "Yes, deactivate my account",
+      "cancel": "Cancel",
+      "button": "Deactivate account"
+    }
+  },
+  "companies": {
+    "newTitle": "Add company",
+    "newSubtitle": "Create a new company. You'll be its owner and switch to it immediately."
+  },
+  "billing": {
+    "title": "Billing & Plan",
+    "subtitle": "Manage {name}'s subscription and legal details.",
+    "adminOnly": "Only the owner or admin can view billing and subscription plans.",
+    "currentPlan": "Current plan",
+    "activeSeats": "Active employees",
+    "monthlyEst": "≈ {amount} / month",
+    "atLimit": "You've reached this plan's employee limit.",
+    "atLimitOwner": "Upgrade to add more employees.",
+    "atLimitNonOwner": "Ask the owner to upgrade.",
+    "npwp": "NPWP",
+    "billingEmail": "Billing email",
+    "bpjsKes": "BPJS Kesehatan",
+    "bpjsTk": "BPJS Ketenagakerjaan",
+    "ownerOnlyUpgrade": "Only the company owner can change the subscription plan.",
+    "invoices": "Invoices",
+    "invoiceColumns": { "date": "Date", "period": "Period", "amount": "Amount", "status": "Status" },
+    "noInvoices": "No invoices yet.",
+    "viewPdf": "View PDF",
+    "invoiceStatus": { "paid": "Paid", "open": "Open", "uncollectible": "Uncollectible", "void": "Void" },
+    "upgrade": {
+      "title": "Upgrade plan",
+      "subtitle": "Upgrading unlocks more than 5 employees. Company NPWP and BPJS numbers are required for tax & contribution reporting.",
+      "success": "Plan updated. The employee limit now follows the new plan.",
+      "npwpLabel": "Company NPWP",
+      "bpjsKesLabel": "BPJS Kesehatan no.",
+      "bpjsTkLabel": "BPJS Ketenagakerjaan no.",
+      "billingEmailLabel": "Billing email",
+      "sandboxNote": "Payments run in sandbox mode — no card is charged yet.",
+      "confirm": "Confirm upgrade"
+    },
+    "cards": {
+      "current": "Current plan",
+      "selected": "Selected",
+      "contactPrice": "Contact us",
+      "free": "Free",
+      "perSeat": "/seat/mo",
+      "contactSales": "Contact sales →"
+    }
+  },
+  "planDetails": {
+    "free": {
+      "description": "Up to 5 employees. No NPWP. Great for trying Nexis.",
+      "features": ["Up to 5 employees", "No NPWP", "Attendance & leave", "1 company"]
+    },
+    "starter": {
+      "description": "Up to 25 employees. Full payroll, BPJS, and PPh 21.",
+      "features": ["Up to 25 employees", "Automated payroll", "BPJS & PPh 21 (TER)", "PDF payslips"]
+    },
+    "growth": {
+      "description": "Up to 100 employees. All reports & tax exports.",
+      "features": ["Up to 100 employees", "Everything in Starter", "e-Bupot & SIPP export", "API & webhooks"]
+    },
+    "enterprise": {
+      "description": "Unlimited employees, SSO, and dedicated support. Contact us.",
+      "features": ["Unlimited employees", "SSO/SCIM", "Dedicated support", "SLA & onboarding"]
+    }
+  },
+  "performance": {
+    "title": "Performance & KPIs",
+    "noAccess": "Only owners, admins, or managers can manage performance reviews.",
+    "subtitle": "Set goals, track progress, and review {name}'s employees.",
+    "noCycles": "No review cycles yet. Create one to start setting goals.",
+    "cycleLabel": "Cycle:",
+    "goalsHeading": "Goals — {cycle}",
+    "reviewsHeading": "Reviews",
+    "addGoalsFirst": "Add goals first to review employees.",
+    "goalsColumns": { "employee": "Employee", "goal": "Goal", "weight": "Weight", "status": "Status", "progress": "Progress" },
+    "noGoals": "No goals in this cycle yet.",
+    "goalStatus": { "on_track": "On track", "at_risk": "At risk", "off_track": "Off track", "done": "Done", "cancelled": "Cancelled" },
+    "reviewStatus": { "draft": "Draft", "submitted": "Submitted", "acknowledged": "Acknowledged by employee" },
+    "cycleForm": { "title": "Create review cycle", "subtitle": "A performance review period, e.g. half-year or annual.", "created": "Cycle created.", "name": "Cycle name", "namePlaceholder": "2026 H1", "start": "Start", "end": "End", "submit": "Create cycle" },
+    "goalForm": { "titleEmpty": "Add goal", "emptyHint": "Add an employee first to set goals.", "title": "Add goal (KPI)", "subtitle": "Weight is used to weigh the final score.", "created": "Goal added.", "employee": "Employee", "weight": "Weight (%)", "goal": "Goal", "goalPlaceholder": "e.g. Close 10 deals in Q1", "description": "Description (optional)", "submit": "Add goal" },
+    "goalProgress": { "ariaLabel": "Progress (%)", "save": "Save" },
+    "reviewForm": { "finalScore": "Final score:", "rating": "Rating (1–5)", "summary": "Summary", "summaryPlaceholder": "Review notes", "saveDraft": "Save draft", "submit": "Submit review" }
+  },
+  "invite": {
+    "header": "Join invitation",
+    "title": "Accept invitation",
+    "signedInPrefix": "You're signed in as",
+    "signedInSuffix": "Accept the invitation to join this company.",
+    "accept": "Accept & join"
   }
 }
