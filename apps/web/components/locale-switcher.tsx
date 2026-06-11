@@ -2,7 +2,7 @@
 
 import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { setUserLocale } from "@/i18n/actions";
 import { LOCALES, LOCALE_LABELS, type Locale } from "@/i18n/config";
 
@@ -10,12 +10,18 @@ import { LOCALES, LOCALE_LABELS, type Locale } from "@/i18n/config";
 export function LocaleSwitcher() {
   const locale = useLocale();
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  // Keep the async cookie write out of startTransition — passing an async fn to
+  // startTransition is a type error under next build's React 18 transition types.
+  const [saving, setSaving] = useState(false);
+  const [pending, startTransition] = useTransition();
 
   function onChange(next: Locale) {
-    startTransition(async () => {
-      await setUserLocale(next);
-      router.refresh();
+    setSaving(true);
+    setUserLocale(next).then(() => {
+      startTransition(() => {
+        router.refresh();
+        setSaving(false);
+      });
     });
   }
 
@@ -23,7 +29,7 @@ export function LocaleSwitcher() {
     <select
       aria-label="Language"
       value={locale}
-      disabled={isPending}
+      disabled={saving || pending}
       onChange={(e) => onChange(e.target.value as Locale)}
       className="rounded-md border border-[color:var(--border)] bg-white px-2 py-1.5 text-sm text-ink hover:bg-brand-light disabled:opacity-60"
     >
