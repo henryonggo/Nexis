@@ -47,6 +47,42 @@ const supabase = createClient<Database>(supabaseUrl, supabaseServiceKey, {
   },
 });
 
+function convertToIdr(amountMinor: number, currencyCode: string, currencies: any[], exchangeRates: any[], effectiveDateStr: string, configSnapshot: any): number {
+  if (currencyCode === "IDR") return amountMinor;
+  const currency = currencies.find(c => c.code === currencyCode);
+  const decimals = currency ? currency.decimals : 2;
+  
+  let rate = configSnapshot?.exchangeRates?.[currencyCode];
+  if (rate === undefined) {
+    const activeRates = (exchangeRates || [])
+      .filter(r => r.quote === currencyCode && r.base === "IDR" && r.effective_from <= effectiveDateStr)
+      .sort((a, b) => b.effective_from.localeCompare(a.effective_from));
+    const exRate = activeRates[0];
+    rate = exRate ? Number(exRate.rate) : 1;
+  }
+  
+  const amountMajor = amountMinor / Math.pow(10, decimals);
+  return Math.round(amountMajor * rate);
+}
+
+function convertFromIdr(amountIdr: number, currencyCode: string, currencies: any[], exchangeRates: any[], effectiveDateStr: string, configSnapshot: any): number {
+  if (currencyCode === "IDR") return amountIdr;
+  const currency = currencies.find(c => c.code === currencyCode);
+  const decimals = currency ? currency.decimals : 2;
+  
+  let rate = configSnapshot?.exchangeRates?.[currencyCode];
+  if (rate === undefined) {
+    const activeRates = (exchangeRates || [])
+      .filter(r => r.quote === currencyCode && r.base === "IDR" && r.effective_from <= effectiveDateStr)
+      .sort((a, b) => b.effective_from.localeCompare(a.effective_from));
+    const exRate = activeRates[0];
+    rate = exRate ? Number(exRate.rate) : 1;
+  }
+  
+  const amountMajor = amountIdr / rate;
+  return Math.round(amountMajor * Math.pow(10, decimals));
+}
+
 /** Sum fixed allowances helper */
 function sumFixedAllowances(value: unknown): number {
   if (typeof value === "number") return Math.round(value);
@@ -122,6 +158,10 @@ function generatePayslipPdfBuffer(data: any): Promise<Buffer> {
     doc.text(`Status PTKP: ${data.ptkpStatus}`);
     doc.text(`NPWP: ${data.hasNpwp ? data.npwp : "Tidak Ada"}`);
     doc.text(`Tipe Run: ${data.runType.toUpperCase()}`);
+    if (data.payCurrency && data.payCurrency !== "IDR") {
+      doc.text(`Mata Uang Pembayaran (Pay Currency): ${data.payCurrency}`);
+      doc.text(`Kurs (Exchange Rate): 1 ${data.payCurrency} = Rp ${data.payCurrencyExchangeRate.toLocaleString("id-ID")}`);
+    }
     doc.moveDown(1.5);
 
     doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
@@ -138,11 +178,24 @@ function generatePayslipPdfBuffer(data: any): Promise<Buffer> {
       doc.fontSize(14).font("Helvetica-Bold").text(`TAKE HOME PAY (NET): Rp ${data.netPay.toLocaleString("id-ID")}`);
       doc.font("Helvetica");
     } else {
+      const formatForeign = (amountMinor: number, currency: string) => {
+        const decs = ["JPY", "IDR"].includes(currency) ? 0 : 2;
+        const val = amountMinor / Math.pow(10, decs);
+        return `${currency} ${val.toLocaleString("en-US", { minimumFractionDigits: decs, maximumFractionDigits: decs })}`;
+      };
+
+      const appendFX = (idrAmount: number, fMinor: number, currency: string) => {
+        if (!currency || currency === "IDR") return `Rp ${idrAmount.toLocaleString("id-ID")}`;
+        return `Rp ${idrAmount.toLocaleString("id-ID")} (${formatForeign(fMinor, currency)})`;
+      };
+
+      const fxCurr = data.payCurrency || "IDR";
+
       // Income Section
       doc.fontSize(12).font("Helvetica-Bold").text("PENGHASILAN (EARNINGS)", { underline: true });
       doc.font("Helvetica").fontSize(10);
-      doc.text(`Gaji Pokok: Rp ${data.baseSalary.toLocaleString("id-ID")}`);
-      doc.text(`Tunjangan Tetap: Rp ${data.allowances.toLocaleString("id-ID")}`);
+      doc.text(`Gaji Pokok: ${appendFX(data.baseSalary, data.payCurrencyBaseSalary, fxCurr)}`);
+      doc.text(`Tunjangan Tetap: ${appendFX(data.allowances, data.payCurrencyAllowances, fxCurr)}`);
       doc.text(`Lembur (Overtime): Rp ${data.overtimePay.toLocaleString("id-ID")}`);
       if (data.reimbursementTaxable && data.reimbursementTaxable > 0) {
         doc.text(`Reimbursement (Taxable): Rp ${data.reimbursementTaxable.toLocaleString("id-ID")}`);
@@ -170,7 +223,7 @@ function generatePayslipPdfBuffer(data: any): Promise<Buffer> {
       if (data.reimbursementNonTaxable && data.reimbursementNonTaxable > 0) {
         doc.text(`Reimbursement (Non-taxable): Rp ${data.reimbursementNonTaxable.toLocaleString("id-ID")}`);
       }
-      doc.fontSize(14).font("Helvetica-Bold").text(`TAKE HOME PAY (NET): Rp ${data.netPay.toLocaleString("id-ID")}`);
+      doc.fontSize(14).font("Helvetica-Bold").text(`TAKE HOME PAY (NET): ${appendFX(data.netPay, data.payCurrencyNetPay, fxCurr)}`);
       doc.font("Helvetica").moveDown(2);
 
       // Employer Contributions
@@ -245,6 +298,8 @@ app.post("/process", async (req, res) => {
       { data: bracketRows },
       { data: approvedClaims },
       { data: dueInstallments },
+      { data: currencies },
+      { data: exchangeRates },
     ] = await Promise.all([
       supabase.from("company_settings").select("*").eq("company_id", run.company_id).maybeSingle(),
       supabase.from("employees").select("*").eq("company_id", run.company_id).eq("status", "active"),
@@ -258,6 +313,8 @@ app.post("/process", async (req, res) => {
       supabase.from("tax_brackets").select("*"),
       supabase.from("reimbursement_claims").select("*, claim_types(taxable)").eq("company_id", run.company_id).eq("status", "approved").is("payroll_run_id", null),
       supabase.from("loan_installments").select("*").eq("company_id", run.company_id).eq("status", "scheduled").eq("due_year", run.period_year).eq("due_month", run.period_month),
+      supabase.from("currencies").select("*"),
+      supabase.from("exchange_rates").select("*"),
     ]);
 
     // Map claims by employee
@@ -383,8 +440,10 @@ app.post("/process", async (req, res) => {
         continue;
       }
 
-      const baseSalary = Number(comp.base_salary);
-      const allowances = sumFixedAllowances(comp.fixed_allowances);
+      const empCurrency = comp.currency || "IDR";
+      const baseSalary = convertToIdr(Number(comp.base_salary), empCurrency, currencies || [], exchangeRates || [], startDateStr, configSnapshot);
+      const rawAllowances = sumFixedAllowances(comp.fixed_allowances);
+      const allowances = convertToIdr(rawAllowances, empCurrency, currencies || [], exchangeRates || [], startDateStr, configSnapshot);
       const ptkpStatus: PtkpStatus = (tax?.ptkp_status as PtkpStatus) || "TK/0";
       const hasNpwp = tax?.has_npwp ?? false;
 
@@ -516,6 +575,27 @@ app.post("/process", async (req, res) => {
         };
       }
 
+      // Convert result net_pay back to pay currency for payslip / breakdown info
+      const payCurrencyNetPay = convertFromIdr(itemResult.netPay, empCurrency, currencies || [], exchangeRates || [], startDateStr, configSnapshot);
+      
+      let activeRate = 1;
+      if (empCurrency !== "IDR") {
+        const activeRates = (exchangeRates || [])
+          .filter(r => r.quote === empCurrency && r.base === "IDR" && r.effective_from <= startDateStr)
+          .sort((a, b) => b.effective_from.localeCompare(a.effective_from));
+        const exRate = activeRates[0];
+        activeRate = exRate ? Number(exRate.rate) : 1;
+      }
+
+      itemResult = {
+        ...itemResult,
+        payCurrency: empCurrency,
+        payCurrencyExchangeRate: activeRate,
+        payCurrencyBaseSalary: Number(comp.base_salary),
+        payCurrencyAllowances: rawAllowances,
+        payCurrencyNetPay: payCurrencyNetPay,
+      };
+
       // 5. Insert payroll item row
       const { data: item, error: itemErr } = await supabase
         .from("payroll_items")
@@ -523,6 +603,7 @@ app.post("/process", async (req, res) => {
           company_id: run.company_id,
           payroll_run_id: runId,
           employee_id: emp.id,
+          currency: empCurrency,
           gross_pay: itemResult.gross,
           base_salary: itemResult.baseSalary,
           allowances: itemResult.allowances,
@@ -577,6 +658,11 @@ app.post("/process", async (req, res) => {
         jpEmployer: itemResult.jpEmployer,
         jkkEmployer: itemResult.jkkEmployer,
         jkmEmployer: itemResult.jkmEmployer,
+        payCurrency: itemResult.payCurrency,
+        payCurrencyExchangeRate: itemResult.payCurrencyExchangeRate,
+        payCurrencyBaseSalary: itemResult.payCurrencyBaseSalary,
+        payCurrencyAllowances: itemResult.payCurrencyAllowances,
+        payCurrencyNetPay: itemResult.payCurrencyNetPay,
       };
 
       const pdfBuffer = await generatePayslipPdfBuffer(pdfData);

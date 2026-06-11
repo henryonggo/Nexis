@@ -128,6 +128,7 @@ serve(async (req) => {
       company_id: companyId,
       status: "active" as const,
       plan_id: plan,
+      plan: plan,
       quantity: 1,
       gateway_subscription_id: gatewaySubscriptionId || `sub_${crypto.randomUUID().slice(0, 8)}`,
       gateway_customer_id: gatewayCustomerId || null,
