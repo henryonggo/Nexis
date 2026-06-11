@@ -5,6 +5,9 @@ import { useFormState } from "react-dom";
 import { useTranslations } from "next-intl";
 import { approveClaim, rejectClaim, type DecisionState } from "./actions";
 import { SubmitButton } from "@/components/submit-button";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Alert } from "@/components/ui/alert";
 
 const initial: DecisionState = {};
 
@@ -18,7 +21,7 @@ export function ClaimDecisionButtons({ claimId }: { claimId: string }) {
 
   return (
     <div className="space-y-2">
-      {error && <div className="nx-error">{error}</div>}
+      {error && <Alert variant="destructive">{error}</Alert>}
       <div className="flex flex-wrap items-center gap-2">
         <form action={approve}>
           <input type="hidden" name="claimId" value={claimId} />
@@ -27,29 +30,16 @@ export function ClaimDecisionButtons({ claimId }: { claimId: string }) {
         {rejecting ? (
           <form action={reject} className="flex items-center gap-2">
             <input type="hidden" name="claimId" value={claimId} />
-            <input
-              type="text"
-              name="note"
-              placeholder={t("rejectReason")}
-              className="rounded-md border border-[color:var(--border)] px-2 py-1.5 text-sm"
-            />
+            <Input type="text" name="note" placeholder={t("rejectReason")} className="w-40" />
             <SubmitButton>{t("reject")}</SubmitButton>
-            <button
-              type="button"
-              onClick={() => setRejecting(false)}
-              className="text-sm text-muted hover:underline"
-            >
+            <Button type="button" variant="ghost" size="sm" onClick={() => setRejecting(false)}>
               {t("cancel")}
-            </button>
+            </Button>
           </form>
         ) : (
-          <button
-            type="button"
-            onClick={() => setRejecting(true)}
-            className="rounded-md border border-[color:var(--border)] px-3 py-1.5 text-sm font-semibold text-ink hover:bg-brand-light"
-          >
+          <Button type="button" variant="outline" onClick={() => setRejecting(true)}>
             {t("reject")}
-          </button>
+          </Button>
         )}
       </div>
     </div>

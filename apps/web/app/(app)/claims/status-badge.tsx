@@ -2,21 +2,18 @@
 
 import { useTranslations } from "next-intl";
 import type { Database } from "@nexis/types";
+import { Badge } from "@/components/ui/badge";
 
 type Status = Database["public"]["Enums"]["claim_status"];
 
-const STYLES: Record<Status, string> = {
-  pending: "bg-amber-100 text-amber-700",
-  approved: "bg-emerald-100 text-emerald-700",
-  rejected: "bg-red-100 text-red-700",
-  paid: "bg-emerald-600 text-white",
+const VARIANT: Record<Status, "warning" | "success" | "destructive"> = {
+  pending: "warning",
+  approved: "success",
+  rejected: "destructive",
+  paid: "success",
 };
 
 export function ClaimStatusBadge({ status }: { status: Status }) {
   const t = useTranslations("claims.status");
-  return (
-    <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${STYLES[status]}`}>
-      {t(status)}
-    </span>
-  );
+  return <Badge variant={VARIANT[status]}>{t(status)}</Badge>;
 }

@@ -150,7 +150,20 @@ output — swap `bg-accent`→`bg-brand-light`, `text-accent-foreground`→`text
 - **Batch 0 is functionally complete** — ready to start Batch 1 (auth/onboarding).
 
 ### Next batches
-Unchanged from plan above: 1 Auth/onboarding · 2 Dashboard+employees · 3 Payroll ·
-4 Attendance/leave/claims · 5 Billing/reports/analytics/loans/performance · 6 Settings/members/
-companies/audit/developer. Each batch: migrate to primitives → `typecheck` + `next build` →
-fix Playwright selectors → preview-verify.
+1 Auth/onboarding · 2 Dashboard+employees · 3 Payroll · 4 Attendance/leave/claims ·
+5 Billing/reports/analytics/loans/performance · 6 Settings/members/companies/audit/developer.
+Each batch: migrate to primitives → `typecheck` + `next build` → fix Playwright selectors → preview-verify.
+
+### Batches 1–4 — DONE (committed on `claude/ui-refresh`)
+- **Batch 1** (`56c8888`) auth + onboarding + invite → Card/Input/Label/Alert/Button.
+  Form ids `#email`/`#password` + `button[type=submit]` preserved for e2e auth setup.
+- **Batch 2** (`5169c09`) dashboard (KPI Cards) + employees (Table/Badge/Alert/forms).
+  Added `Card asChild` (Slot) and `input.fieldClasses` for native select/textarea reuse.
+- **Batch 3** (`6c706ea`) payroll list/run/new → Table/Card/Alert; StatusBadge → Badge.
+- **Batch 4** attendance live-board + leave + claims → Table/Card/Badge/Alert; both
+  status-badges + decision-buttons onto primitives. (build verifying)
+
+**Convention for remaining batches 5–6:** server-action forms keep native `<select>`/
+`<textarea>` styled with `fieldClasses` (Radix Select needs a hidden input — not worth it
+for posted forms). Status enums → `Badge` variant maps. Lists → `Table` in `Card className="p-0"`.
+Banners → `Alert` (info/success/warning/destructive). Links-as-buttons → `Button asChild`.

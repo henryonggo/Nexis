@@ -6,6 +6,18 @@ import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@nexis/types";
 import { correctRecord, type CorrectionState } from "./actions";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 
 export type AttendanceRecord = Pick<
   Database["public"]["Tables"]["attendance_records"]["Row"],
@@ -102,92 +114,80 @@ export function LiveBoard({
       </div>
 
       {/* Current status board */}
-      <div className="overflow-hidden rounded-lg border border-[color:var(--border)] bg-white">
-        <table className="w-full text-sm">
-          <thead className="bg-brand-light/60 text-left text-muted">
-            <tr>
-              <th className="px-4 py-2 font-medium">{t("columns.employee")}</th>
-              <th className="px-4 py-2 font-medium">{t("columns.status")}</th>
-              <th className="px-4 py-2 font-medium">{t("columns.time")}</th>
-            </tr>
-          </thead>
-          <tbody>
+      <Card className="overflow-hidden p-0">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t("columns.employee")}</TableHead>
+              <TableHead>{t("columns.status")}</TableHead>
+              <TableHead>{t("columns.time")}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {current.length === 0 && (
-              <tr>
-                <td colSpan={3} className="px-4 py-6 text-center text-muted">
+              <TableRow>
+                <TableCell colSpan={3} className="py-6 text-center text-muted">
                   {t("noneToday")}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
             {current.map((r) => (
-              <tr key={r.employee_id} className="border-t border-[color:var(--border)]">
-                <td className="px-4 py-2 text-ink">
-                  {nameById[r.employee_id] ?? t("unknown")}
-                </td>
-                <td className="px-4 py-2">
-                  <span
-                    className={`inline-block rounded px-1.5 py-0.5 text-xs ${
-                      isPresent(r.kind)
-                        ? "bg-success/10 text-success"
-                        : "bg-brand-light text-muted"
-                    }`}
-                  >
-                    {tk(r.kind)}
-                  </span>
-                </td>
-                <td className="px-4 py-2 text-muted">{WIB.format(new Date(r.event_at))}</td>
-              </tr>
+              <TableRow key={r.employee_id}>
+                <TableCell className="text-ink">{nameById[r.employee_id] ?? t("unknown")}</TableCell>
+                <TableCell>
+                  <Badge variant={isPresent(r.kind) ? "success" : "secondary"}>{tk(r.kind)}</Badge>
+                </TableCell>
+                <TableCell className="text-muted">{WIB.format(new Date(r.event_at))}</TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </TableBody>
+        </Table>
+      </Card>
 
       {/* Full event log */}
       <div>
         <h2 className="mb-2 text-sm font-semibold text-ink">{t("eventLog")}</h2>
-        <div className="overflow-hidden rounded-lg border border-[color:var(--border)] bg-white">
-          <table className="w-full text-sm">
-            <thead className="bg-brand-light/60 text-left text-muted">
-              <tr>
-                <th className="px-4 py-2 font-medium">{t("columns.employee")}</th>
-                <th className="px-4 py-2 font-medium">{t("columns.event")}</th>
-                <th className="px-4 py-2 font-medium">{t("columns.time")}</th>
-                <th className="px-4 py-2 font-medium">{t("columns.validity")}</th>
-                {canCorrect && <th className="px-4 py-2 font-medium">{t("columns.correction")}</th>}
-              </tr>
-            </thead>
-            <tbody>
+        <Card className="overflow-hidden p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("columns.employee")}</TableHead>
+                <TableHead>{t("columns.event")}</TableHead>
+                <TableHead>{t("columns.time")}</TableHead>
+                <TableHead>{t("columns.validity")}</TableHead>
+                {canCorrect && <TableHead>{t("columns.correction")}</TableHead>}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {records.length === 0 && (
-                <tr>
-                  <td colSpan={canCorrect ? 5 : 4} className="px-4 py-6 text-center text-muted">
+                <TableRow>
+                  <TableCell colSpan={canCorrect ? 5 : 4} className="py-6 text-center text-muted">
                     {t("noEvents")}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
               {records.map((r) => (
-                <tr key={r.id} className="border-t border-[color:var(--border)] align-top">
-                  <td className="px-4 py-2 text-ink">
-                    {nameById[r.employee_id] ?? t("unknown")}
-                  </td>
-                  <td className="px-4 py-2 text-muted">{tk(r.kind)}</td>
-                  <td className="px-4 py-2 text-muted">{WIB.format(new Date(r.event_at))}</td>
-                  <td className="px-4 py-2">
+                <TableRow key={r.id} className="align-top">
+                  <TableCell className="text-ink">{nameById[r.employee_id] ?? t("unknown")}</TableCell>
+                  <TableCell className="text-muted">{tk(r.kind)}</TableCell>
+                  <TableCell className="text-muted">{WIB.format(new Date(r.event_at))}</TableCell>
+                  <TableCell>
                     {r.is_valid ? (
                       <span className="text-xs text-success">{t("valid")}</span>
                     ) : (
                       <span className="text-xs text-danger">{t("outOfArea")}</span>
                     )}
-                  </td>
+                  </TableCell>
                   {canCorrect && (
-                    <td className="px-4 py-2">
+                    <TableCell>
                       <CorrectionForm record={r} />
-                    </td>
+                    </TableCell>
                   )}
-                </tr>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
+        </Card>
       </div>
     </div>
   );
@@ -200,12 +200,12 @@ function CorrectionForm({ record }: { record: AttendanceRecord }) {
     <form action={formAction} className="flex flex-wrap items-center gap-2">
       <input type="hidden" name="id" value={record.id} />
       <input type="hidden" name="isValid" value={record.is_valid ? "false" : "true"} />
-      <input
+      <Input
         type="text"
         name="note"
         defaultValue={record.note ?? ""}
         placeholder={t("notePlaceholder")}
-        className="w-28 rounded border border-[color:var(--border)] px-2 py-1 text-xs"
+        className="h-8 w-28 text-xs"
       />
       <CorrectionButton invalidating={record.is_valid} />
       {state.error && <span className="text-xs text-danger">{state.error}</span>}
@@ -218,12 +218,8 @@ function CorrectionButton({ invalidating }: { invalidating: boolean }) {
   const t = useTranslations("attendance");
   const { pending } = useFormStatus();
   return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="rounded border border-[color:var(--border)] px-2 py-1 text-xs text-ink hover:bg-brand-light disabled:opacity-60"
-    >
+    <Button type="submit" variant="outline" size="sm" disabled={pending}>
       {invalidating ? t("markInvalid") : t("approve")}
-    </button>
+    </Button>
   );
 }
