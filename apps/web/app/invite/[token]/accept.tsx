@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { acceptInvite } from "./actions";
+import { Button } from "@/components/ui/button";
+import { Alert } from "@/components/ui/alert";
 
 export function AcceptInvite({ token }: { token: string }) {
   const t = useTranslations("invite");
@@ -23,10 +25,10 @@ export function AcceptInvite({ token }: { token: string }) {
 
   return (
     <div className="space-y-3">
-      {error && <div className="nx-error">{error}</div>}
-      <button onClick={onAccept} disabled={isPending} className="nx-btn">
+      {error && <Alert variant="destructive">{error}</Alert>}
+      <Button onClick={onAccept} disabled={isPending} className="w-full">
         {isPending ? tc("processing") : t("accept")}
-      </button>
+      </Button>
     </div>
   );
 }
