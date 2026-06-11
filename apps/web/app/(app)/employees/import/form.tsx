@@ -4,6 +4,11 @@ import { useFormState } from "react-dom";
 import { useTranslations } from "next-intl";
 import { importEmployees, type ImportResult } from "./actions";
 import { SubmitButton } from "@/components/submit-button";
+import { Card } from "@/components/ui/card";
+import { fieldClasses } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert } from "@/components/ui/alert";
+import { cn } from "@/lib/utils";
 
 const initial: ImportResult = {};
 
@@ -17,37 +22,39 @@ export function ImportForm() {
 
   return (
     <div className="space-y-4">
-      <form action={action} className="nx-card max-w-2xl space-y-4">
-        {state.error && <div className="nx-error">{state.error}</div>}
-        {typeof state.created === "number" && (
-          <div className="nx-success">
-            {t("created", { count: state.created })}
-            {state.stoppedAtLimit && t("stoppedAtLimit")}
-          </div>
-        )}
+      <Card asChild className="max-w-2xl p-8">
+        <form action={action} className="space-y-4">
+          {state.error && <Alert variant="destructive">{state.error}</Alert>}
+          {typeof state.created === "number" && (
+            <Alert variant="success">
+              {t("created", { count: state.created })}
+              {state.stoppedAtLimit && t("stoppedAtLimit")}
+            </Alert>
+          )}
 
-        <div>
-          <label className="nx-label" htmlFor="csv">{t("pasteCsv")}</label>
-          <textarea
-            id="csv"
-            name="csv"
-            className="nx-input h-48 font-mono text-xs"
-            placeholder={SAMPLE}
-            required
-          />
-        </div>
-        <SubmitButton>{t("submit")}</SubmitButton>
-      </form>
+          <div className="space-y-1.5">
+            <Label htmlFor="csv">{t("pasteCsv")}</Label>
+            <textarea
+              id="csv"
+              name="csv"
+              className={cn(fieldClasses, "h-48 py-2 font-mono text-xs")}
+              placeholder={SAMPLE}
+              required
+            />
+          </div>
+          <SubmitButton>{t("submit")}</SubmitButton>
+        </form>
+      </Card>
 
       {state.failures && state.failures.length > 0 && (
-        <div className="rounded-lg border border-warning/40 bg-amber-50 p-4 text-sm">
-          <p className="mb-2 font-semibold text-amber-800">{t("skippedRows")}</p>
-          <ul className="space-y-1 text-amber-800">
+        <Alert variant="warning">
+          <p className="mb-2 font-semibold">{t("skippedRows")}</p>
+          <ul className="space-y-1">
             {state.failures.map((f, i) => (
               <li key={i}>{t("rowLine", { line: f.line, name: f.name, reason: f.reason })}</li>
             ))}
           </ul>
-        </div>
+        </Alert>
       )}
     </div>
   );

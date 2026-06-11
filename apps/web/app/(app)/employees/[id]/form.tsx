@@ -5,6 +5,11 @@ import { useTranslations } from "next-intl";
 import { updateEmployee, type EditState } from "./actions";
 import { SubmitButton } from "@/components/submit-button";
 import type { EmployeeRow } from "@nexis/types";
+import { Card } from "@/components/ui/card";
+import { Input, fieldClasses } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
 
 const initial: EditState = {};
 
@@ -29,9 +34,9 @@ export function EditEmployeeForm({
   const disabled = !canEdit;
 
   return (
-    <div className="nx-card max-w-xl">
-      {state.error && <div className="nx-error mb-4">{state.error}</div>}
-      {state.success && <div className="nx-success mb-4">{state.success}</div>}
+    <Card className="max-w-xl p-8">
+      {state.error && <Alert variant="destructive" className="mb-4">{state.error}</Alert>}
+      {state.success && <Alert variant="success" className="mb-4">{state.success}</Alert>}
       {!canEdit && (
         <div className="mb-4 rounded-md bg-brand-light px-3 py-2 text-xs text-brand-dark">
           {t("form.viewOnly")}
@@ -41,19 +46,19 @@ export function EditEmployeeForm({
       <form action={action} className="space-y-4">
         <input type="hidden" name="id" value={employee.id} />
 
-        <div>
-          <label className="nx-label" htmlFor="fullName">{t("form.fullName")}</label>
-          <input id="fullName" name="fullName" className="nx-input" defaultValue={employee.full_name} disabled={disabled} required />
+        <div className="space-y-1.5">
+          <Label htmlFor="fullName">{t("form.fullName")}</Label>
+          <Input id="fullName" name="fullName" defaultValue={employee.full_name} disabled={disabled} required />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="nx-label" htmlFor="employeeNo">{t("form.employeeNo")}</label>
-            <input id="employeeNo" name="employeeNo" className="nx-input" defaultValue={employee.employee_no ?? ""} disabled={disabled} />
+          <div className="space-y-1.5">
+            <Label htmlFor="employeeNo">{t("form.employeeNo")}</Label>
+            <Input id="employeeNo" name="employeeNo" defaultValue={employee.employee_no ?? ""} disabled={disabled} />
           </div>
-          <div>
-            <label className="nx-label" htmlFor="status">{t("form.status")}</label>
-            <select id="status" name="status" className="nx-input" defaultValue={employee.status} disabled={disabled}>
+          <div className="space-y-1.5">
+            <Label htmlFor="status">{t("form.status")}</Label>
+            <select id="status" name="status" className={fieldClasses} defaultValue={employee.status} disabled={disabled}>
               <option value="active">{t("status.active")}</option>
               <option value="probation">{t("status.probation")}</option>
               <option value="inactive">{t("status.inactive")}</option>
@@ -63,57 +68,57 @@ export function EditEmployeeForm({
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="nx-label" htmlFor="position">{t("form.position")}</label>
-            <input id="position" name="position" className="nx-input" defaultValue={employee.position ?? ""} disabled={disabled} />
+          <div className="space-y-1.5">
+            <Label htmlFor="position">{t("form.position")}</Label>
+            <Input id="position" name="position" defaultValue={employee.position ?? ""} disabled={disabled} />
           </div>
-          <div>
-            <label className="nx-label" htmlFor="department">{t("form.department")}</label>
-            <input id="department" name="department" className="nx-input" defaultValue={employee.department ?? ""} disabled={disabled} />
+          <div className="space-y-1.5">
+            <Label htmlFor="department">{t("form.department")}</Label>
+            <Input id="department" name="department" defaultValue={employee.department ?? ""} disabled={disabled} />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="nx-label" htmlFor="employmentType">{t("form.type")}</label>
-            <select id="employmentType" name="employmentType" className="nx-input" defaultValue={employee.employment_type} disabled={disabled}>
+          <div className="space-y-1.5">
+            <Label htmlFor="employmentType">{t("form.type")}</Label>
+            <select id="employmentType" name="employmentType" className={fieldClasses} defaultValue={employee.employment_type} disabled={disabled}>
               <option value="permanent">{t("employmentType.permanent")}</option>
               <option value="contract">{t("employmentType.contract")}</option>
               <option value="intern">{t("employmentType.intern")}</option>
               <option value="daily">{t("employmentType.daily")}</option>
             </select>
           </div>
-          <div>
-            <label className="nx-label" htmlFor="email">{tc("email")}</label>
-            <input id="email" name="email" type="email" className="nx-input" defaultValue={employee.email ?? ""} disabled={disabled} />
+          <div className="space-y-1.5">
+            <Label htmlFor="email">{tc("email")}</Label>
+            <Input id="email" name="email" type="email" defaultValue={employee.email ?? ""} disabled={disabled} />
           </div>
         </div>
 
-        <hr className="border-[color:var(--border)]" />
+        <Separator />
         <p className="text-sm font-semibold text-ink">{t("form.payTaxSection")}</p>
 
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="nx-label" htmlFor="baseSalary">{t("form.baseSalaryEdit")}</label>
-            <input id="baseSalary" name="baseSalary" type="number" min={0} step={1000} className="nx-input" defaultValue={baseSalary} disabled={disabled} />
+          <div className="space-y-1.5">
+            <Label htmlFor="baseSalary">{t("form.baseSalaryEdit")}</Label>
+            <Input id="baseSalary" name="baseSalary" type="number" min={0} step={1000} defaultValue={baseSalary} disabled={disabled} />
           </div>
-          <div>
-            <label className="nx-label" htmlFor="ptkpStatus">{t("form.ptkpStatus")}</label>
-            <select id="ptkpStatus" name="ptkpStatus" className="nx-input" defaultValue={ptkpStatus} disabled={disabled}>
+          <div className="space-y-1.5">
+            <Label htmlFor="ptkpStatus">{t("form.ptkpStatus")}</Label>
+            <select id="ptkpStatus" name="ptkpStatus" className={fieldClasses} defaultValue={ptkpStatus} disabled={disabled}>
               {PTKP.map((p) => (
                 <option key={p} value={p}>{p}</option>
               ))}
             </select>
           </div>
         </div>
-        <div>
-          <label className="nx-label" htmlFor="npwp">{t("form.npwp")}</label>
-          <input id="npwp" name="npwp" className="nx-input" defaultValue={npwp} disabled={disabled} />
-          <p className="mt-1 text-xs text-muted">{t("form.npwpHint")}</p>
+        <div className="space-y-1.5">
+          <Label htmlFor="npwp">{t("form.npwp")}</Label>
+          <Input id="npwp" name="npwp" defaultValue={npwp} disabled={disabled} />
+          <p className="text-xs text-muted">{t("form.npwpHint")}</p>
         </div>
 
         {canEdit && <SubmitButton>{t("form.saveChanges")}</SubmitButton>}
       </form>
-    </div>
+    </Card>
   );
 }

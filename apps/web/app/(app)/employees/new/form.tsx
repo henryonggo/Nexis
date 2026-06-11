@@ -7,6 +7,10 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { createEmployee, type EmployeeState } from "../actions";
 import { SubmitButton } from "@/components/submit-button";
+import { Card } from "@/components/ui/card";
+import { Input, fieldClasses } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert } from "@/components/ui/alert";
 
 const initial: EmployeeState = {};
 
@@ -24,9 +28,9 @@ export function NewEmployeeForm() {
   }, [state.success, router]);
 
   return (
-    <div className="nx-card max-w-xl">
+    <Card className="max-w-xl p-8">
       {state.error && (
-        <div className="nx-error mb-4">
+        <Alert variant="destructive" className="mb-4">
           {state.error}
           {state.upgrade && (
             <>
@@ -36,25 +40,25 @@ export function NewEmployeeForm() {
               </Link>
             </>
           )}
-        </div>
+        </Alert>
       )}
       {state.success && (
-        <div className="nx-success mb-4">{state.success} {t("form.redirecting")}</div>
+        <Alert variant="success" className="mb-4">{state.success} {t("form.redirecting")}</Alert>
       )}
 
       <form action={action} className="space-y-4">
-        <div>
-          <label className="nx-label" htmlFor="fullName">{t("form.fullName")} *</label>
-          <input id="fullName" name="fullName" className="nx-input" required />
+        <div className="space-y-1.5">
+          <Label htmlFor="fullName">{t("form.fullName")} *</Label>
+          <Input id="fullName" name="fullName" required />
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="nx-label" htmlFor="employeeNo">{t("form.employeeNo")}</label>
-            <input id="employeeNo" name="employeeNo" className="nx-input" />
+          <div className="space-y-1.5">
+            <Label htmlFor="employeeNo">{t("form.employeeNo")}</Label>
+            <Input id="employeeNo" name="employeeNo" />
           </div>
-          <div>
-            <label className="nx-label" htmlFor="employmentType">{t("form.type")}</label>
-            <select id="employmentType" name="employmentType" className="nx-input" defaultValue="permanent">
+          <div className="space-y-1.5">
+            <Label htmlFor="employmentType">{t("form.type")}</Label>
+            <select id="employmentType" name="employmentType" className={fieldClasses} defaultValue="permanent">
               <option value="permanent">{t("employmentType.permanent")}</option>
               <option value="contract">{t("employmentType.contract")}</option>
               <option value="intern">{t("employmentType.intern")}</option>
@@ -63,26 +67,26 @@ export function NewEmployeeForm() {
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="nx-label" htmlFor="position">{t("form.position")}</label>
-            <input id="position" name="position" className="nx-input" />
+          <div className="space-y-1.5">
+            <Label htmlFor="position">{t("form.position")}</Label>
+            <Input id="position" name="position" />
           </div>
-          <div>
-            <label className="nx-label" htmlFor="department">{t("form.department")}</label>
-            <input id="department" name="department" className="nx-input" />
+          <div className="space-y-1.5">
+            <Label htmlFor="department">{t("form.department")}</Label>
+            <Input id="department" name="department" />
           </div>
         </div>
-        <div>
-          <label className="nx-label" htmlFor="email">{tc("email")}</label>
-          <input id="email" name="email" type="email" className="nx-input" />
+        <div className="space-y-1.5">
+          <Label htmlFor="email">{tc("email")}</Label>
+          <Input id="email" name="email" type="email" />
         </div>
-        <div>
-          <label className="nx-label" htmlFor="baseSalary">{t("form.baseSalaryNew")}</label>
-          <input id="baseSalary" name="baseSalary" type="number" min={0} step={1000} className="nx-input" defaultValue={0} />
-          <p className="mt-1 text-xs text-muted">{t("form.baseSalaryHint")}</p>
+        <div className="space-y-1.5">
+          <Label htmlFor="baseSalary">{t("form.baseSalaryNew")}</Label>
+          <Input id="baseSalary" name="baseSalary" type="number" min={0} step={1000} defaultValue={0} />
+          <p className="text-xs text-muted">{t("form.baseSalaryHint")}</p>
         </div>
         <SubmitButton>{t("form.save")}</SubmitButton>
       </form>
-    </div>
+    </Card>
   );
 }

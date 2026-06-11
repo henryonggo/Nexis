@@ -13,7 +13,7 @@ export default async function ImportEmployeesPage() {
   return (
     <div className="max-w-2xl space-y-5">
       <div>
-        <Link href="/employees" className="nx-link text-sm">{t("back")}</Link>
+        <Link href="/employees" className="text-sm font-medium text-brand hover:underline">{t("back")}</Link>
         <h1 className="mt-1 text-2xl font-bold text-ink">{t("import.title")}</h1>
         <p className="text-sm text-muted">
           {t("import.columnsLabel")}{" "}
