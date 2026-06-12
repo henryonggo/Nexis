@@ -349,3 +349,32 @@ detail, not a rewrite:
   measure time-to-first-payroll.
 - **Quarterly:** review §2 against the API surface; promote one stage's agent-readiness
   items into the roadmap.
+
+---
+
+## 5. Live-code audit — 2026-06-12
+
+Snapshot of the shipped product vs. the intended journey above. Scope: `apps/web`
+(App Router) + `apps/mobile` (Expo). Legend: ✅ present · ◑ partial · ❌ missing.
+
+| Stage | Status | What exists in code | Gaps vs. this playbook |
+|---|---|---|---|
+| **W1 Signup** | ◑ | Email/password signup, verify, forgot/reset (`app/(auth)/**`); 2-hour inactivity sign-out shipped (`components/idle-timeout` wired in `app/(app)/layout.tsx`). | **Google OAuth not built** — signup is password-only; callback route (`app/auth/callback/route.ts`) is generic but no `signInWithOAuth` path or provider button. W1 UX checkbox "Google OAuth up front" still open. |
+| **W2 Company setup** | ◑ | `create_company_with_owner` via `app/(onboarding)/actions.ts` + `companies/new/actions.ts`; free tier, no NPWP on free path. | No post-create "next 3 steps" checklist; no machine-readable `setup_checklist` JSON (both W2 items open). |
+| **W3 Workforce setup** | ✅ | Employee CRUD (`employees/**`), member invites (`members/**`, `invite/[token]`), **CSV bulk import shipped** (`employees/import` — quoted-field parser, header row), seat-limit enforced (`free_seat_limit`). | Import is CSV only (no XLSX); field-level validation rules not yet exposed as schema (agent item open). |
+| **W4 Attendance** | ✅ | Web Realtime board (`attendance/live-board.tsx`); **mobile clock-in with geofence + selfie liveness** (`expo-camera`, `expo-location`, `nearestGeofence`, `livenessPhase`) incl. permission handling. | **Offline/poor-signal queueing missing** — `pendingKind` is in-flight capture state only, no AsyncStorage/retry persistence. Anomaly webhook feed (agent item) open. |
+| **W5 First payroll ★** | ✅ | Full state machine `draft → queued → paid` (`payroll/actions.ts`); `config_snapshot` captured at draft; **role gate** (owner/admin) on approve/mark-paid; idempotent approve; per-employee breakdown page (`payroll/[runId]`) with per-line BPJS rows, **TER category + rate shown**, and **side-by-side diff vs. prior run** (`totalsDiff`); Cloud Run worker generates payslips. | Approval gate is role-based, **not** human-vs-agent credential — `actor_type` distinction (§2.5) not yet encoded. No plain-language "Explain this number" tooltip — numbers are labeled but not explained (no popover/formula UI). |
+| **W6 Self-service** | ✅ | Leave + claims on web (`leave/**`, `claims/**`) and mobile (`(app)/leave.tsx`, `claims.tsx`). | Policy-as-data, receipt OCR hook, delegated-approval API (agent items) open. |
+| **W7 Steady-state loop** | ❌ (process) | No productized in-app cycle checklist found; the D-7…D+3 table is still doc-only. | Biggest agent surface (§W7) unbuilt: no scheduled-task/cron hooks for cutoff events. |
+| **W8 Reporting & upgrade** | ✅ | Reports export **e-Bupot / SIPP / PPh21 → XLSX** (`reports/actions.ts`); billing upgrade flow (`billing/**` — plan cards, upgrade form). | **Filing calendar with statutory deadlines missing** (no match in reports/settings). Export manifest/checksum (agent verify) open. |
+| **W9 Growth & API** | ◑ | Company switcher (`companies/**`); **developer API shipped** — API keys (`developer/key-form`, `secret-reveal`) + **webhooks with event subscriptions** (`WEBHOOK_EVENTS`). | Accountant **portfolio dashboard** (cross-company status view) not found; per-company scoped tokens / rate limits unverified. |
+
+**Headline gaps to feed the roadmap:**
+1. **Google OAuth** (W1) — listed as a friction-killer, still password-only.
+2. **Onboarding checklist** (W2) — empty dashboard after company create; no `setup_checklist`.
+3. **Steady-state automation** (W7) — the highest-value agent loop has no cron/webhook scheduling yet.
+4. **`actor_type` attribution** (§2.5 / W5) — payroll gate is role-based; human-vs-agent distinction not encoded, blocking the W5 hard-gate and clean agent audit trails.
+5. **Accountant portfolio view** (W9) — the "killer agent surface" has no cross-company dashboard.
+
+> Method: route/grep audit only; not a behavioral test pass. Re-run before each
+> quarterly review (§4) and bump the date.
