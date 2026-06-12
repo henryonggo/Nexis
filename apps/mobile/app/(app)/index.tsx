@@ -15,8 +15,8 @@ export default function Home() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, backgroundColor: "#F8FAFC" },
-  h1: { fontSize: 22, fontWeight: "700", color: "#0F172A" },
-  muted: { color: "#64748B", marginTop: 4 },
-  note: { color: "#64748B", marginTop: 20, lineHeight: 20 },
+  container: { flex: 1, padding: 24, backgroundColor: "#F7F8FA" },
+  h1: { fontSize: 22, fontWeight: "700", color: "#0B1220" },
+  muted: { color: "#5B6675", marginTop: 4 },
+  note: { color: "#5B6675", marginTop: 20, lineHeight: 20 },
 });

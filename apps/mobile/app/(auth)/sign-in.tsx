@@ -46,18 +46,18 @@ export default function SignIn() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", padding: 24, backgroundColor: "#F8FAFC" },
-  brand: { fontSize: 32, fontWeight: "700", color: "#1F6FEB", textAlign: "center" },
-  sub: { color: "#64748B", textAlign: "center", marginTop: 4, marginBottom: 24 },
+  container: { flex: 1, justifyContent: "center", padding: 24, backgroundColor: "#F7F8FA" },
+  brand: { fontSize: 32, fontWeight: "700", color: "#2452E6", textAlign: "center" },
+  sub: { color: "#5B6675", textAlign: "center", marginTop: 4, marginBottom: 24 },
   input: {
     backgroundColor: "#fff",
-    borderColor: "#E2E8F0",
+    borderColor: "#E3E8EF",
     borderWidth: 1,
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,
   },
-  button: { backgroundColor: "#1F6FEB", borderRadius: 8, padding: 14, alignItems: "center" },
+  button: { backgroundColor: "#2452E6", borderRadius: 8, padding: 14, alignItems: "center" },
   buttonText: { color: "#fff", fontWeight: "600" },
   error: { color: "#DC2626", marginBottom: 12, textAlign: "center" },
 });

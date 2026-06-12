@@ -178,6 +178,14 @@ Banners → `Alert` (info/success/warning/destructive). Links-as-buttons → `Bu
 is off `.nx-*` and on shadcn primitives.** `grep -rn "nx-" apps/web/app apps/web/components`
 → no matches. typecheck + `next build` green at every batch.
 
-### Phase 2 (not started)
-`_landing` marketing page + Expo mobile. `_landing` still uses its own `lp-*` helpers
-(kept in `globals.css`) — migrate when Phase 2 begins.
+### Phase 2 — DONE
+- **Landing (`_landing`)**: already inherited v2 via `brand`/`accent`/`ink`/`muted` tokens.
+  Fixed the only stale bits — `lp-gradient-text` hardcoded hexes → v2 (`#2452e6`/`#0ea5a4`/
+  `#1a3fc0`) and two `bg-teal-50` → `bg-accent/10`. `lp-*` motion/glass helpers kept.
+- **Expo mobile (`apps/mobile`)**: per-file `StyleSheet` with hardcoded hexes; no central
+  theme. Applied a v2 value swap across all screens + tab layout:
+  `1F6FEB→2452E6` (brand), `0F172A→0B1220` (ink), `E2E8F0→E3E8EF` (border),
+  `64748B→5B6675` (muted), `F8FAFC→F7F8FA` (bg), `14B8A6→0EA5A4` (teal). Danger/success/
+  slate left as-is (v2-valid). Mobile `tsc --noEmit` passes.
+  - *Future*: extract a shared `lib/theme.ts` so mobile tokens aren't inlined (deferred —
+    value swap gives the v2 look without the abstraction churn now).

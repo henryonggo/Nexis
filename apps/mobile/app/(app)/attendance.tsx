@@ -128,7 +128,7 @@ export default function Attendance() {
   if (loading) {
     return (
       <View style={[styles.container, styles.center]}>
-        <ActivityIndicator color="#1F6FEB" />
+        <ActivityIndicator color="#2452E6" />
       </View>
     );
   }
@@ -167,7 +167,7 @@ export default function Attendance() {
 
       <View style={styles.statusCard}>
         <Text style={styles.statusLabel}>Status saat ini</Text>
-        <Text style={[styles.statusValue, { color: present ? "#16A34A" : "#64748B" }]}>
+        <Text style={[styles.statusValue, { color: present ? "#16A34A" : "#5B6675" }]}>
           {last ? KIND_LABEL[last.kind] : "Belum absen hari ini"}
         </Text>
       </View>
@@ -217,42 +217,42 @@ export default function Attendance() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8FAFC" },
+  container: { flex: 1, backgroundColor: "#F7F8FA" },
   center: { alignItems: "center", justifyContent: "center" },
-  h1: { fontSize: 22, fontWeight: "700", color: "#0F172A" },
-  muted: { color: "#64748B", marginTop: 4 },
+  h1: { fontSize: 22, fontWeight: "700", color: "#0B1220" },
+  muted: { color: "#5B6675", marginTop: 4 },
   statusCard: {
     marginTop: 20,
     padding: 16,
     backgroundColor: "#fff",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#E3E8EF",
   },
-  statusLabel: { color: "#64748B", fontSize: 13 },
+  statusLabel: { color: "#5B6675", fontSize: 13 },
   statusValue: { fontSize: 20, fontWeight: "700", marginTop: 4 },
   btn: { borderRadius: 8, paddingVertical: 14, alignItems: "center", justifyContent: "center" },
   fullBtn: { marginTop: 20 },
-  btnPrimary: { backgroundColor: "#1F6FEB" },
+  btnPrimary: { backgroundColor: "#2452E6" },
   btnPrimaryText: { color: "#fff", fontWeight: "600" },
-  btnGhost: { borderWidth: 1, borderColor: "#E2E8F0", backgroundColor: "#fff" },
-  btnGhostText: { color: "#0F172A", fontWeight: "600" },
+  btnGhost: { borderWidth: 1, borderColor: "#E3E8EF", backgroundColor: "#fff" },
+  btnGhostText: { color: "#0B1220", fontWeight: "600" },
   row: { flexDirection: "row", gap: 12, marginTop: 12 },
   flex: { flex: 1 },
-  logTitle: { marginTop: 28, fontWeight: "600", color: "#0F172A" },
+  logTitle: { marginTop: 28, fontWeight: "600", color: "#0B1220" },
   logRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#E2E8F0",
+    borderBottomColor: "#E3E8EF",
   },
-  logKind: { color: "#0F172A", flex: 1 },
+  logKind: { color: "#0B1220", flex: 1 },
   flag: { color: "#DC2626", fontSize: 12 },
   error: { color: "#DC2626", marginTop: 12 },
   cameraWrap: { flex: 1, backgroundColor: "#000" },
   camera: { flex: 1 },
-  cameraBar: { padding: 20, backgroundColor: "#0F172A" },
+  cameraBar: { padding: 20, backgroundColor: "#0B1220" },
   cameraHint: { color: "#fff", textAlign: "center", marginBottom: 12 },
 });

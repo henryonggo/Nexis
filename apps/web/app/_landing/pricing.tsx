@@ -54,7 +54,7 @@ export function Pricing({ isAuthed }: { isAuthed: boolean }) {
             <ul className="mx-auto mt-6 max-w-xs space-y-2 text-left">
               {INCLUDED.map((item) => (
                 <li key={item} className="flex items-start gap-2 text-sm text-ink">
-                  <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-teal-50 text-xs font-black text-accent">
+                  <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-accent/10 text-xs font-black text-accent">
                     ✓
                   </span>
                   {item}

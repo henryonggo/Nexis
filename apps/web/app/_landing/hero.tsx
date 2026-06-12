@@ -127,7 +127,7 @@ export function Hero({ isAuthed }: { isAuthed: boolean }) {
                 <p className="text-xs font-medium text-muted">Slip gaji · Mei 2026</p>
                 <p className="text-lg font-bold text-ink">Sari Wijaya</p>
               </div>
-              <span className="rounded-full bg-teal-50 px-2.5 py-1 text-xs font-semibold text-accent">
+              <span className="rounded-full bg-accent/10 px-2.5 py-1 text-xs font-semibold text-accent">
                 Dibayar
               </span>
             </div>
