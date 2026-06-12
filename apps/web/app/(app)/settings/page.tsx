@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { DeactivateSection } from "./deactivate-section";
 import { NotificationsForm } from "./notifications-form";
+import { Card } from "@/components/ui/card";
 
 export default async function SettingsPage() {
   const supabase = createClient();
@@ -30,10 +31,10 @@ export default async function SettingsPage() {
 
       <section className="space-y-2">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t("account")}</h2>
-        <div className="rounded-lg border border-[color:var(--border)] bg-white p-4">
+        <Card className="p-4">
           <p className="text-sm text-muted">{tc("email")}</p>
           <p className="font-medium text-ink">{user?.email ?? "—"}</p>
-        </div>
+        </Card>
       </section>
 
       <section className="space-y-2">

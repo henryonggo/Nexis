@@ -62,30 +62,6 @@ body {
   }
 }
 
-@layer components {
-  .nx-input {
-    @apply w-full rounded-md border border-[color:var(--border)] bg-white px-3 py-2 text-sm outline-none focus:border-brand focus:ring-1 focus:ring-brand;
-  }
-  .nx-label {
-    @apply mb-1 block text-sm font-medium text-ink;
-  }
-  .nx-btn {
-    @apply inline-flex w-full items-center justify-center rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-dark disabled:opacity-60;
-  }
-  .nx-card {
-    @apply w-full max-w-md rounded-lg border border-[color:var(--border)] bg-white p-8 shadow-sm;
-  }
-  .nx-error {
-    @apply rounded-md bg-red-50 px-3 py-2 text-sm text-danger;
-  }
-  .nx-success {
-    @apply rounded-md bg-teal-50 px-3 py-2 text-sm text-accent;
-  }
-  .nx-link {
-    @apply text-brand hover:underline;
-  }
-}
-
 /* ---- Landing page helpers ---- */
 .lp-gradient-text {
   background-image: linear-gradient(110deg, #1f6feb 0%, #14b8a6 55%, #1551b5 100%);

@@ -10,6 +10,16 @@ import {
 import { KeyForm } from "./key-form";
 import { WebhookForm } from "./webhook-form";
 import { RevokeKeyButton, ToggleWebhookButton, DeleteWebhookButton } from "./row-actions";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 
 function fmtDate(iso: string | null): string {
   if (!iso) return "—";
@@ -20,11 +30,11 @@ function fmtDate(iso: string | null): string {
   });
 }
 
-const LOG_STYLES: Record<string, string> = {
-  success: "bg-emerald-100 text-emerald-700",
-  delivered: "bg-emerald-100 text-emerald-700",
-  failed: "bg-red-100 text-red-700",
-  pending: "bg-amber-100 text-amber-700",
+const LOG_VARIANT: Record<string, "success" | "destructive" | "warning"> = {
+  success: "success",
+  delivered: "success",
+  failed: "destructive",
+  pending: "warning",
 };
 
 export default async function DeveloperPage() {
@@ -36,10 +46,10 @@ export default async function DeveloperPage() {
   const isOwnerAdmin = active.role === "owner" || active.role === "admin";
   if (!isOwnerAdmin) {
     return (
-      <div className="nx-card max-w-lg">
+      <Card className="max-w-lg p-8">
         <h1 className="mb-1 text-xl font-bold text-ink">{t("title")}</h1>
         <p className="text-sm text-muted">{t("noAccess")}</p>
-      </div>
+      </Card>
     );
   }
 
@@ -59,18 +69,18 @@ export default async function DeveloperPage() {
       {/* ── API keys ── */}
       <div className="grid gap-4 md:grid-cols-2">
         <KeyForm />
-        <div className="nx-card">
+        <Card className="p-8">
           <h2 className="mb-3 text-lg font-semibold text-ink">{t("keys", { count: keys.length })}</h2>
           {keys.length === 0 ? (
             <p className="text-sm text-muted">{t("noKeys")}</p>
           ) : (
-            <ul className="divide-y divide-[color:var(--border)]">
+            <ul className="divide-y divide-border">
               {keys.map((k) => (
                 <li key={k.id} className="flex items-center justify-between gap-3 py-3">
                   <div className="min-w-0">
                     <p className="font-medium text-ink">
                       {k.name}{" "}
-                      {!k.isActive && <span className="text-xs text-red-600">{t("revoked")}</span>}
+                      {!k.isActive && <span className="text-xs text-danger">{t("revoked")}</span>}
                     </p>
                     <p className="truncate text-xs text-muted">
                       {k.scopes.join(", ") || t("noScope")} · {t("createdAt", { date: fmtDate(k.createdAt) })}
@@ -82,18 +92,18 @@ export default async function DeveloperPage() {
               ))}
             </ul>
           )}
-        </div>
+        </Card>
       </div>
 
       {/* ── Webhooks ── */}
       <div className="grid gap-4 md:grid-cols-2">
         <WebhookForm />
-        <div className="nx-card">
+        <Card className="p-8">
           <h2 className="mb-3 text-lg font-semibold text-ink">{t("webhooks", { count: webhooks.length })}</h2>
           {webhooks.length === 0 ? (
             <p className="text-sm text-muted">{t("noWebhooks")}</p>
           ) : (
-            <ul className="divide-y divide-[color:var(--border)]">
+            <ul className="divide-y divide-border">
               {webhooks.map((w) => (
                 <li key={w.id} className="py-3">
                   <div className="flex items-start justify-between gap-3">
@@ -102,7 +112,7 @@ export default async function DeveloperPage() {
                       <p className="truncate text-xs text-muted">{w.events.join(", ")}</p>
                       <p className="text-xs">
                         {w.isActive ? (
-                          <span className="text-emerald-700">{t("active")}</span>
+                          <span className="text-success">{t("active")}</span>
                         ) : (
                           <span className="text-muted">{t("inactive")}</span>
                         )}
@@ -117,7 +127,7 @@ export default async function DeveloperPage() {
               ))}
             </ul>
           )}
-        </div>
+        </Card>
       </div>
 
       {/* ── Delivery log ── */}
@@ -134,47 +144,41 @@ export default async function DeveloperPage() {
 async function DeliveryTable({ rows }: { rows: WebhookLogView[] }) {
   const t = await getTranslations("developer");
   return (
-    <div className="overflow-hidden rounded-lg border border-[color:var(--border)] bg-white">
-      <table className="w-full text-sm">
-        <thead className="bg-brand-light/60 text-left text-muted">
-          <tr>
-            <th className="px-4 py-2 font-medium">{t("deliveryColumns.time")}</th>
-            <th className="px-4 py-2 font-medium">{t("deliveryColumns.event")}</th>
-            <th className="px-4 py-2 font-medium">{t("deliveryColumns.status")}</th>
-            <th className="px-4 py-2 text-right font-medium">{t("deliveryColumns.http")}</th>
-            <th className="px-4 py-2 text-right font-medium">{t("deliveryColumns.attempt")}</th>
-          </tr>
-        </thead>
-        <tbody>
+    <Card className="overflow-hidden p-0">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>{t("deliveryColumns.time")}</TableHead>
+            <TableHead>{t("deliveryColumns.event")}</TableHead>
+            <TableHead>{t("deliveryColumns.status")}</TableHead>
+            <TableHead className="text-right">{t("deliveryColumns.http")}</TableHead>
+            <TableHead className="text-right">{t("deliveryColumns.attempt")}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {rows.length === 0 ? (
-            <tr>
-              <td colSpan={5} className="px-4 py-8 text-center text-muted">
+            <TableRow>
+              <TableCell colSpan={5} className="py-8 text-center text-muted">
                 {t("noDeliveries")}
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ) : (
             rows.map((l) => (
-              <tr key={l.id} className="border-t border-[color:var(--border)]">
-                <td className="px-4 py-3 text-muted">{fmtDate(l.createdAt)}</td>
-                <td className="px-4 py-3 font-mono text-xs text-ink">{l.eventType}</td>
-                <td className="px-4 py-3">
-                  <span
-                    className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      LOG_STYLES[l.status] ?? "bg-gray-100 text-gray-600"
-                    }`}
-                  >
-                    {l.status}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-right tabular-nums text-ink">
+              <TableRow key={l.id}>
+                <TableCell className="text-muted">{fmtDate(l.createdAt)}</TableCell>
+                <TableCell className="font-mono text-xs text-ink">{l.eventType}</TableCell>
+                <TableCell>
+                  <Badge variant={LOG_VARIANT[l.status] ?? "secondary"}>{l.status}</Badge>
+                </TableCell>
+                <TableCell className="text-right tabular-nums text-ink">
                   {l.responseStatus ?? "—"}
-                </td>
-                <td className="px-4 py-3 text-right tabular-nums text-muted">{l.attemptNumber}</td>
-              </tr>
+                </TableCell>
+                <TableCell className="text-right tabular-nums text-muted">{l.attemptNumber}</TableCell>
+              </TableRow>
             ))
           )}
-        </tbody>
-      </table>
-    </div>
+        </TableBody>
+      </Table>
+    </Card>
   );
 }

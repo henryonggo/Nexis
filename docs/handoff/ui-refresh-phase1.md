@@ -1,6 +1,6 @@
 # Handoff — UI Refresh (Phase 1: Web App)
 
-> Branch: `claude/ui-refresh` · Owner: **Claude Code** (application layer) · Status: **plan / pre-implementation**
+> Branch: `claude/ui-refresh` · Owner: **Claude Code** (application layer) · Status: **Phase 1 COMPLETE** (all web batches 0–6 migrated, build-gated)
 > Grounded with the `ui-ux-pro-max` skill. Phase 1 = `apps/web` only. Landing (`_landing`)
 > and Expo mobile are **Phase 2**.
 
@@ -163,7 +163,21 @@ Each batch: migrate to primitives → `typecheck` + `next build` → fix Playwri
 - **Batch 4** attendance live-board + leave + claims → Table/Card/Badge/Alert; both
   status-badges + decision-buttons onto primitives. (build verifying)
 
-**Convention for remaining batches 5–6:** server-action forms keep native `<select>`/
+**Convention used across batches:** server-action forms keep native `<select>`/
 `<textarea>` styled with `fieldClasses` (Radix Select needs a hidden input — not worth it
 for posted forms). Status enums → `Badge` variant maps. Lists → `Table` in `Card className="p-0"`.
 Banners → `Alert` (info/success/warning/destructive). Links-as-buttons → `Button asChild`.
+
+### Batches 5–6 — DONE
+- **Batch 5** (`f12c427`) billing, reports, analytics, loans, performance.
+- **Batch 6** settings, members, companies, audit, developer + **removed the dead
+  `.nx-*` `@layer components` block from `globals.css`** (zero usages left app-wide).
+
+### Phase 1 result
+**Every `apps/web` route group (auth, onboarding, invite, and all 16 `(app)` groups)
+is off `.nx-*` and on shadcn primitives.** `grep -rn "nx-" apps/web/app apps/web/components`
+→ no matches. typecheck + `next build` green at every batch.
+
+### Phase 2 (not started)
+`_landing` marketing page + Expo mobile. `_landing` still uses its own `lp-*` helpers
+(kept in `globals.css`) — migrate when Phase 2 begins.

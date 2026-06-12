@@ -4,6 +4,10 @@ import { useFormState } from "react-dom";
 import { useTranslations } from "next-intl";
 import { updateNotifications, type NotificationsState } from "./actions";
 import { SubmitButton } from "@/components/submit-button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert } from "@/components/ui/alert";
 
 const initial: NotificationsState = {};
 
@@ -19,16 +23,16 @@ export function NotificationsForm({
   const [state, action] = useFormState(updateNotifications, initial);
 
   return (
-    <div className="rounded-lg border border-[color:var(--border)] bg-white p-4">
+    <Card className="p-4">
       <p className="mb-3 text-sm text-muted">{t("description")}</p>
 
-      {state.error && <div className="nx-error mb-3">{state.error}</div>}
-      {state.ok && <div className="nx-success mb-3">{t("saved")}</div>}
+      {state.error && <Alert variant="destructive" className="mb-3">{state.error}</Alert>}
+      {state.ok && <Alert variant="success" className="mb-3">{t("saved")}</Alert>}
 
       <form action={action} className="space-y-4">
-        <div>
-          <label className="nx-label" htmlFor="phone">{t("phone")}</label>
-          <input
+        <div className="space-y-1.5">
+          <Label htmlFor="phone">{t("phone")}</Label>
+          <Input
             id="phone"
             name="phone"
             type="tel"
@@ -36,7 +40,6 @@ export function NotificationsForm({
             autoComplete="tel"
             defaultValue={defaultPhone}
             placeholder={t("phonePlaceholder")}
-            className="nx-input"
           />
         </div>
 
@@ -55,6 +58,6 @@ export function NotificationsForm({
 
         <SubmitButton>{t("save")}</SubmitButton>
       </form>
-    </div>
+    </Card>
   );
 }
