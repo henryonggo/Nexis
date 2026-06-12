@@ -48,28 +48,30 @@ export function PendingLeavesList({
 
   const handleBulkApprove = () => {
     if (selectedIds.length === 0) return;
-    startTransition(async () => {
-      const res = await approveLeavesBulk(selectedIds);
-      if (res.error) {
-        toast.error(res.error);
-      } else {
-        toast.success(td("bulkSuccess"));
-        setSelectedIds([]);
-      }
+    approveLeavesBulk(selectedIds).then((res) => {
+      startTransition(() => {
+        if (res.error) {
+          toast.error(res.error);
+        } else {
+          toast.success(td("bulkSuccess"));
+          setSelectedIds([]);
+        }
+      });
     });
   };
 
   const handleBulkReject = () => {
     if (selectedIds.length === 0) return;
-    startTransition(async () => {
-      const res = await rejectLeavesBulk(selectedIds, rejectNote);
-      if (res.error) {
-        toast.error(res.error);
-      } else {
-        toast.success(td("bulkSuccess"));
-        setSelectedIds([]);
-        setRejectNote("");
-      }
+    rejectLeavesBulk(selectedIds, rejectNote).then((res) => {
+      startTransition(() => {
+        if (res.error) {
+          toast.error(res.error);
+        } else {
+          toast.success(td("bulkSuccess"));
+          setSelectedIds([]);
+          setRejectNote("");
+        }
+      });
     });
   };
 

@@ -48,28 +48,30 @@ export function PendingClaimsList({
 
   const handleBulkApprove = () => {
     if (selectedIds.length === 0) return;
-    startTransition(async () => {
-      const res = await approveClaimsBulk(selectedIds);
-      if (res.error) {
-        toast.error(res.error);
-      } else {
-        toast.success(td("bulkSuccess"));
-        setSelectedIds([]);
-      }
+    approveClaimsBulk(selectedIds).then((res) => {
+      startTransition(() => {
+        if (res.error) {
+          toast.error(res.error);
+        } else {
+          toast.success(td("bulkSuccess"));
+          setSelectedIds([]);
+        }
+      });
     });
   };
 
   const handleBulkReject = () => {
     if (selectedIds.length === 0) return;
-    startTransition(async () => {
-      const res = await rejectClaimsBulk(selectedIds, rejectNote);
-      if (res.error) {
-        toast.error(res.error);
-      } else {
-        toast.success(td("bulkSuccess"));
-        setSelectedIds([]);
-        setRejectNote("");
-      }
+    rejectClaimsBulk(selectedIds, rejectNote).then((res) => {
+      startTransition(() => {
+        if (res.error) {
+          toast.error(res.error);
+        } else {
+          toast.success(td("bulkSuccess"));
+          setSelectedIds([]);
+          setRejectNote("");
+        }
+      });
     });
   };
 

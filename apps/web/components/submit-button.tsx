@@ -9,7 +9,7 @@ export function SubmitButton({ children }: { children: React.ReactNode }) {
   const t = useTranslations("common");
   return (
     <Button type="submit" className="w-full" disabled={pending} aria-busy={pending}>
-      {pending ? t("processing") : children}
+      {(pending ? t("processing") : children) as any}
     </Button>
   );
 }
