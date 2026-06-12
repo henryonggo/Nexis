@@ -40,8 +40,27 @@ export default async function EmployeeDetailPage({ params }: { params: { id: str
     <div className="max-w-xl space-y-5">
       <div>
         <Link href="/employees" className="text-sm font-medium text-brand hover:underline">{t("back")}</Link>
-        <h1 className="mt-1 text-2xl font-bold text-ink">{employee.full_name}</h1>
-        <p className="text-sm text-muted">{employee.position ?? "—"}</p>
+        <div className="mt-1 flex items-center justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-ink">{employee.full_name}</h1>
+            <p className="text-sm text-muted">{employee.position ?? "—"}</p>
+          </div>
+          {employee.user_id ? (
+            <span className="rounded-full bg-success/10 px-3 py-1 text-xs font-medium text-success">
+              {t("appLinked")}
+            </span>
+          ) : (
+            canEdit &&
+            employee.email && (
+              <Link
+                href={`/members?email=${encodeURIComponent(employee.email)}&role=employee`}
+                className="rounded-md border border-brand px-3 py-1.5 text-sm font-medium text-brand hover:bg-brand-light"
+              >
+                {t("inviteToApp")}
+              </Link>
+            )
+          )}
+        </div>
       </div>
 
       <EditEmployeeForm

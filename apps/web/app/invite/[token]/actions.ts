@@ -20,6 +20,10 @@ export async function acceptInvite(token: string): Promise<AcceptState> {
   } = await supabase.auth.getUser();
   if (!user) redirect(`/sign-in?redirectTo=/invite/${token}`);
 
+  // TODO(db): accept_invitation must also link employees.user_id = auth.uid()
+  // for unclaimed employee rows matching the invited email in this company —
+  // otherwise employee self-service (mobile profile, payslips, attendance,
+  // leave, claims) sees nothing. Spec: docs/handoff/employee-user-linking.md — Antigravity
   const { data: companyId, error } = await supabase.rpc("accept_invitation", {
     p_token: token,
   });

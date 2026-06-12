@@ -223,6 +223,8 @@
     "newTitle": "Tambah karyawan",
     "companyLabel": "Perusahaan: {name}",
     "back": "← Kembali",
+    "inviteToApp": "Undang ke aplikasi",
+    "appLinked": "Terhubung ke aplikasi",
     "employmentType": { "permanent": "Tetap", "contract": "Kontrak", "intern": "Magang", "daily": "Harian" },
     "status": { "active": "Aktif", "probation": "Masa percobaan", "inactive": "Nonaktif", "terminated": "Berakhir" },
     "form": {
