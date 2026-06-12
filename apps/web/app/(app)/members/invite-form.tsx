@@ -11,7 +11,13 @@ import { Alert } from "@/components/ui/alert";
 
 const initial: MemberState = {};
 
-export function InviteForm() {
+export function InviteForm({
+  defaultEmail = "",
+  defaultRole = "employee",
+}: {
+  defaultEmail?: string;
+  defaultRole?: "admin" | "manager" | "employee";
+}) {
   const t = useTranslations("members.invite");
   const tc = useTranslations("common");
   const tRoles = useTranslations("roles");
@@ -34,11 +40,11 @@ export function InviteForm() {
       <form action={action} className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <div className="flex-1 space-y-1.5">
           <Label htmlFor="email">{tc("email")}</Label>
-          <Input id="email" name="email" type="email" required />
+          <Input id="email" name="email" type="email" defaultValue={defaultEmail} required />
         </div>
         <div className="space-y-1.5 sm:w-44">
           <Label htmlFor="role">{t("role")}</Label>
-          <select id="role" name="role" className={fieldClasses} defaultValue="employee">
+          <select id="role" name="role" className={fieldClasses} defaultValue={defaultRole}>
             <option value="admin">{tRoles("admin")}</option>
             <option value="manager">{tRoles("manager")}</option>
             <option value="employee">{tRoles("employee")}</option>

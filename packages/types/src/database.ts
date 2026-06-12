@@ -2646,6 +2646,10 @@ export type Database = {
       get_user_id_by_email: { Args: { p_email: string }; Returns: string }
       hire_application: { Args: { p_application_id: string }; Returns: string }
       is_current_user_active: { Args: never; Returns: boolean }
+      link_employee_account: {
+        Args: { p_employee_id: string; p_user_id: string }
+        Returns: undefined
+      }
       record_attendance: {
         Args: {
           p_company_id: string

@@ -223,6 +223,8 @@
     "newTitle": "Add employee",
     "companyLabel": "Company: {name}",
     "back": "← Back",
+    "inviteToApp": "Invite to app",
+    "appLinked": "Linked to app",
     "employmentType": { "permanent": "Permanent", "contract": "Contract", "intern": "Intern", "daily": "Daily" },
     "status": { "active": "Active", "probation": "Probation", "inactive": "Inactive", "terminated": "Terminated" },
     "form": {

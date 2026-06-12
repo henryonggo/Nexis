@@ -11,22 +11,27 @@ import { TopNav } from "@/components/top-nav";
 import { CommandCenter } from "@/components/command-center";
 import { Button } from "@/components/ui/button";
 
-const NAV = [
-  { href: "/dashboard", key: "dashboard" },
-  { href: "/employees", key: "employees" },
-  { href: "/attendance", key: "attendance" },
-  { href: "/leave", key: "leave" },
-  { href: "/claims", key: "claims" },
-  { href: "/loans", key: "loans" },
-  { href: "/payroll", key: "payroll" },
-  { href: "/performance", key: "performance" },
-  { href: "/analytics", key: "analytics" },
-  { href: "/reports", key: "reports" },
-  { href: "/billing", key: "billing" },
-  { href: "/audit", key: "audit" },
-  { href: "/developer", key: "developer" },
-  { href: "/members", key: "members" },
-  { href: "/settings", key: "settings" },
+type Role = "owner" | "admin" | "manager" | "employee";
+
+// Mirrors the per-page guards: owner/admin see everything; managers see the
+// approval/oversight surfaces; employees see only self-service views (their
+// data is further limited to their own rows by RLS).
+const NAV: ReadonlyArray<{ href: string; key: string; roles: readonly Role[] }> = [
+  { href: "/dashboard", key: "dashboard", roles: ["owner", "admin", "manager", "employee"] },
+  { href: "/employees", key: "employees", roles: ["owner", "admin", "manager"] },
+  { href: "/attendance", key: "attendance", roles: ["owner", "admin", "manager", "employee"] },
+  { href: "/leave", key: "leave", roles: ["owner", "admin", "manager", "employee"] },
+  { href: "/claims", key: "claims", roles: ["owner", "admin", "manager", "employee"] },
+  { href: "/loans", key: "loans", roles: ["owner", "admin", "manager"] },
+  { href: "/payroll", key: "payroll", roles: ["owner", "admin"] },
+  { href: "/performance", key: "performance", roles: ["owner", "admin", "manager"] },
+  { href: "/analytics", key: "analytics", roles: ["owner", "admin"] },
+  { href: "/reports", key: "reports", roles: ["owner", "admin", "manager"] },
+  { href: "/billing", key: "billing", roles: ["owner", "admin"] },
+  { href: "/audit", key: "audit", roles: ["owner", "admin"] },
+  { href: "/developer", key: "developer", roles: ["owner", "admin"] },
+  { href: "/members", key: "members", roles: ["owner", "admin"] },
+  { href: "/settings", key: "settings", roles: ["owner", "admin"] },
 ] as const;
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -42,7 +47,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const t = await getTranslations("nav");
   const tc = await getTranslations("common");
 
-  const navItems: NavItem[] = NAV.map((item) => ({ ...item, label: t(item.key) }));
+  const role = (active?.role ?? "employee") as Role;
+  const navItems: NavItem[] = NAV.filter((item) => item.roles.includes(role)).map(
+    (item) => ({ href: item.href, key: item.key, label: t(item.key) }),
+  );
 
   return (
     <div className="min-h-screen">
