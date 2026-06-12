@@ -207,8 +207,7 @@
         "type": "Type",
         "national": "National",
         "company": "Company",
-        "seed": "Seed {year} holidays",
-        "seedPending": "Not available yet — national holiday data pending."
+        "seed": "Seed {year} holidays"
       }
     }
   },

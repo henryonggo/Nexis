@@ -207,8 +207,7 @@
         "type": "Jenis",
         "national": "Nasional",
         "company": "Perusahaan",
-        "seed": "Isi libur {year}",
-        "seedPending": "Belum tersedia — menunggu data libur nasional."
+        "seed": "Isi libur {year}"
       }
     }
   },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useFormState } from "react-dom";
+import { useFormState, useFormStatus } from "react-dom";
 import { useTranslations } from "next-intl";
 import { Trash2 } from "lucide-react";
 import {
@@ -9,6 +9,7 @@ import {
   createShift,
   deleteShift,
   saveSchedule,
+  seedHolidays,
   type ConfigState,
 } from "./actions";
 import { SubmitButton } from "@/components/submit-button";
@@ -82,6 +83,16 @@ function FormAlert({ state }: { state: ConfigState }) {
   if (state.error) return <Alert variant="destructive" className="mb-4">{state.error}</Alert>;
   if (state.success) return <Alert variant="success" className="mb-4">{state.success}</Alert>;
   return null;
+}
+
+function SeedButton({ label }: { label: string }) {
+  const { pending } = useFormStatus();
+  const tc = useTranslations("common");
+  return (
+    <Button type="submit" variant="outline" disabled={pending} aria-busy={pending}>
+      {pending ? tc("processing") : label}
+    </Button>
+  );
 }
 
 function DeleteButton({
@@ -332,6 +343,7 @@ function EmployeeScheduleRow({
 
 function HolidaysTab({ holidays, year }: { holidays: Holiday[]; year: number }) {
   const t = useTranslations("attendance.config");
+  const [state, action] = useFormState(seedHolidays, initial);
 
   return (
     <Card className="p-6">
@@ -339,14 +351,13 @@ function HolidaysTab({ holidays, year }: { holidays: Holiday[]; year: number }) 
         <div>
           <h3 className="font-semibold text-ink">{t("holidays.title", { year })}</h3>
           <p className="text-sm text-muted">{t("holidays.hint")}</p>
+          {state.error && <p className="mt-1 text-xs text-danger">{state.error}</p>}
+          {state.success && <p className="mt-1 text-xs text-success">{state.success}</p>}
         </div>
-        {/* TODO(db): need RPC seed_indonesian_holidays(p_year int) that upserts the
-            national holiday calendar (holidays has no company_id — it's global, so
-            seeding belongs in a SECURITY DEFINER RPC, not a tenant insert). Wire this
-            button to it and drop `disabled`. — Antigravity */}
-        <Button type="button" variant="outline" disabled title={t("holidays.seedPending")}>
-          {t("holidays.seed", { year })}
-        </Button>
+        <form action={action}>
+          <input type="hidden" name="year" value={year} />
+          <SeedButton label={t("holidays.seed", { year })} />
+        </form>
       </div>
       {holidays.length === 0 ? (
         <p className="text-sm text-muted">{t("holidays.empty", { year })}</p>

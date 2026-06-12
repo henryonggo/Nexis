@@ -181,3 +181,24 @@ export async function saveSchedule(_prev: ConfigState, formData: FormData): Prom
   revalidatePath("/attendance/config");
   return { success: "Jadwal kerja disimpan." };
 }
+
+// ── Holidays (seed via SECURITY DEFINER RPC; holidays is a global table) ──────
+
+const seedSchema = z.object({
+  year: z.coerce.number().int().min(2000).max(2100),
+});
+
+export async function seedHolidays(_prev: ConfigState, formData: FormData): Promise<ConfigState> {
+  const parsed = seedSchema.safeParse({ year: formData.get("year") });
+  if (!parsed.success) return { error: "Tahun tidak valid" };
+
+  const gate = await requireAdmin();
+  if (gate.error) return { error: gate.error };
+
+  const supabase = createClient();
+  const { error } = await supabase.rpc("seed_indonesian_holidays", { p_year: parsed.data.year });
+  if (error) return { error: error.message };
+
+  revalidatePath("/attendance/config");
+  return { success: "Kalender libur diisi." };
+}
