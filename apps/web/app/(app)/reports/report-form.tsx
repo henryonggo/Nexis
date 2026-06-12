@@ -6,6 +6,10 @@ import { createReportJob, type ReportActionState } from "./actions";
 import { REPORT_TYPES } from "@/lib/reports-format";
 import type { RunOption } from "@/lib/reports";
 import { SubmitButton } from "@/components/submit-button";
+import { Card } from "@/components/ui/card";
+import { fieldClasses } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert } from "@/components/ui/alert";
 
 const initial: ReportActionState = {};
 
@@ -16,31 +20,25 @@ export function ReportForm({ runs }: { runs: RunOption[] }) {
 
   if (runs.length === 0) {
     return (
-      <div className="nx-card">
+      <Card className="p-8">
         <h2 className="mb-1 text-lg font-semibold text-ink">{t("title")}</h2>
         <p className="text-sm text-muted">{t("noRuns")}</p>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="nx-card">
+    <Card className="p-8">
       <h2 className="mb-1 text-lg font-semibold text-ink">{t("title")}</h2>
       <p className="mb-4 text-sm text-muted">{t("subtitle")}</p>
 
-      {state.error && <div className="nx-error mb-4">{state.error}</div>}
-      {state.ok && (
-        <div className="mb-4 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-          {t("created")}
-        </div>
-      )}
+      {state.error && <Alert variant="destructive" className="mb-4">{state.error}</Alert>}
+      {state.ok && <Alert variant="success" className="mb-4">{t("created")}</Alert>}
 
       <form action={action} className="space-y-4">
-        <div>
-          <label className="nx-label" htmlFor="payrollRunId">
-            {t("period")}
-          </label>
-          <select id="payrollRunId" name="payrollRunId" className="nx-input" defaultValue={runs[0]!.id}>
+        <div className="space-y-1.5">
+          <Label htmlFor="payrollRunId">{t("period")}</Label>
+          <select id="payrollRunId" name="payrollRunId" className={fieldClasses} defaultValue={runs[0]!.id}>
             {runs.map((r) => (
               <option key={r.id} value={r.id}>
                 {r.periodLabel}
@@ -49,11 +47,9 @@ export function ReportForm({ runs }: { runs: RunOption[] }) {
           </select>
         </div>
 
-        <div>
-          <label className="nx-label" htmlFor="reportType">
-            {t("reportType")}
-          </label>
-          <select id="reportType" name="reportType" className="nx-input" defaultValue="payroll_summary">
+        <div className="space-y-1.5">
+          <Label htmlFor="reportType">{t("reportType")}</Label>
+          <select id="reportType" name="reportType" className={fieldClasses} defaultValue="payroll_summary">
             {REPORT_TYPES.map((rt) => (
               <option key={rt.type} value={rt.type}>
                 {tt(`${rt.type}.label`)}
@@ -74,6 +70,6 @@ export function ReportForm({ runs }: { runs: RunOption[] }) {
           <SubmitButton>{t("submit")}</SubmitButton>
         </div>
       </form>
-    </div>
+    </Card>
   );
 }

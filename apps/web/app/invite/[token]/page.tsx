@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { AcceptInvite } from "./accept";
+import { Card } from "@/components/ui/card";
 
 export default async function InvitePage({ params }: { params: { token: string } }) {
   const supabase = createClient();
@@ -19,13 +20,13 @@ export default async function InvitePage({ params }: { params: { token: string }
         <div className="text-3xl font-bold text-brand">{tc("appName")}</div>
         <p className="mt-1 text-sm text-muted">{t("header")}</p>
       </div>
-      <div className="nx-card">
+      <Card className="w-full max-w-md p-8">
         <h1 className="mb-2 text-xl font-bold text-ink">{t("title")}</h1>
         <p className="mb-5 text-sm text-muted">
           {t("signedInPrefix")} <strong>{user.email}</strong>. {t("signedInSuffix")}
         </p>
         <AcceptInvite token={params.token} />
-      </div>
+      </Card>
     </main>
   );
 }

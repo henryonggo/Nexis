@@ -35,7 +35,7 @@ const STATUS_COLOR: Record<LeaveStatus, string> = {
   pending: "#B45309",
   approved: "#16A34A",
   rejected: "#DC2626",
-  cancelled: "#64748B",
+  cancelled: "#5B6675",
 };
 
 export default function Leave() {
@@ -119,7 +119,7 @@ export default function Leave() {
   if (loading) {
     return (
       <View style={[styles.container, styles.center]}>
-        <ActivityIndicator color="#1F6FEB" />
+        <ActivityIndicator color="#2452E6" />
       </View>
     );
   }
@@ -214,47 +214,47 @@ export default function Leave() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8FAFC" },
+  container: { flex: 1, backgroundColor: "#F7F8FA" },
   center: { alignItems: "center", justifyContent: "center" },
-  h1: { fontSize: 22, fontWeight: "700", color: "#0F172A" },
-  muted: { color: "#64748B", marginTop: 4 },
+  h1: { fontSize: 22, fontWeight: "700", color: "#0B1220" },
+  muted: { color: "#5B6675", marginTop: 4 },
   balanceCard: {
     marginTop: 16,
     padding: 16,
     backgroundColor: "#fff",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#E3E8EF",
   },
   balanceRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 4 },
-  balanceName: { color: "#0F172A" },
-  balanceValue: { color: "#0F172A", fontWeight: "700" },
-  section: { marginTop: 28, fontSize: 16, fontWeight: "700", color: "#0F172A" },
+  balanceName: { color: "#0B1220" },
+  balanceValue: { color: "#0B1220", fontWeight: "700" },
+  section: { marginTop: 28, fontSize: 16, fontWeight: "700", color: "#0B1220" },
   label: { marginTop: 14, marginBottom: 6, color: "#334155", fontWeight: "600", fontSize: 13 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chip: {
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#E3E8EF",
     backgroundColor: "#fff",
     borderRadius: 999,
     paddingVertical: 6,
     paddingHorizontal: 14,
   },
-  chipActive: { backgroundColor: "#1F6FEB", borderColor: "#1F6FEB" },
+  chipActive: { backgroundColor: "#2452E6", borderColor: "#2452E6" },
   chipText: { color: "#334155" },
   chipTextActive: { color: "#fff", fontWeight: "600" },
   input: {
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#E3E8EF",
     backgroundColor: "#fff",
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    color: "#0F172A",
+    color: "#0B1220",
   },
   multiline: { height: 72, textAlignVertical: "top" },
   btn: { borderRadius: 8, paddingVertical: 14, alignItems: "center", justifyContent: "center", marginTop: 18 },
-  btnPrimary: { backgroundColor: "#1F6FEB" },
+  btnPrimary: { backgroundColor: "#2452E6" },
   btnPrimaryText: { color: "#fff", fontWeight: "600" },
   btnDisabled: { backgroundColor: "#94A3B8" },
   error: { color: "#DC2626", marginTop: 12 },
@@ -264,10 +264,10 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#E2E8F0",
+    borderBottomColor: "#E3E8EF",
   },
   flex: { flex: 1 },
-  histType: { color: "#0F172A", fontWeight: "600" },
-  note: { color: "#64748B", fontSize: 12, marginTop: 2 },
+  histType: { color: "#0B1220", fontWeight: "600" },
+  note: { color: "#5B6675", fontSize: 12, marginTop: 2 },
   status: { fontWeight: "700", fontSize: 13 },
 });

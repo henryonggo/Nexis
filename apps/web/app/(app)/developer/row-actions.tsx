@@ -12,7 +12,7 @@ import {
 const initial: DeveloperActionState = {};
 
 const ghostBtn =
-  "rounded-md border border-[color:var(--border)] px-3 py-1 text-sm font-medium text-ink hover:bg-brand-light disabled:opacity-50";
+  "rounded-md border border-border px-3 py-1 text-sm font-medium text-ink hover:bg-brand-light disabled:opacity-50";
 
 export function RevokeKeyButton({ keyId }: { keyId: string }) {
   const t = useTranslations("developer.rowActions");

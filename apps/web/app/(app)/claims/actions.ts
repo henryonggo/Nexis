@@ -96,3 +96,62 @@ export async function rejectClaim(
   revalidatePath("/claims");
   return { ok: true };
 }
+
+export async function approveClaimsBulk(ids: string[]): Promise<DecisionState> {
+  if (!ids || ids.length === 0) return { error: "Tidak ada klaim yang dipilih." };
+
+  const active = await getActiveCompany();
+  if (!active) return { error: "Tidak ada perusahaan aktif." };
+  if (!canApprove(active.role)) return { error: "Tidak punya akses menyetujui klaim." };
+
+  const supabase = createClient();
+  const errors: string[] = [];
+
+  for (const id of ids) {
+    const { error } = await supabase.rpc("approve_claim", { p_claim_id: id });
+    if (error) {
+      errors.push(`${id}: ${error.message}`);
+    } else {
+      await notifyClaimDecision(supabase, id, true);
+    }
+  }
+
+  revalidatePath("/claims");
+
+  if (errors.length > 0) {
+    return { error: `Gagal menyetujui beberapa klaim: ${errors.join(", ")}` };
+  }
+
+  return { ok: true };
+}
+
+export async function rejectClaimsBulk(ids: string[], note?: string): Promise<DecisionState> {
+  if (!ids || ids.length === 0) return { error: "Tidak ada klaim yang dipilih." };
+
+  const active = await getActiveCompany();
+  if (!active) return { error: "Tidak ada perusahaan aktif." };
+  if (!canApprove(active.role)) return { error: "Tidak punya akses menolak klaim." };
+
+  const supabase = createClient();
+  const errors: string[] = [];
+
+  for (const id of ids) {
+    const { error } = await supabase.rpc("reject_claim", {
+      p_claim_id: id,
+      p_decision_note: note || undefined,
+    });
+    if (error) {
+      errors.push(`${id}: ${error.message}`);
+    } else {
+      await notifyClaimDecision(supabase, id, false);
+    }
+  }
+
+  revalidatePath("/claims");
+
+  if (errors.length > 0) {
+    return { error: `Gagal menolak beberapa klaim: ${errors.join(", ")}` };
+  }
+
+  return { ok: true };
+}

@@ -4,7 +4,16 @@ import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 import { getCompanyClaims, getReceiptUrl, type ClaimView } from "@/lib/claims";
 import { ClaimStatusBadge } from "./status-badge";
-import { ClaimDecisionButtons } from "./decision-buttons";
+import { PendingClaimsList } from "./pending-claims-list";
+import { Card } from "@/components/ui/card";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 
 export default async function ClaimsPage() {
   const supabase = createClient();
@@ -19,13 +28,13 @@ export default async function ClaimsPage() {
   const pending = claims.filter((c) => c.status === "pending");
   const decided = claims.filter((c) => c.status !== "pending");
 
-  const receiptUrls = new Map<string, string>();
+  const receiptUrls: Record<string, string> = {};
   await Promise.all(
     pending
       .filter((c) => c.receiptPath)
       .map(async (c) => {
         const url = await getReceiptUrl(supabase, c.receiptPath!);
-        if (url) receiptUrls.set(c.id, url);
+        if (url) receiptUrls[c.id] = url;
       }),
   );
 
@@ -40,43 +49,11 @@ export default async function ClaimsPage() {
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
           {t("pending", { count: pending.length })}
         </h2>
-        {pending.length === 0 ? (
-          <p className="rounded-lg border border-[color:var(--border)] bg-white px-4 py-6 text-center text-sm text-muted">
-            {t("noPending")}
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {pending.map((c) => (
-              <div
-                key={c.id}
-                className="rounded-lg border border-[color:var(--border)] bg-white p-4"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="font-semibold text-ink">{c.employeeName}</p>
-                    <p className="text-sm text-muted">
-                      {c.claimTypeName} ·{" "}
-                      <span className="font-medium text-ink">{formatRupiah(c.amount)}</span>
-                      {c.taxable ? ` · ${t("taxable")}` : ` · ${t("nonTaxable")}`}
-                    </p>
-                    {c.description && <p className="mt-1 text-sm text-ink">“{c.description}”</p>}
-                    {receiptUrls.has(c.id) && (
-                      <a
-                        href={receiptUrls.get(c.id)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-1 inline-block text-sm text-brand hover:underline"
-                      >
-                        {t("viewReceipt")}
-                      </a>
-                    )}
-                  </div>
-                  {canApprove && <ClaimDecisionButtons claimId={c.id} />}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <PendingClaimsList
+          pending={pending}
+          canApprove={canApprove}
+          receiptUrls={receiptUrls}
+        />
       </section>
 
       <section className="space-y-3">
@@ -90,39 +67,39 @@ export default async function ClaimsPage() {
 async function HistoryTable({ rows }: { rows: ClaimView[] }) {
   const t = await getTranslations("claims");
   return (
-    <div className="overflow-hidden rounded-lg border border-[color:var(--border)] bg-white">
-      <table className="w-full text-sm">
-        <thead className="bg-brand-light/60 text-left text-muted">
-          <tr>
-            <th className="px-4 py-2 font-medium">{t("columns.employee")}</th>
-            <th className="px-4 py-2 font-medium">{t("columns.type")}</th>
-            <th className="px-4 py-2 text-right font-medium">{t("columns.amount")}</th>
-            <th className="px-4 py-2 font-medium">{t("columns.status")}</th>
-          </tr>
-        </thead>
-        <tbody>
+    <Card className="overflow-hidden p-0">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>{t("columns.employee")}</TableHead>
+            <TableHead>{t("columns.type")}</TableHead>
+            <TableHead className="text-right">{t("columns.amount")}</TableHead>
+            <TableHead>{t("columns.status")}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {rows.length === 0 ? (
-            <tr>
-              <td colSpan={4} className="px-4 py-8 text-center text-muted">
+            <TableRow>
+              <TableCell colSpan={4} className="py-8 text-center text-muted">
                 {t("noHistory")}
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ) : (
             rows.map((c) => (
-              <tr key={c.id} className="border-t border-[color:var(--border)]">
-                <td className="px-4 py-3 font-medium text-ink">{c.employeeName}</td>
-                <td className="px-4 py-3 text-ink">{c.claimTypeName}</td>
-                <td className="px-4 py-3 text-right tabular-nums text-ink">
+              <TableRow key={c.id}>
+                <TableCell className="font-medium text-ink">{c.employeeName}</TableCell>
+                <TableCell className="text-ink">{c.claimTypeName}</TableCell>
+                <TableCell className="text-right tabular-nums text-ink">
                   {formatRupiah(c.amount)}
-                </td>
-                <td className="px-4 py-3">
+                </TableCell>
+                <TableCell>
                   <ClaimStatusBadge status={c.status} />
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))
           )}
-        </tbody>
-      </table>
-    </div>
+        </TableBody>
+      </Table>
+    </Card>
   );
 }

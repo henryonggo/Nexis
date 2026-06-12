@@ -47,7 +47,7 @@ export default function Profile() {
       <Text style={styles.muted}>{session?.user.email}</Text>
 
       {loading ? (
-        <ActivityIndicator style={{ marginTop: 24 }} color="#1F6FEB" />
+        <ActivityIndicator style={{ marginTop: 24 }} color="#2452E6" />
       ) : rows.length === 0 ? (
         <Text style={styles.note}>
           Belum ada data kepegawaian untuk akun ini. Hubungi admin perusahaan Anda.
@@ -73,21 +73,21 @@ export default function Profile() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8FAFC" },
-  h1: { fontSize: 22, fontWeight: "700", color: "#0F172A" },
-  muted: { color: "#64748B", marginTop: 4 },
-  note: { color: "#64748B", marginTop: 20, lineHeight: 20 },
+  container: { flex: 1, backgroundColor: "#F7F8FA" },
+  h1: { fontSize: 22, fontWeight: "700", color: "#0B1220" },
+  muted: { color: "#5B6675", marginTop: 4 },
+  note: { color: "#5B6675", marginTop: 20, lineHeight: 20 },
   card: {
     backgroundColor: "#fff",
-    borderColor: "#E2E8F0",
+    borderColor: "#E3E8EF",
     borderWidth: 1,
     borderRadius: 12,
     padding: 16,
     marginTop: 16,
   },
-  company: { color: "#1F6FEB", fontSize: 12, fontWeight: "600" },
-  name: { fontSize: 18, fontWeight: "700", color: "#0F172A", marginTop: 2 },
-  badge: { marginTop: 8, color: "#14B8A6", fontSize: 12 },
+  company: { color: "#2452E6", fontSize: 12, fontWeight: "600" },
+  name: { fontSize: 18, fontWeight: "700", color: "#0B1220", marginTop: 2 },
+  badge: { marginTop: 8, color: "#0EA5A4", fontSize: 12 },
   signOut: { marginTop: 28, padding: 14, alignItems: "center" },
   signOutText: { color: "#DC2626", fontWeight: "600" },
 });

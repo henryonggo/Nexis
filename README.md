@@ -31,7 +31,10 @@ Nexis/
     ├── 05-indonesian-compliance.md ← PPh 21 TER, BPJS, THR, overtime reference
     ├── 06-design-system.md         ← UI conventions, components, i18n
     ├── 07-security-compliance.md   ← RLS, UU PDP, secrets, auditing
+    ├── 08-agent-boundaries.md      ← who builds what (Claude ⟷ Antigravity), handoff protocol
+    ├── ROADMAP-NOTES.md            ← living "what's shipped / what's open" handoff notes
     ├── user-guide.md               ← end-user walkthrough of every app page
+    ├── handoff/                    ← per-feature TODO(db)/TODO(infra) handoffs (e.g. phase5-next.md)
     └── stages/
         ├── stage-01-auth.md        ← sign up / sign in / forgot password (START)
         ├── stage-02-company-employees.md
@@ -52,20 +55,71 @@ Nexis/
 
 Nexis is a modern multi-tenant HR & Payroll SaaS tailored specifically for the Indonesian market. It is engineered with robust security at the database layer and handles complex compliance requirements out of the box.
 
-### Key Capabilities Implemented (Stages 1 & 2)
+### Features
 
-* **Multi-Company Tenancy (Tenant Isolation):** 
-  - A single user account can own or be a member of multiple companies with distinct roles (`owner`, `admin`, `manager`, `employee`).
-  - Row Level Security (RLS) policies are active on all tenant-scoped tables, validated by automated pgTAP tests.
-* **Onboarding & Free Tier:**
-  - Up to 5 employees are free per company. No legal/tax fields (like company NPWP) are required on the free tier to reduce signup friction.
-* **Employee Management & Compensation:**
-  - Employee roster with profile details, active seat tracking, and Excel/CSV imports.
-  - Compensation mapping with monthly base salaries, PTKP statuses (e.g. TK/0, K/1), and employee NPWP tax identifiers.
-* **Member Invitation System:**
-  - Secure email invitation flow (backed by Resend) allowing admins/owners to invite users directly into their workspace with predefined roles.
-* **Mobile Self-Service App:**
-  - React Native / Expo application scaffolded with login gates and a self-service Profile page restricted to the employee's own record.
+Stages 1–6 are complete (web + mobile) and Stage 7 (advanced) is largely shipped. The
+list below reflects what's implemented today.
+
+**Authentication & accounts (Stage 1)**
+- Email/password sign up with branded email verification (Resend), sign in, forgot/reset
+  password, change password, resend verification, sign out.
+- Session persistence (web cookies, mobile secure store), 2-hour idle auto-sign-out, and a
+  show/hide password toggle on every auth form.
+- Self-serve account deactivation (reversible) and a multi-company switcher with "add company".
+
+**Multi-company tenancy & security**
+- One account can own or belong to many companies, each with a distinct role
+  (`owner` / `admin` / `manager` / `employee`).
+- Security is enforced at the database: Row Level Security on every tenant-scoped table,
+  validated by automated pgTAP tests. The app never trusts a client-supplied `company_id`.
+
+**Companies, members & employees (Stage 2)**
+- Company profile & settings; invite members by email with a per-company role; accept-invite flow.
+- Employee CRUD (profile, employment type/status, compensation, PTKP status e.g. TK/0·K/1,
+  employee NPWP); CSV import; active-seat tracking.
+- **Free tier:** first 5 employees free per company, no company NPWP required; the 6th active
+  employee is blocked with a clear upgrade CTA.
+- Mobile self-service profile restricted to the employee's own record.
+
+**Attendance & scheduling (Stage 3)**
+- Mobile clock in/out with GPS geofence + selfie capture; work schedules.
+- Admin/manager correction of records (audited); a **live Realtime** attendance board on the
+  web with a present-today count.
+
+**Payroll engine (Stage 4, compliance-critical)**
+- Pure, exhaustively-tested TypeScript engine implementing Indonesian rules: **PPh 21 (TER,
+  PMK 168/2023)**, **BPJS** (Kesehatan + Ketenagakerjaan, employee & employer sides),
+  **overtime (1/173)**, the **+20% no-NPWP** surcharge, and net pay.
+- Draft → run → review → approve → mark-paid lifecycle via a Cloud Run worker with Realtime
+  status; per-employee breakdown; **payslip PDFs**; **THR** run type; config snapshotting so
+  re-running after a rate change never alters historical runs. Money is integer rupiah end to end.
+
+**Leave & reimbursement claims (Stage 5)**
+- Leave types, balances, request → manager approval → balance update.
+- Reimbursement claims with receipt upload and approval; approved items flow into the next
+  payroll. Push (mobile) + email (web) notifications.
+
+**Reporting, exports & billing (Stage 6)**
+- Reports as Excel via the Cloud Run worker: payroll summary, BPJS contributions,
+  **PPh 21 / e-Bupot**, **BPJS SIPP**. Quick CSV exports on list views.
+- Billing & subscriptions: plan-comparison upgrade flow, seat-based pricing, invoice history,
+  NPWP/BPJS capture on upgrade. (Real payment gateway is specced for handoff.)
+
+**Advanced (Stage 7)**
+- Analytics dashboard (headcount, payroll-cost trend, approvals, leave usage).
+- Audit & compliance center (filterable log of sensitive actions).
+- Loans & advances (kasbon) with automatic payroll deduction.
+- Performance & KPI (review cycles, weighted goals with progress, employee reviews).
+- Public **API & webhooks**: scoped API keys (bearer auth) and HMAC-signed webhooks with a
+  delivery log.
+
+**Platform & UX (recent enhancements)**
+- **Bilingual UI** — Bahasa Indonesia (default) + English via `next-intl`, with an in-app
+  locale switcher; all user-facing strings in `apps/web/messages/{id,en}.json`.
+- Loading skeletons on every route, a global 404, and per-section error boundaries.
+- **WhatsApp notification opt-in** (phone capture + opt-in in Settings).
+- Playwright e2e: unauthenticated route guards (run unattended) plus signed-in happy-path
+  money flows (payroll approve, leave approval).
 
 ---
 
@@ -73,11 +127,14 @@ Nexis is a modern multi-tenant HR & Payroll SaaS tailored specifically for the I
 
 Nexis is built as a Turborepo monorepo with the following services:
 
-* **apps/web:** Next.js (App Router, TypeScript, React Server Components) styled with TailwindCSS & shadcn/ui.
-* **apps/mobile:** Expo (React Native, TypeScript) for employee self-service.
-* **packages/types:** Shareable TypeScript database definitions auto-generated from the Supabase Postgres schema.
-* **packages/money:** Safe integer-only IDR currency utility package. All money calculations are stored as `bigint` (no floating-point decimals) to prevent rounding errors.
-* **supabase:** Postgres database with triggers, SECURITY DEFINER functions, and RLS policies.
+* **apps/web:** Next.js (App Router, TypeScript, React Server Components) styled with TailwindCSS & shadcn/ui; internationalized with `next-intl` (id-ID / en).
+* **apps/mobile:** Expo (React Native, TypeScript) for employee self-service (attendance, payslips, requests, profile).
+* **packages/types:** Shareable TypeScript database definitions auto-generated from the Supabase Postgres schema (read-only for the app layer).
+* **packages/money:** Safe integer-only IDR currency utility. All money is stored as `bigint` (no floating-point decimals) to prevent rounding errors.
+* **packages/payroll:** Pure, unit-tested Indonesian payroll engine (PPh 21 TER, BPJS, overtime, THR).
+* **packages/leave:** Pure leave-balance / accrual logic, unit-tested.
+* **services/payroll-worker:** Cloud Run worker for payroll runs and heavy report/export generation.
+* **supabase:** Postgres database with triggers, SECURITY DEFINER functions, RLS policies, and Edge Functions (notifications, public API, webhook dispatch).
 
 ---
 

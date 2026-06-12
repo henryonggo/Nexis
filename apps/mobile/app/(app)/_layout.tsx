@@ -2,7 +2,7 @@ import { Tabs } from "expo-router";
 
 export default function AppTabs() {
   return (
-    <Tabs screenOptions={{ tabBarActiveTintColor: "#1F6FEB", headerTitleStyle: { color: "#0F172A" } }}>
+    <Tabs screenOptions={{ tabBarActiveTintColor: "#2452E6", headerTitleStyle: { color: "#0B1220" } }}>
       <Tabs.Screen name="index" options={{ title: "Beranda" }} />
       <Tabs.Screen name="attendance" options={{ title: "Absensi" }} />
       <Tabs.Screen name="leave" options={{ title: "Cuti" }} />

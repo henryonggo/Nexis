@@ -4,6 +4,10 @@ import { useFormState } from "react-dom";
 import { useTranslations } from "next-intl";
 import { createCycleAction, type PerfActionState } from "./actions";
 import { SubmitButton } from "@/components/submit-button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert } from "@/components/ui/alert";
 
 const initial: PerfActionState = {};
 
@@ -13,40 +17,30 @@ export function CycleForm() {
   const [state, action] = useFormState(createCycleAction, initial);
 
   return (
-    <div className="nx-card">
+    <Card className="p-8">
       <h2 className="mb-1 text-lg font-semibold text-ink">{t("title")}</h2>
       <p className="mb-4 text-sm text-muted">{t("subtitle")}</p>
 
-      {state.error && <div className="nx-error mb-4">{state.error}</div>}
-      {state.ok && (
-        <div className="mb-4 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-          {t("created")}
-        </div>
-      )}
+      {state.error && <Alert variant="destructive" className="mb-4">{state.error}</Alert>}
+      {state.ok && <Alert variant="success" className="mb-4">{t("created")}</Alert>}
 
       <form action={action} className="space-y-4">
-        <div>
-          <label className="nx-label" htmlFor="name">
-            {t("name")}
-          </label>
-          <input id="name" name="name" className="nx-input" placeholder={t("namePlaceholder")} />
+        <div className="space-y-1.5">
+          <Label htmlFor="name">{t("name")}</Label>
+          <Input id="name" name="name" placeholder={t("namePlaceholder")} />
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="nx-label" htmlFor="startDate">
-              {t("start")}
-            </label>
-            <input id="startDate" name="startDate" type="date" className="nx-input" />
+          <div className="space-y-1.5">
+            <Label htmlFor="startDate">{t("start")}</Label>
+            <Input id="startDate" name="startDate" type="date" />
           </div>
-          <div>
-            <label className="nx-label" htmlFor="endDate">
-              {t("end")}
-            </label>
-            <input id="endDate" name="endDate" type="date" className="nx-input" />
+          <div className="space-y-1.5">
+            <Label htmlFor="endDate">{t("end")}</Label>
+            <Input id="endDate" name="endDate" type="date" />
           </div>
         </div>
         <SubmitButton>{t("submit")}</SubmitButton>
       </form>
-    </div>
+    </Card>
   );
 }

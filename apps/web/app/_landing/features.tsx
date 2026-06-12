@@ -55,7 +55,7 @@ export function Features() {
             <motion.div
               whileHover={{ y: -6 }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              className="group h-full rounded-2xl border border-[color:var(--border)] bg-white p-6 shadow-sm transition-shadow hover:shadow-xl hover:shadow-ink/5"
+              className="group h-full rounded-2xl border border-border bg-white p-6 shadow-sm transition-shadow hover:shadow-xl hover:shadow-ink/5"
             >
               <div className="grid h-12 w-12 place-items-center rounded-xl bg-brand-light text-2xl transition-transform group-hover:scale-110">
                 {f.icon}

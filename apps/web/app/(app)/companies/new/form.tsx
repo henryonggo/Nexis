@@ -4,6 +4,10 @@ import { useFormState } from "react-dom";
 import { useTranslations } from "next-intl";
 import { createCompany, type CreateCompanyState } from "./actions";
 import { SubmitButton } from "@/components/submit-button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert } from "@/components/ui/alert";
 
 const initial: CreateCompanyState = {};
 
@@ -14,25 +18,25 @@ export function CreateCompanyForm() {
   const [state, action] = useFormState(createCompany, initial);
 
   return (
-    <div className="nx-card max-w-md">
+    <Card className="max-w-md p-8">
       <h1 className="mb-1 text-xl font-bold text-ink">{t("newTitle")}</h1>
       <p className="mb-5 text-sm text-muted">{t("newSubtitle")}</p>
 
-      {state.error && <div className="nx-error mb-4">{state.error}</div>}
+      {state.error && <Alert variant="destructive" className="mb-4">{state.error}</Alert>}
 
       <form action={action} className="space-y-4">
-        <div>
-          <label className="nx-label" htmlFor="name">{tco("nameLabel")}</label>
-          <input id="name" name="name" className="nx-input" required />
+        <div className="space-y-1.5">
+          <Label htmlFor="name">{tco("nameLabel")}</Label>
+          <Input id="name" name="name" required />
         </div>
-        <div>
-          <label className="nx-label" htmlFor="industry">
+        <div className="space-y-1.5">
+          <Label htmlFor="industry">
             {tco("industryLabel")} <span className="text-muted">{tc("optional")}</span>
-          </label>
-          <input id="industry" name="industry" className="nx-input" placeholder={tco("industryPlaceholder")} />
+          </Label>
+          <Input id="industry" name="industry" placeholder={tco("industryPlaceholder")} />
         </div>
         <SubmitButton>{tco("submit")}</SubmitButton>
       </form>
-    </div>
+    </Card>
   );
 }

@@ -32,7 +32,7 @@ export function CtaFooter({ isAuthed }: { isAuthed: boolean }) {
         </Reveal>
       </section>
 
-      <footer className="border-t border-[color:var(--border)] bg-white">
+       <footer className="border-t border-border bg-white">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 sm:flex-row sm:px-6">
           <div className="flex items-center gap-2 text-lg font-bold text-ink">
             <span className="grid h-7 w-7 place-items-center rounded-md bg-brand text-xs font-black text-white">

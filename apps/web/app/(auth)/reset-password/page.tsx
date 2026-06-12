@@ -5,6 +5,9 @@ import { useTranslations } from "next-intl";
 import { resetPassword, type ActionState } from "../actions";
 import { SubmitButton } from "@/components/submit-button";
 import { PasswordInput } from "@/components/password-input";
+import { Card } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Alert } from "@/components/ui/alert";
 
 const initial: ActionState = {};
 
@@ -14,20 +17,20 @@ export default function ResetPasswordPage() {
   const [state, action] = useFormState(resetPassword, initial);
 
   return (
-    <div className="nx-card">
+    <Card className="w-full max-w-md p-8">
       <h1 className="mb-1 text-xl font-bold text-ink">{t("title")}</h1>
       <p className="mb-5 text-sm text-muted">{t("subtitle")}</p>
 
-      {state.error && <div className="nx-error mb-4">{state.error}</div>}
+      {state.error && <Alert variant="destructive" className="mb-4">{state.error}</Alert>}
 
       <form action={action} className="space-y-4">
-        <div>
-          <label className="nx-label" htmlFor="password">{t("newPassword")}</label>
+        <div className="space-y-1.5">
+          <Label htmlFor="password">{t("newPassword")}</Label>
           <PasswordInput id="password" name="password" autoComplete="new-password" required />
-          <p className="mt-1 text-xs text-muted">{tc("passwordHint")}</p>
+          <p className="text-xs text-muted">{tc("passwordHint")}</p>
         </div>
         <SubmitButton>{t("submit")}</SubmitButton>
       </form>
-    </div>
+    </Card>
   );
 }

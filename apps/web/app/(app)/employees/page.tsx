@@ -4,6 +4,25 @@ import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 import { ExportCsvButton } from "@/components/export-csv-button";
 import type { EmployeeRow, CompanyBillingRow } from "@nexis/types";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
+
+const STATUS_VARIANT: Record<string, "success" | "warning" | "secondary" | "destructive"> = {
+  active: "success",
+  probation: "warning",
+  inactive: "secondary",
+  terminated: "destructive",
+};
 
 export default async function EmployeesPage() {
   const supabase = createClient();
@@ -52,72 +71,68 @@ export default async function EmployeesPage() {
                 e.status ?? "",
               ])}
             />
-            <Link
-              href="/employees/import"
-              className="rounded-md border border-[color:var(--border)] px-4 py-2 text-sm font-semibold text-ink hover:bg-brand-light"
-            >
-              {t("import")}
-            </Link>
-            <Link
-              href="/employees/new"
-              className={`rounded-md px-4 py-2 text-sm font-semibold text-white ${
-                atLimit ? "pointer-events-none bg-muted opacity-60" : "bg-brand hover:bg-brand-dark"
-              }`}
-            >
-              {t("add")}
-            </Link>
+            <Button asChild variant="outline">
+              <Link href="/employees/import">{t("import")}</Link>
+            </Button>
+            <Button asChild className={atLimit ? "pointer-events-none opacity-60" : ""}>
+              <Link href="/employees/new" aria-disabled={atLimit}>
+                {t("add")}
+              </Link>
+            </Button>
           </div>
         )}
       </div>
 
       {atLimit && (
-        <div className="rounded-lg border border-warning/40 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <Alert variant="warning">
           {t("limitReached", { limit })}{" "}
           <Link href="/billing" className="font-semibold underline">
             {t("upgradeCta")}
           </Link>{" "}
           {t("toAdd")}
-        </div>
+        </Alert>
       )}
 
-      <div className="overflow-hidden rounded-lg border border-[color:var(--border)] bg-white">
-        <table className="w-full text-sm">
-          <thead className="bg-brand-light/60 text-left text-muted">
-            <tr>
-              <th className="px-4 py-2 font-medium">{t("columns.name")}</th>
-              <th className="px-4 py-2 font-medium">{t("columns.no")}</th>
-              <th className="px-4 py-2 font-medium">{t("columns.position")}</th>
-              <th className="px-4 py-2 font-medium">{t("columns.department")}</th>
-              <th className="px-4 py-2 font-medium">{t("columns.type")}</th>
-              <th className="px-4 py-2 font-medium">{t("columns.status")}</th>
-            </tr>
-          </thead>
-          <tbody>
+      <Card className="overflow-hidden p-0">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t("columns.name")}</TableHead>
+              <TableHead>{t("columns.no")}</TableHead>
+              <TableHead>{t("columns.position")}</TableHead>
+              <TableHead>{t("columns.department")}</TableHead>
+              <TableHead>{t("columns.type")}</TableHead>
+              <TableHead>{t("columns.status")}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {rows.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-muted">
+              <TableRow>
+                <TableCell colSpan={6} className="py-10 text-center text-muted">
                   {t("empty")} {isAdmin && t("emptyAdmin")}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               rows.map((e) => (
-                <tr key={e.id} className="border-t border-[color:var(--border)]">
-                  <td className="px-4 py-2 text-ink">
-                    <Link href={`/employees/${e.id}`} className="nx-link">
+                <TableRow key={e.id}>
+                  <TableCell className="text-ink">
+                    <Link href={`/employees/${e.id}`} className="font-medium text-brand hover:underline">
                       {e.full_name}
                     </Link>
-                  </td>
-                  <td className="px-4 py-2 text-muted">{e.employee_no ?? "—"}</td>
-                  <td className="px-4 py-2 text-muted">{e.position ?? "—"}</td>
-                  <td className="px-4 py-2 text-muted">{e.department ?? "—"}</td>
-                  <td className="px-4 py-2 text-muted">{e.employment_type}</td>
-                  <td className="px-4 py-2 text-muted">{e.status}</td>
-                </tr>
+                  </TableCell>
+                  <TableCell className="text-muted">{e.employee_no ?? "—"}</TableCell>
+                  <TableCell className="text-muted">{e.position ?? "—"}</TableCell>
+                  <TableCell className="text-muted">{e.department ?? "—"}</TableCell>
+                  <TableCell className="text-muted">{e.employment_type}</TableCell>
+                  <TableCell>
+                    <Badge variant={STATUS_VARIANT[e.status ?? ""] ?? "secondary"}>{e.status}</Badge>
+                  </TableCell>
+                </TableRow>
               ))
             )}
-          </tbody>
-        </table>
-      </div>
+          </TableBody>
+        </Table>
+      </Card>
     </div>
   );
 }

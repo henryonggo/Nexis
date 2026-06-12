@@ -6,6 +6,10 @@ import { upgradePlan, type BillingActionState } from "./actions";
 import type { PlanTier } from "@/lib/billing-plans";
 import { PlanCards } from "./plan-cards";
 import { SubmitButton } from "@/components/submit-button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert } from "@/components/ui/alert";
 
 const initial: BillingActionState = {};
 
@@ -20,28 +24,21 @@ export function UpgradeForm({
   const [state, action] = useFormState(upgradePlan, initial);
 
   return (
-    <div className="nx-card max-w-3xl">
+    <Card className="max-w-3xl p-8">
       <h2 className="mb-1 text-lg font-semibold text-ink">{t("title")}</h2>
       <p className="mb-4 text-sm text-muted">{t("subtitle")}</p>
 
-      {state.error && <div className="nx-error mb-4">{state.error}</div>}
-      {state.ok && (
-        <div className="mb-4 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-          {t("success")}
-        </div>
-      )}
+      {state.error && <Alert variant="destructive" className="mb-4">{state.error}</Alert>}
+      {state.ok && <Alert variant="success" className="mb-4">{t("success")}</Alert>}
 
       <form action={action} className="space-y-4">
         <PlanCards currentPlan={currentPlan} />
 
-        <div>
-          <label className="nx-label" htmlFor="npwp">
-            {t("npwpLabel")}
-          </label>
-          <input
+        <div className="space-y-1.5">
+          <Label htmlFor="npwp">{t("npwpLabel")}</Label>
+          <Input
             id="npwp"
             name="npwp"
-            className="nx-input"
             placeholder="99.999.999.9-999.999"
             inputMode="numeric"
             required
@@ -49,29 +46,22 @@ export function UpgradeForm({
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="nx-label" htmlFor="bpjsKes">
-              {t("bpjsKesLabel")}
-            </label>
-            <input id="bpjsKes" name="bpjsKes" className="nx-input" inputMode="numeric" required />
+          <div className="space-y-1.5">
+            <Label htmlFor="bpjsKes">{t("bpjsKesLabel")}</Label>
+            <Input id="bpjsKes" name="bpjsKes" inputMode="numeric" required />
           </div>
-          <div>
-            <label className="nx-label" htmlFor="bpjsTk">
-              {t("bpjsTkLabel")}
-            </label>
-            <input id="bpjsTk" name="bpjsTk" className="nx-input" inputMode="numeric" required />
+          <div className="space-y-1.5">
+            <Label htmlFor="bpjsTk">{t("bpjsTkLabel")}</Label>
+            <Input id="bpjsTk" name="bpjsTk" inputMode="numeric" required />
           </div>
         </div>
 
-        <div>
-          <label className="nx-label" htmlFor="billingEmail">
-            {t("billingEmailLabel")}
-          </label>
-          <input
+        <div className="space-y-1.5">
+          <Label htmlFor="billingEmail">{t("billingEmailLabel")}</Label>
+          <Input
             id="billingEmail"
             name="billingEmail"
             type="email"
-            className="nx-input"
             defaultValue={defaultEmail}
             required
           />
@@ -83,6 +73,6 @@ export function UpgradeForm({
           <SubmitButton>{t("confirm")}</SubmitButton>
         </div>
       </form>
-    </div>
+    </Card>
   );
 }

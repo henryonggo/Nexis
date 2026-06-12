@@ -4,8 +4,19 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { Check, ChevronsUpDown, Plus } from "lucide-react";
 import type { ActiveCompany } from "@nexis/types";
 import { setActiveCompany } from "@/app/(app)/actions";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 /** Company switcher backed by a server-set cookie (active company is read on the server). */
 export function CompanySwitcher({
@@ -17,7 +28,6 @@ export function CompanySwitcher({
 }) {
   const tRoles = useTranslations("roles");
   const tc = useTranslations("common");
-  const [open, setOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
@@ -26,7 +36,6 @@ export function CompanySwitcher({
   if (!active) return null;
 
   function select(id: string) {
-    setOpen(false);
     if (id === active!.id) return;
     setIsPending(true);
     setActiveCompany(id).then(() => {
@@ -38,42 +47,32 @@ export function CompanySwitcher({
   }
 
   return (
-    <div className="relative">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        disabled={isPending || pending}
-        className="flex items-center gap-2 rounded-md border border-[color:var(--border)] px-3 py-1.5 text-sm hover:bg-brand-light disabled:opacity-60"
-      >
-        <span className="font-medium text-ink">{active.name}</span>
-        <span className="rounded bg-brand-light px-1.5 py-0.5 text-xs text-brand-dark">
-          {tRoles(active.role)}
-        </span>
-        <span className="text-muted">▾</span>
-      </button>
-
-      {open && (
-        <div className="absolute z-10 mt-1 w-64 rounded-md border border-[color:var(--border)] bg-white py-1 shadow-lg">
-          {companies.map((c) => (
-            <button
-              key={c.id}
-              onClick={() => select(c.id)}
-              className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-brand-light ${
-                c.id === active.id ? "bg-brand-light" : ""
-              }`}
-            >
-              <span className="text-ink">{c.name}</span>
-              <span className="text-xs text-muted">{tRoles(c.role)}</span>
-            </button>
-          ))}
-          <Link
-            href="/companies/new"
-            onClick={() => setOpen(false)}
-            className="mt-1 flex w-full items-center gap-1 border-t border-[color:var(--border)] px-3 py-2 text-left text-sm font-medium text-brand hover:bg-brand-light"
-          >
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm" disabled={isPending || pending} className="gap-2">
+          <span className="max-w-[10rem] truncate font-medium text-ink">{active.name}</span>
+          <Badge variant="default">{tRoles(active.role)}</Badge>
+          <ChevronsUpDown className="h-4 w-4 text-muted" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-64">
+        {companies.map((c) => (
+          <DropdownMenuItem key={c.id} onSelect={() => select(c.id)} className="justify-between">
+            <span className="flex items-center gap-2 truncate">
+              <Check className={cn("h-4 w-4", c.id === active.id ? "opacity-100" : "opacity-0")} />
+              <span className="truncate text-ink">{c.name}</span>
+            </span>
+            <span className="text-xs text-muted">{tRoles(c.role)}</span>
+          </DropdownMenuItem>
+        ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href="/companies/new" className="font-medium text-brand">
+            <Plus className="h-4 w-4" />
             {tc("addCompany")}
           </Link>
-        </div>
-      )}
-    </div>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

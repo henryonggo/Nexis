@@ -21,6 +21,11 @@
     "employee": "Employee"
   },
   "nav": {
+    "overview": "Overview",
+    "people": "People & Teams",
+    "operations": "Operations",
+    "finance": "Finance",
+    "platform": "System",
     "dashboard": "Dashboard",
     "employees": "Employees",
     "attendance": "Attendance",
@@ -125,7 +130,12 @@
     "approve": "Approve",
     "reject": "Reject",
     "cancel": "Cancel",
-    "rejectReason": "Rejection reason (optional)"
+    "rejectReason": "Rejection reason (optional)",
+    "selectedItems": "{count} items selected",
+    "approveSelected": "Approve Selected",
+    "rejectSelected": "Reject Selected",
+    "bulkSuccess": "Successfully processed bulk action",
+    "bulkError": "Failed to process some bulk actions"
   },
   "attendance": {
     "title": "Attendance",
@@ -262,7 +272,7 @@
     "actions": { "approve": "Approve & process", "markPaid": "Mark as paid", "cancel": "Cancel run" },
     "breakdown": "Breakdown",
     "noNpwp": "(+20% without NPWP)",
-    "detail": { "back": "← Payroll", "heading": "Payroll {period}", "noEmployees": "No employees to calculate.", "terCategory": "Category {category} · {rate}" },
+    "detail": { "back": "← Payroll", "heading": "Payroll {period}", "noEmployees": "No employees to calculate.", "terCategory": "Category {category} · {rate}", "newBadge": "New", "updateProfile": "Update Profile" },
     "monitoring": "monitoring…",
     "connecting": "connecting…",
     "summary": { "gross": "Gross", "bpjsEmployee": "BPJS (employee)", "pph21": "PPh 21", "net": "Net (take-home)" },
@@ -400,6 +410,20 @@
       "whatsappHint": "Approvals & important reminders are also sent to your WhatsApp.",
       "save": "Save",
       "saved": "Notification preferences saved."
+    },
+    "appearance": {
+      "heading": "Appearance & Layout",
+      "description": "Customize the visual theme and layout density of the platform.",
+      "theme": "Visual Theme",
+      "themeLabel": "Select a visual style:",
+      "themeSoftUi": "Soft-UI Evolution (Default)",
+      "themeMono": "Swiss Minimalist (Monochrome)",
+      "density": "Data Density",
+      "densityLabel": "Layout density:",
+      "densityStandard": "Standard",
+      "densityCompact": "Compact (Swiss Style)",
+      "save": "Save Appearance",
+      "saved": "Appearance preferences saved."
     },
     "dangerZone": "Danger zone",
     "deactivate": {

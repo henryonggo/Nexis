@@ -10,6 +10,11 @@ import {
 import { SubmitButton } from "@/components/submit-button";
 import { ReviewStatusBadge } from "./status-badge";
 import type { ReviewStatus } from "@/lib/performance-constants";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 const initial: PerfActionState = {};
 
@@ -33,13 +38,13 @@ export function ReviewForm(props: ReviewFormProps) {
   const locked = props.status === "submitted" || props.status === "acknowledged";
 
   return (
-    <div className="rounded-lg border border-[color:var(--border)] bg-white p-4">
+    <Card className="p-4">
       <div className="mb-3 flex items-center justify-between">
         <p className="font-semibold text-ink">{props.employeeName}</p>
         {props.status && <ReviewStatusBadge status={props.status} />}
       </div>
 
-      {error && <div className="nx-error mb-3">{error}</div>}
+      {error && <Alert variant="destructive" className="mb-3">{error}</Alert>}
 
       {locked ? (
         <p className="text-sm text-muted">
@@ -52,10 +57,8 @@ export function ReviewForm(props: ReviewFormProps) {
             <input type="hidden" name="cycleId" value={props.cycleId} />
             <input type="hidden" name="employeeId" value={props.employeeId} />
             <div className="grid grid-cols-[120px_1fr] items-center gap-3">
-              <label className="nx-label mb-0" htmlFor={`rating-${props.employeeId}`}>
-                {t("rating")}
-              </label>
-              <input
+              <Label htmlFor={`rating-${props.employeeId}`}>{t("rating")}</Label>
+              <Input
                 id={`rating-${props.employeeId}`}
                 name="overallRating"
                 type="number"
@@ -63,17 +66,14 @@ export function ReviewForm(props: ReviewFormProps) {
                 max={5}
                 step={0.5}
                 defaultValue={props.overallRating ?? 3}
-                className="nx-input w-28"
+                className="w-28"
               />
             </div>
-            <div>
-              <label className="nx-label" htmlFor={`summary-${props.employeeId}`}>
-                {t("summary")}
-              </label>
-              <input
+            <div className="space-y-1.5">
+              <Label htmlFor={`summary-${props.employeeId}`}>{t("summary")}</Label>
+              <Input
                 id={`summary-${props.employeeId}`}
                 name="summary"
-                className="nx-input"
                 defaultValue={props.summary ?? ""}
                 placeholder={t("summaryPlaceholder")}
               />
@@ -84,16 +84,13 @@ export function ReviewForm(props: ReviewFormProps) {
           {props.reviewId && (
             <form action={submit} className="mt-2">
               <input type="hidden" name="reviewId" value={props.reviewId} />
-              <button
-                type="submit"
-                className="rounded-md border border-[color:var(--border)] px-3 py-1.5 text-sm font-semibold text-ink hover:bg-brand-light"
-              >
+              <Button type="submit" variant="outline">
                 {t("submit")}
-              </button>
+              </Button>
             </form>
           )}
         </>
       )}
-    </div>
+    </Card>
   );
 }

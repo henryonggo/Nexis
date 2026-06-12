@@ -21,6 +21,11 @@
     "employee": "Karyawan"
   },
   "nav": {
+    "overview": "Ikhtisar",
+    "people": "Karyawan & Tim",
+    "operations": "Operasional",
+    "finance": "Keuangan",
+    "platform": "Sistem",
     "dashboard": "Dashboard",
     "employees": "Karyawan",
     "attendance": "Kehadiran",
@@ -125,7 +130,12 @@
     "approve": "Setujui",
     "reject": "Tolak",
     "cancel": "Batal",
-    "rejectReason": "Alasan penolakan (opsional)"
+    "rejectReason": "Alasan penolakan (opsional)",
+    "selectedItems": "{count} data dipilih",
+    "approveSelected": "Setujui yang dipilih",
+    "rejectSelected": "Tolak yang dipilih",
+    "bulkSuccess": "Berhasil memproses tindakan massal",
+    "bulkError": "Gagal memproses beberapa tindakan massal"
   },
   "attendance": {
     "title": "Kehadiran",
@@ -262,7 +272,7 @@
     "actions": { "approve": "Setujui & proses", "markPaid": "Tandai sudah dibayar", "cancel": "Batalkan run" },
     "breakdown": "Rincian",
     "noNpwp": "(+20% tanpa NPWP)",
-    "detail": { "back": "← Penggajian", "heading": "Payroll {period}", "noEmployees": "Tidak ada karyawan untuk dihitung.", "terCategory": "Kategori {category} · {rate}" },
+    "detail": { "back": "← Penggajian", "heading": "Payroll {period}", "noEmployees": "Tidak ada karyawan untuk dihitung.", "terCategory": "Kategori {category} · {rate}", "newBadge": "Baru", "updateProfile": "Perbarui Profil" },
     "monitoring": "memantau…",
     "connecting": "menyambung…",
     "summary": { "gross": "Bruto", "bpjsEmployee": "BPJS (karyawan)", "pph21": "PPh 21", "net": "Neto (take-home)" },
@@ -400,6 +410,20 @@
       "whatsappHint": "Persetujuan & pengingat penting juga dikirim ke WhatsApp Anda.",
       "save": "Simpan",
       "saved": "Preferensi notifikasi disimpan."
+    },
+    "appearance": {
+      "heading": "Tampilan & Tata Letak",
+      "description": "Sesuaikan tema visual dan kerapatan data platform.",
+      "theme": "Tema Tampilan",
+      "themeLabel": "Pilih gaya visual:",
+      "themeSoftUi": "Soft-UI Evolution (Bawaan)",
+      "themeMono": "Swiss Minimalist (Monokrom)",
+      "density": "Kerapatan Data",
+      "densityLabel": "Kerapatan tata letak:",
+      "densityStandard": "Standar",
+      "densityCompact": "Padat (Swiss Style)",
+      "save": "Simpan Tampilan",
+      "saved": "Pengaturan tampilan berhasil disimpan."
     },
     "dangerZone": "Zona berbahaya",
     "deactivate": {

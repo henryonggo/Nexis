@@ -52,7 +52,7 @@ export default function Payslips() {
   if (loading) {
     return (
       <View style={[styles.container, styles.center]}>
-        <ActivityIndicator color="#1F6FEB" />
+        <ActivityIndicator color="#2452E6" />
       </View>
     );
   }
@@ -90,10 +90,10 @@ export default function Payslips() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8FAFC" },
+  container: { flex: 1, backgroundColor: "#F7F8FA" },
   center: { alignItems: "center", justifyContent: "center" },
-  h1: { fontSize: 22, fontWeight: "700", color: "#0F172A" },
-  muted: { color: "#64748B", marginTop: 4 },
+  h1: { fontSize: 22, fontWeight: "700", color: "#0B1220" },
+  muted: { color: "#5B6675", marginTop: 4 },
   error: { color: "#DC2626", marginTop: 12 },
   card: {
     marginTop: 16,
@@ -101,15 +101,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#E3E8EF",
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
   },
   flex: { flex: 1 },
-  period: { fontSize: 16, fontWeight: "600", color: "#0F172A" },
+  period: { fontSize: 16, fontWeight: "600", color: "#0B1220" },
   btn: { borderRadius: 8, paddingVertical: 10, paddingHorizontal: 16, alignItems: "center", justifyContent: "center" },
-  btnPrimary: { backgroundColor: "#1F6FEB" },
+  btnPrimary: { backgroundColor: "#2452E6" },
   btnPrimaryText: { color: "#fff", fontWeight: "600" },
   btnDisabled: { backgroundColor: "#94A3B8" },
 });

@@ -4,6 +4,16 @@ import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 import { ExportCsvButton } from "@/components/export-csv-button";
 import { getAuditLog, actionTone, AUDIT_ENTITIES } from "@/lib/audit";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 
 const KNOWN_ACTIONS = new Set([
   "approve_leave",
@@ -13,10 +23,10 @@ const KNOWN_ACTIONS = new Set([
   "correct_attendance",
 ]);
 
-const TONE_STYLES: Record<"approve" | "reject" | "neutral", string> = {
-  approve: "bg-emerald-100 text-emerald-700",
-  reject: "bg-red-100 text-red-700",
-  neutral: "bg-gray-100 text-gray-700",
+const TONE_VARIANT: Record<"approve" | "reject" | "neutral", "success" | "destructive" | "secondary"> = {
+  approve: "success",
+  reject: "destructive",
+  neutral: "secondary",
 };
 
 const DATE_FMT = new Intl.DateTimeFormat("id-ID", {
@@ -56,10 +66,10 @@ export default async function AuditPage({
   const isAdmin = active.role === "owner" || active.role === "admin";
   if (!isAdmin) {
     return (
-      <div className="nx-card max-w-lg">
+      <Card className="max-w-lg p-8">
         <h1 className="mb-1 text-xl font-bold text-ink">{t("title")}</h1>
         <p className="text-sm text-muted">{t("noAccess")}</p>
-      </div>
+      </Card>
     );
   }
 
@@ -103,49 +113,47 @@ export default async function AuditPage({
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-[color:var(--border)] bg-white">
-        <table className="w-full text-sm">
-          <thead className="bg-brand-light/60 text-left text-muted">
-            <tr>
-              <th className="px-4 py-2 font-medium">{t("columns.time")}</th>
-              <th className="px-4 py-2 font-medium">{t("columns.action")}</th>
-              <th className="px-4 py-2 font-medium">{t("columns.object")}</th>
-              <th className="px-4 py-2 font-medium">{t("columns.by")}</th>
-              <th className="px-4 py-2 font-medium">{t("columns.detail")}</th>
-            </tr>
-          </thead>
-          <tbody>
+      <Card className="overflow-hidden p-0">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t("columns.time")}</TableHead>
+              <TableHead>{t("columns.action")}</TableHead>
+              <TableHead>{t("columns.object")}</TableHead>
+              <TableHead>{t("columns.by")}</TableHead>
+              <TableHead>{t("columns.detail")}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {entries.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted">
+              <TableRow>
+                <TableCell colSpan={5} className="py-8 text-center text-muted">
                   {t("empty")}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               entries.map((entry) => {
                 const detail = summarizeMetadata(entry.metadata);
                 return (
-                  <tr key={entry.id} className="border-t border-[color:var(--border)] align-top">
-                    <td className="whitespace-nowrap px-4 py-3 text-muted">
+                  <TableRow key={entry.id} className="align-top">
+                    <TableCell className="whitespace-nowrap text-muted">
                       {DATE_FMT.format(new Date(entry.createdAt))}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${TONE_STYLES[actionTone(entry.action)]}`}
-                      >
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={TONE_VARIANT[actionTone(entry.action)]}>
                         {actLabel(entry.action)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-ink">{entLabel(entry.entity)}</td>
-                    <td className="px-4 py-3 text-ink">{entry.actorName}</td>
-                    <td className="max-w-xs px-4 py-3 text-xs text-muted">{detail ?? "—"}</td>
-                  </tr>
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-ink">{entLabel(entry.entity)}</TableCell>
+                    <TableCell className="text-ink">{entry.actorName}</TableCell>
+                    <TableCell className="max-w-xs text-xs text-muted">{detail ?? "—"}</TableCell>
+                  </TableRow>
                 );
               })
             )}
-          </tbody>
-        </table>
-      </div>
+          </TableBody>
+        </Table>
+      </Card>
     </div>
   );
 }
@@ -157,7 +165,7 @@ function FilterChip({ label, href, active }: { label: string; href: string; acti
       className={`rounded-full border px-3 py-1 text-sm ${
         active
           ? "border-brand bg-brand text-white"
-          : "border-[color:var(--border)] bg-white text-ink hover:bg-brand-light"
+          : "border-border bg-white text-ink hover:bg-brand-light"
       }`}
     >
       {label}

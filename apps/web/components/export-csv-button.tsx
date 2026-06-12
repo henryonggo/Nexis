@@ -40,7 +40,7 @@ export function ExportCsvButton({
       type="button"
       onClick={handleExport}
       disabled={disabled}
-      className="rounded-md border border-[color:var(--border)] px-4 py-2 text-sm font-semibold text-ink hover:bg-brand-light disabled:cursor-not-allowed disabled:opacity-50"
+      className="rounded-md border border-border px-4 py-2 text-sm font-semibold text-ink hover:bg-brand-light disabled:cursor-not-allowed disabled:opacity-50"
     >
       {label ?? t("exportCsv")}
     </button>

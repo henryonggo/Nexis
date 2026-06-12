@@ -38,7 +38,7 @@ export default function AppError({
         </button>
         <Link
           href="/dashboard"
-          className="rounded-md border border-[color:var(--border)] px-4 py-2 text-sm font-semibold text-ink hover:bg-brand-light"
+          className="rounded-md border border-border px-4 py-2 text-sm font-semibold text-ink hover:bg-brand-light"
         >
           {t("back")}
         </Link>

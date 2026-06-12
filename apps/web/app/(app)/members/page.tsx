@@ -4,6 +4,16 @@ import { getActiveCompany } from "@/lib/company";
 import { revokeInvite } from "./actions";
 import { InviteForm } from "./invite-form";
 import type { CompanyRole, InviteStatus } from "@nexis/types";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 
 interface MemberJoin {
   role: CompanyRole;
@@ -47,24 +57,24 @@ export default async function MembersPage() {
         <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-[color:var(--border)] bg-white">
-        <table className="w-full text-sm">
-          <thead className="bg-brand-light/60 text-left text-muted">
-            <tr>
-              <th className="px-4 py-2 font-medium">{t("columns.name")}</th>
-              <th className="px-4 py-2 font-medium">{t("columns.role")}</th>
-            </tr>
-          </thead>
-          <tbody>
+      <Card className="overflow-hidden p-0">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t("columns.name")}</TableHead>
+              <TableHead>{t("columns.role")}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {memberRows.map((m) => (
-              <tr key={m.user_id} className="border-t border-[color:var(--border)]">
-                <td className="px-4 py-2 text-ink">{m.profiles?.full_name || t("noName")}</td>
-                <td className="px-4 py-2 text-muted">{tRoles(m.role)}</td>
-              </tr>
+              <TableRow key={m.user_id}>
+                <TableCell className="text-ink">{m.profiles?.full_name || t("noName")}</TableCell>
+                <TableCell className="text-muted">{tRoles(m.role)}</TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </TableBody>
+        </Table>
+      </Card>
 
       {isAdmin && (
         <>
@@ -73,24 +83,26 @@ export default async function MembersPage() {
           {inviteRows.length > 0 && (
             <div>
               <h2 className="mb-2 text-sm font-semibold text-ink">{t("pendingInvites")}</h2>
-              <div className="overflow-hidden rounded-lg border border-[color:var(--border)] bg-white">
-                <table className="w-full text-sm">
-                  <tbody>
+              <Card className="overflow-hidden p-0">
+                <Table>
+                  <TableBody>
                     {inviteRows.map((i) => (
-                      <tr key={i.id} className="border-t border-[color:var(--border)] first:border-t-0">
-                        <td className="px-4 py-2 text-ink">{i.email}</td>
-                        <td className="px-4 py-2 text-muted">{tRoles(i.role)}</td>
-                        <td className="px-4 py-2 text-right">
+                      <TableRow key={i.id}>
+                        <TableCell className="text-ink">{i.email}</TableCell>
+                        <TableCell className="text-muted">{tRoles(i.role)}</TableCell>
+                        <TableCell className="text-right">
                           <form action={revokeInvite}>
                             <input type="hidden" name="id" value={i.id} />
-                            <button className="text-xs text-danger hover:underline">{t("revoke")}</button>
+                            <Button type="submit" variant="ghost" size="sm" className="text-danger hover:text-danger">
+                              {t("revoke")}
+                            </Button>
                           </form>
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                  </TableBody>
+                </Table>
+              </Card>
             </div>
           )}
         </>

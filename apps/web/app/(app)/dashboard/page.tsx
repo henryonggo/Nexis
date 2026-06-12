@@ -5,6 +5,8 @@ import { getActiveCompany } from "@/lib/company";
 import { formatPeriod, formatRupiah } from "@/lib/payroll-format";
 import { planMeta } from "@/lib/billing-plans";
 import type { CompanyBillingRow } from "@nexis/types";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 /** Start of "today" in Asia/Jakarta (WIB, UTC+7, no DST), as a UTC ISO string. */
 function startOfTodayJakartaIso(): string {
@@ -91,54 +93,57 @@ export default async function DashboardPage() {
             {atLimit ? t("free.atLimit") : t("free.noNpwp")}
           </span>
           {isAdmin && (
-            <Link
-              href="/billing"
-              className="shrink-0 rounded-md bg-brand px-3 py-1.5 font-semibold text-white hover:bg-brand-dark"
-            >
-              {t("free.upgrade")}
-            </Link>
+            <Button asChild size="sm" className="shrink-0">
+              <Link href="/billing">{t("free.upgrade")}</Link>
+            </Button>
           )}
         </div>
       )}
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <Link href="/employees" className="rounded-lg border border-[color:var(--border)] bg-white p-5 hover:border-brand">
-          <div className="text-sm text-muted">{t("cards.employees")}</div>
-          <div className="mt-1 text-2xl font-bold text-ink">
-            {used}
-            {isFree ? <span className="text-base text-muted"> / {limit}</span> : null}
-          </div>
-          <div className="mt-1 text-xs text-muted">{t("cards.planManage", { plan: planName })}</div>
-        </Link>
+        <Card asChild className="p-5 transition-colors hover:border-brand">
+          <Link href="/employees">
+            <div className="text-sm text-muted">{t("cards.employees")}</div>
+            <div className="mt-1 text-2xl font-bold text-ink">
+              {used}
+              {isFree ? <span className="text-base text-muted"> / {limit}</span> : null}
+            </div>
+            <div className="mt-1 text-xs text-muted">{t("cards.planManage", { plan: planName })}</div>
+          </Link>
+        </Card>
 
-        <Link href="/attendance" className="rounded-lg border border-[color:var(--border)] bg-white p-5 hover:border-brand">
-          <div className="text-sm text-muted">{t("cards.attendanceToday")}</div>
-          <div className="mt-1 text-2xl font-bold text-ink">
-            {presentToday}
-            {used ? <span className="text-base text-muted"> / {used} {t("cards.present")}</span> : null}
-          </div>
-          <div className="mt-1 text-xs text-muted">{t("cards.liveLink")}</div>
-        </Link>
+        <Card asChild className="p-5 transition-colors hover:border-brand">
+          <Link href="/attendance">
+            <div className="text-sm text-muted">{t("cards.attendanceToday")}</div>
+            <div className="mt-1 text-2xl font-bold text-ink">
+              {presentToday}
+              {used ? <span className="text-base text-muted"> / {used} {t("cards.present")}</span> : null}
+            </div>
+            <div className="mt-1 text-xs text-muted">{t("cards.liveLink")}</div>
+          </Link>
+        </Card>
 
-        <Link href="/payroll" className="rounded-lg border border-[color:var(--border)] bg-white p-5 hover:border-brand">
-          <div className="text-sm text-muted">{t("cards.lastPayroll")}</div>
-          {latestRun ? (
-            <>
-              <div className="mt-1 text-2xl font-bold text-ink">
-                {formatPeriod(latestRun.period_year, latestRun.period_month)}
-              </div>
-              <div className="mt-1 text-xs text-muted">
-                {tStatus(latestRun.status)}
-                {latestRun.total_net ? ` · ${formatRupiah(latestRun.total_net)}` : ""} →
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="mt-1 text-2xl font-bold text-ink">—</div>
-              <div className="mt-1 text-xs text-muted">{t("cards.runPayroll")}</div>
-            </>
-          )}
-        </Link>
+        <Card asChild className="p-5 transition-colors hover:border-brand">
+          <Link href="/payroll">
+            <div className="text-sm text-muted">{t("cards.lastPayroll")}</div>
+            {latestRun ? (
+              <>
+                <div className="mt-1 text-2xl font-bold text-ink">
+                  {formatPeriod(latestRun.period_year, latestRun.period_month)}
+                </div>
+                <div className="mt-1 text-xs text-muted">
+                  {tStatus(latestRun.status)}
+                  {latestRun.total_net ? ` · ${formatRupiah(latestRun.total_net)}` : ""} →
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="mt-1 text-2xl font-bold text-ink">—</div>
+                <div className="mt-1 text-xs text-muted">{t("cards.runPayroll")}</div>
+              </>
+            )}
+          </Link>
+        </Card>
       </div>
     </div>
   );

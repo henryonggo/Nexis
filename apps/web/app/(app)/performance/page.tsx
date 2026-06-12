@@ -13,6 +13,15 @@ import { GoalForm, type EmployeeOption } from "./goal-form";
 import { GoalProgress } from "./goal-progress";
 import { ReviewForm } from "./review-form";
 import { GoalStatusBadge } from "./status-badge";
+import { Card } from "@/components/ui/card";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 
 export default async function PerformancePage({
   searchParams,
@@ -28,10 +37,10 @@ export default async function PerformancePage({
     active.role === "owner" || active.role === "admin" || active.role === "manager";
   if (!canManage) {
     return (
-      <div className="nx-card max-w-lg">
+      <Card className="max-w-lg p-8">
         <h1 className="mb-1 text-xl font-bold text-ink">{t("title")}</h1>
         <p className="text-sm text-muted">{t("noAccess")}</p>
-      </div>
+      </Card>
     );
   }
 
@@ -83,9 +92,7 @@ export default async function PerformancePage({
       </div>
 
       {cycles.length === 0 ? (
-        <p className="rounded-lg border border-[color:var(--border)] bg-white px-4 py-6 text-center text-sm text-muted">
-          {t("noCycles")}
-        </p>
+        <Card className="px-4 py-6 text-center text-sm text-muted">{t("noCycles")}</Card>
       ) : (
         <>
           <div className="flex flex-wrap items-center gap-2">
@@ -97,7 +104,7 @@ export default async function PerformancePage({
                 className={`rounded-full px-3 py-1 text-sm ${
                   c.id === selectedCycle?.id
                     ? "bg-brand text-white"
-                    : "border border-[color:var(--border)] text-ink hover:bg-brand-light"
+                    : "border border-border text-ink hover:bg-brand-light"
                 }`}
               >
                 {c.name}
@@ -119,9 +126,7 @@ export default async function PerformancePage({
                   {t("reviewsHeading")}
                 </h2>
                 {goalsByEmployee.size === 0 ? (
-                  <p className="rounded-lg border border-[color:var(--border)] bg-white px-4 py-6 text-center text-sm text-muted">
-                    {t("addGoalsFirst")}
-                  </p>
+                  <Card className="px-4 py-6 text-center text-sm text-muted">{t("addGoalsFirst")}</Card>
                 ) : (
                   <div className="grid gap-3 md:grid-cols-2">
                     {[...goalsByEmployee.keys()].map((employeeId) => {
@@ -155,44 +160,44 @@ export default async function PerformancePage({
 async function GoalsTable({ goals }: { goals: GoalView[] }) {
   const t = await getTranslations("performance");
   return (
-    <div className="overflow-hidden rounded-lg border border-[color:var(--border)] bg-white">
-      <table className="w-full text-sm">
-        <thead className="bg-brand-light/60 text-left text-muted">
-          <tr>
-            <th className="px-4 py-2 font-medium">{t("goalsColumns.employee")}</th>
-            <th className="px-4 py-2 font-medium">{t("goalsColumns.goal")}</th>
-            <th className="px-4 py-2 text-right font-medium">{t("goalsColumns.weight")}</th>
-            <th className="px-4 py-2 font-medium">{t("goalsColumns.status")}</th>
-            <th className="px-4 py-2 font-medium">{t("goalsColumns.progress")}</th>
-          </tr>
-        </thead>
-        <tbody>
+    <Card className="overflow-hidden p-0">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>{t("goalsColumns.employee")}</TableHead>
+            <TableHead>{t("goalsColumns.goal")}</TableHead>
+            <TableHead className="text-right">{t("goalsColumns.weight")}</TableHead>
+            <TableHead>{t("goalsColumns.status")}</TableHead>
+            <TableHead>{t("goalsColumns.progress")}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {goals.length === 0 ? (
-            <tr>
-              <td colSpan={5} className="px-4 py-8 text-center text-muted">
+            <TableRow>
+              <TableCell colSpan={5} className="py-8 text-center text-muted">
                 {t("noGoals")}
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ) : (
             goals.map((g) => (
-              <tr key={g.id} className="border-t border-[color:var(--border)] align-top">
-                <td className="px-4 py-3 font-medium text-ink">{g.employeeName}</td>
-                <td className="px-4 py-3 text-ink">
+              <TableRow key={g.id} className="align-top">
+                <TableCell className="font-medium text-ink">{g.employeeName}</TableCell>
+                <TableCell className="text-ink">
                   {g.title}
                   {g.description && <p className="text-xs text-muted">{g.description}</p>}
-                </td>
-                <td className="px-4 py-3 text-right tabular-nums text-ink">{g.weight}%</td>
-                <td className="px-4 py-3">
+                </TableCell>
+                <TableCell className="text-right tabular-nums text-ink">{g.weight}%</TableCell>
+                <TableCell>
                   <GoalStatusBadge status={g.status} />
-                </td>
-                <td className="px-4 py-3">
+                </TableCell>
+                <TableCell>
                   <GoalProgress goalId={g.id} progress={g.progress} />
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))
           )}
-        </tbody>
-      </table>
-    </div>
+        </TableBody>
+      </Table>
+    </Card>
   );
 }

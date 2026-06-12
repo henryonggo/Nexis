@@ -9,6 +9,7 @@ import {
   getLeaveUsage,
 } from "@/lib/analytics";
 import { BarList, TrendChart } from "./charts";
+import { Card } from "@/components/ui/card";
 
 export default async function AnalyticsPage() {
   const supabase = createClient();
@@ -19,10 +20,10 @@ export default async function AnalyticsPage() {
   const isAdmin = active.role === "owner" || active.role === "admin";
   if (!isAdmin) {
     return (
-      <div className="nx-card max-w-lg">
+      <Card className="max-w-lg p-8">
         <h1 className="mb-1 text-xl font-bold text-ink">{t("title")}</h1>
         <p className="text-sm text-muted">{t("noAccess")}</p>
-      </div>
+      </Card>
     );
   }
 
@@ -69,16 +70,16 @@ export default async function AnalyticsPage() {
       </div>
 
       {/* Payroll cost trend */}
-      <section className="nx-card">
+      <Card className="p-6">
         <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
           {t("trendTitle")}
         </h2>
         <TrendChart points={trend} emptyText={t("noTrend")} grossLabel={t("grossLabel")} />
-      </section>
+      </Card>
 
       {/* Headcount breakdowns */}
       <div className="grid gap-4 lg:grid-cols-2">
-        <section className="nx-card">
+        <Card className="p-6">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
             {t("byDepartment")}
           </h2>
@@ -87,8 +88,8 @@ export default async function AnalyticsPage() {
             unit={t("unitPeople")}
             emptyText={t("noActiveEmployees")}
           />
-        </section>
-        <section className="nx-card">
+        </Card>
+        <Card className="p-6">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
             {t("byType")}
           </h2>
@@ -97,26 +98,26 @@ export default async function AnalyticsPage() {
             unit={t("unitPeople")}
             emptyText={t("noActiveEmployees")}
           />
-        </section>
+        </Card>
       </div>
 
       {/* Leave usage */}
-      <section className="nx-card">
+      <Card className="p-6">
         <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
           {t("leaveTitle", { year })}
         </h2>
         <BarList items={leaveUsage} unit={t("unitDays")} emptyText={t("noLeave")} />
-      </section>
+      </Card>
     </div>
   );
 }
 
 function Kpi({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="rounded-lg border border-[color:var(--border)] bg-white p-5">
+    <Card className="p-5">
       <div className="text-sm text-muted">{label}</div>
       <div className="mt-1 text-2xl font-bold tabular-nums text-ink">{value}</div>
       {hint && <div className="mt-1 text-xs text-muted">{hint}</div>}
-    </div>
+    </Card>
   );
 }

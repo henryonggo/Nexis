@@ -8,6 +8,10 @@ import { Suspense } from "react";
 import { signIn, type ActionState } from "../actions";
 import { SubmitButton } from "@/components/submit-button";
 import { PasswordInput } from "@/components/password-input";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert } from "@/components/ui/alert";
 
 const initial: ActionState = {};
 
@@ -22,25 +26,27 @@ function SignInForm() {
   const deactivated = params.get("deactivated") === "1";
 
   return (
-    <div className="nx-card">
+    <Card className="w-full max-w-md p-8">
       <h1 className="mb-1 text-xl font-bold text-ink">{t("title")}</h1>
       <p className="mb-5 text-sm text-muted">{t("welcome")}</p>
 
-      {justReset && <div className="nx-success mb-4">{t("resetDone")}</div>}
-      {timedOut && <div className="nx-success mb-4">{t("timedOut")}</div>}
-      {deactivated && <div className="nx-success mb-4">{t("deactivated")}</div>}
-      {state.error && <div className="nx-error mb-4">{state.error}</div>}
+      {justReset && <Alert variant="success" className="mb-4">{t("resetDone")}</Alert>}
+      {timedOut && <Alert variant="success" className="mb-4">{t("timedOut")}</Alert>}
+      {deactivated && <Alert variant="success" className="mb-4">{t("deactivated")}</Alert>}
+      {state.error && <Alert variant="destructive" className="mb-4">{state.error}</Alert>}
 
       <form action={action} className="space-y-4">
         <input type="hidden" name="redirectTo" value={redirectTo} />
-        <div>
-          <label className="nx-label" htmlFor="email">{tc("email")}</label>
-          <input id="email" name="email" type="email" className="nx-input" autoComplete="email" required />
+        <div className="space-y-1.5">
+          <Label htmlFor="email">{tc("email")}</Label>
+          <Input id="email" name="email" type="email" autoComplete="email" required />
         </div>
-        <div>
+        <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <label className="nx-label" htmlFor="password">{tc("password")}</label>
-            <Link href="/forgot-password" className="nx-link text-xs">{t("forgotLink")}</Link>
+            <Label htmlFor="password">{tc("password")}</Label>
+            <Link href="/forgot-password" className="text-xs font-medium text-brand hover:underline">
+              {t("forgotLink")}
+            </Link>
           </div>
           <PasswordInput id="password" name="password" autoComplete="current-password" required />
         </div>
@@ -48,9 +54,12 @@ function SignInForm() {
       </form>
 
       <p className="mt-5 text-center text-sm text-muted">
-        {t("noAccount")} <Link href="/sign-up" className="nx-link">{t("signUpLink")}</Link>
+        {t("noAccount")}{" "}
+        <Link href="/sign-up" className="font-medium text-brand hover:underline">
+          {t("signUpLink")}
+        </Link>
       </p>
-    </div>
+    </Card>
   );
 }
 
