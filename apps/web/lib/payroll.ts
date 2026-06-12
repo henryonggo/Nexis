@@ -266,7 +266,11 @@ export async function computeRunPreview(
     const input: EmployeePayrollInput = {
       baseSalary,
       fixedAllowances: sumFixedAllowances(comp.fixed_allowances),
-      overtimePay: 0, // TODO(stage4): derive from approved attendance overtime hours
+      // TODO(db): blocked on the overtime_entries writer — nothing populates that
+      // table yet, so summing it here would always be 0. Once the writer lands,
+      // sum approved entries for the period into overtimePay so the draft preview
+      // matches the worker. Spec: docs/handoff/overtime-pipeline.md — Antigravity
+      overtimePay: 0,
       ptkpStatus,
       hasNpwp,
       jkkRiskClass: companyRisk,

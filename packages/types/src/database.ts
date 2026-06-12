@@ -2619,6 +2619,10 @@ export type Database = {
         }
         Returns: string
       }
+      generate_overtime_entries: {
+        Args: { p_company_id: string; p_date: string }
+        Returns: undefined
+      }
       generate_scim_token: {
         Args: { p_company_id: string; p_expires_at?: string }
         Returns: string
@@ -2648,6 +2652,10 @@ export type Database = {
       is_current_user_active: { Args: never; Returns: boolean }
       link_employee_account: {
         Args: { p_employee_id: string; p_user_id: string }
+        Returns: undefined
+      }
+      recompute_employee_overtime: {
+        Args: { p_date: string; p_employee_id: string }
         Returns: undefined
       }
       record_attendance: {
