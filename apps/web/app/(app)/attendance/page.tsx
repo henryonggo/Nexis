@@ -1,4 +1,6 @@
 import { getTranslations } from "next-intl/server";
+import Link from "next/link";
+import { Settings2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 import type { Database } from "@nexis/types";
@@ -27,6 +29,7 @@ export default async function AttendancePage() {
   if (!active) return null;
 
   const canCorrect = active.role !== "employee";
+  const canConfigure = active.role === "owner" || active.role === "admin";
   const since = startOfTodayJakartaIso();
   const t = await getTranslations("attendance");
 
@@ -52,9 +55,20 @@ export default async function AttendancePage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
-        <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
+          <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
+        </div>
+        {canConfigure && (
+          <Link
+            href="/attendance/config"
+            className="inline-flex shrink-0 items-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-sm font-medium text-ink hover:bg-brand-light hover:text-brand-dark"
+          >
+            <Settings2 className="h-4 w-4" />
+            {t("configure")}
+          </Link>
+        )}
       </div>
 
       <LiveBoard

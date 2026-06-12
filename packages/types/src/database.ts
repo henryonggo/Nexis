@@ -2695,6 +2695,7 @@ export type Database = {
         Args: { p_active: boolean; p_company_id: string; p_user_id: string }
         Returns: undefined
       }
+      seed_indonesian_holidays: { Args: { p_year: number }; Returns: undefined }
       submit_review: { Args: { p_review_id: string }; Returns: undefined }
       user_has_company_access: { Args: { target: string }; Returns: boolean }
       user_is_company_admin: { Args: { target: string }; Returns: boolean }

@@ -154,7 +154,63 @@
     "approve": "Approve",
     "markInvalid": "Mark invalid",
     "updated": "Attendance updated.",
-    "kind": { "clock_in": "Clock in", "clock_out": "Clock out", "break_start": "Break start", "break_end": "Break end" }
+    "configure": "Settings",
+    "kind": { "clock_in": "Clock in", "clock_out": "Clock out", "break_start": "Break start", "break_end": "Break end" },
+    "config": {
+      "title": "Attendance Settings",
+      "subtitle": "Configure geofence locations, shifts, work schedules, and the holiday calendar.",
+      "back": "Back to attendance",
+      "delete": "Delete",
+      "tabs": { "geofences": "Locations", "shifts": "Shifts", "schedules": "Work Schedules", "holidays": "Holidays" },
+      "days": { "0": "Sun", "1": "Mon", "2": "Tue", "3": "Wed", "4": "Thu", "5": "Fri", "6": "Sat" },
+      "geofences": {
+        "addTitle": "Add location",
+        "hint": "Employees must clock in within this radius for the record to count as valid.",
+        "listTitle": "Registered locations",
+        "empty": "No geofence locations yet.",
+        "name": "Location name",
+        "namePlaceholder": "Head Office",
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "coords": "Coordinates",
+        "radius": "Radius (meters)",
+        "add": "Add location"
+      },
+      "shifts": {
+        "addTitle": "Add shift",
+        "hint": "Standard working hours used to compute overtime.",
+        "listTitle": "Registered shifts",
+        "empty": "No shifts yet.",
+        "name": "Shift name",
+        "namePlaceholder": "Regular",
+        "start": "Start time",
+        "end": "End time",
+        "hours": "Hours",
+        "grace": "Grace (minutes)",
+        "graceHint": "Lateness tolerated before a clock-in counts as late.",
+        "minutes": "min",
+        "add": "Add shift"
+      },
+      "schedules": {
+        "hint": "Pick a shift for each day. Days with no shift count as rest days.",
+        "off": "Off",
+        "save": "Save schedule",
+        "needShifts": "Add a shift first before setting work schedules.",
+        "needEmployees": "Add an employee first to set work schedules."
+      },
+      "holidays": {
+        "title": "{year} holiday calendar",
+        "hint": "National holidays affect overtime classification.",
+        "empty": "No holidays recorded for {year}.",
+        "date": "Date",
+        "name": "Name",
+        "type": "Type",
+        "national": "National",
+        "company": "Company",
+        "seed": "Seed {year} holidays",
+        "seedPending": "Not available yet — national holiday data pending."
+      }
+    }
   },
   "leave": {
     "title": "Leave",
