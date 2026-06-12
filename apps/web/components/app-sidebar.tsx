@@ -58,19 +58,19 @@ export const PILLARS = [
 ] as const;
 
 export const PILLAR_ITEMS: Record<string, string[]> = {
-  overview: ["dashboard"],
+  overview: ["dashboard", "analytics", "reports", "audit"],
   people: ["employees", "members"],
   operations: ["attendance", "leave", "performance"],
   finance: ["payroll", "claims", "loans", "billing"],
-  platform: ["analytics", "reports", "audit", "developer", "settings"],
+  platform: ["developer", "settings"],
 };
 
 export function getActivePillar(pathname: string): string {
-  if (pathname.startsWith("/dashboard")) return "overview";
+  if (pathname.startsWith("/dashboard") || pathname.startsWith("/analytics") || pathname.startsWith("/reports") || pathname.startsWith("/audit")) return "overview";
   if (pathname.startsWith("/employees") || pathname.startsWith("/members")) return "people";
   if (pathname.startsWith("/attendance") || pathname.startsWith("/leave") || pathname.startsWith("/performance")) return "operations";
   if (pathname.startsWith("/payroll") || pathname.startsWith("/claims") || pathname.startsWith("/loans") || pathname.startsWith("/billing")) return "finance";
-  if (pathname.startsWith("/analytics") || pathname.startsWith("/reports") || pathname.startsWith("/audit") || pathname.startsWith("/developer") || pathname.startsWith("/settings")) return "platform";
+  if (pathname.startsWith("/developer") || pathname.startsWith("/settings")) return "platform";
   return "overview";
 }
 
