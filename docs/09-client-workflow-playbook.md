@@ -63,6 +63,18 @@ W1 Signup ─▶ W2 Company setup ─▶ W3 Workforce setup ─▶ W4 Attendance
 **North-star activation metric:** time from signup → first approved payroll run
 ("time-to-first-payroll", target ≤ 7 days for a ≤5-employee company).
 
+**Biggest-value UX backlog (flagged ★ in their stage checklists below):** the three
+items with the highest activation/trust leverage right now —
+
+1. **Bulk-import refinement (W3)** — CSV import ships, but XLSX template + per-row
+   error report is the single biggest onboarding-friction reducer.
+2. **Payslip "Explain this number" (W5)** — per-line TER/BPJS values render today, but
+   no plain-language explainer. Trust in the math is the product.
+3. **Pre-run validation gate (W5)** — no blocking-issue list before draft today; a
+   gate that lists missing bank/tax fields prevents mid-run failure.
+
+These three are the recommended next pulls into the roadmap (see §5 for full audit).
+
 ---
 
 ## W1 — Signup & account
@@ -126,8 +138,8 @@ W1 Signup ─▶ W2 Company setup ─▶ W3 Workforce setup ─▶ W4 Attendance
 - **Success criteria:** 0 employees with missing payroll-blocking data at W5 entry;
   invite acceptance ≥ 90%; seat-limit block fires with a clear, non-punitive prompt.
 - **UX improvements (human):**
-  - [ ] Bulk import (CSV/XLSX template) — typing 5–20 employees by hand is the single
-        biggest onboarding friction.
+  - [ ] ★ Bulk import refinement — CSV ships; add XLSX template + per-row error report.
+        Typing 5–20 employees by hand is the single biggest onboarding friction.
   - [ ] "Payroll-readiness" badge per employee showing exactly which field is missing.
   - [ ] Inline PTKP/BPJS explainers in plain Bahasa — admins shouldn't need to know
         tax jargon to pick a status.
@@ -181,9 +193,9 @@ W1 Signup ─▶ W2 Company setup ─▶ W3 Workforce setup ─▶ W4 Attendance
   surcharge applied where relevant; re-running after a rate change never mutates this
   run; admin completes review in one sitting.
 - **UX improvements (human):**
-  - [ ] "Explain this number" on every payslip line — show the TER bracket, BPJS cap,
+  - [ ] ★ "Explain this number" on every payslip line — show the TER bracket, BPJS cap,
         and formula in plain language. Trust in the math is the product.
-  - [ ] Pre-run validation gate listing every blocking issue before the draft (missing
+  - [ ] ★ Pre-run validation gate listing every blocking issue before the draft (missing
         bank account, missing tax profile) — never fail mid-run.
   - [ ] Side-by-side diff vs. the previous run (first run: vs. expected gross).
   - [ ] Bank-transfer-ready export grouped by bank.

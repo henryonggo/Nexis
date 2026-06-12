@@ -125,6 +125,21 @@ badge becomes meaningful once G1 lands). i18n keys added (id + en).
 
 ---
 
+## Follow-ups
+
+With G1 landed (migration `20260612081500_employee_user_linking.sql`), two items remain:
+
+1. **Invite-*accept* e2e (now unblocked).** G3 added the create/revoke/prefill specs but
+   the full second-account *accept* path (`e2e/members-invite.spec.ts`) was blocked on G1.
+   Now actionable: provision a second auth account, accept the invite, assert
+   `employees.user_id` linkage + employee-scoped data appears. — Claude Code lane.
+2. **Optional admin re-link UI.** `public.link_employee_account(p_employee_id, p_user_id)`
+   exists for the roster-email ≠ login-email case but has no surface. Add an admin-only
+   "Tautkan ke akun" control on `/employees/[id]` (or `/members`) that calls the RPC, for
+   manual relink when invite-time auto-linking didn't match. Low priority; RPC works today.
+
+---
+
 ## Re-test checklist (after fixes)
 
 - [ ] Fresh signup → onboarding → dashboard < 2 min, no NPWP fields.
