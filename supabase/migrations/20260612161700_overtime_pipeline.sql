@@ -3,6 +3,15 @@
 -- 2. Implement public.recompute_employee_overtime(p_employee_id, p_date)
 -- 3. Implement public.generate_overtime_entries(p_company_id, p_date)
 -- 4. Create trigger on attendance_records to call recompute_employee_overtime
+--
+-- DESIGN DECISION ON MULTIPLIER SEMANTICS (Option A):
+-- - `duration_minutes` stores the raw classified overtime minutes.
+-- - `multiplier` acts purely as a classification category tag:
+--   - 1.0: Weekday overtime.
+--   - 2.0: Rest-day/Holiday overtime.
+-- - The packages/payroll engine is the single source of truth for applying statutory rates 
+--   (e.g., UU Cipta Kerja step multipliers of 1.5x and 2.0x, or rest-day tiered rates 2.0x, 3.0x, 4x).
+--   Storing category tags here prevents double-counting and ensures engine math remains correct.
 
 -- Create unique constraint index
 create unique index if not exists overtime_entries_employee_date_idx on public.overtime_entries(employee_id, date);
