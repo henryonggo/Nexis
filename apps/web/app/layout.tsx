@@ -21,6 +21,24 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const messages = await getMessages();
   return (
     <html lang={locale} className={inter.variable}>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const theme = localStorage.getItem('nexis-theme') || 'soft-ui';
+                if (theme === 'mono') {
+                  document.documentElement.classList.add('theme-mono');
+                }
+                const density = localStorage.getItem('nexis-density') || 'standard';
+                if (density === 'compact') {
+                  document.documentElement.classList.add('density-compact');
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
       <body>
         <NextIntlClientProvider locale={locale} messages={messages}>
           {children}

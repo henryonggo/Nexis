@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { DeactivateSection } from "./deactivate-section";
 import { NotificationsForm } from "./notifications-form";
+import { ThemeSettingsForm } from "./theme-settings-form";
 import { Card } from "@/components/ui/card";
 
 export default async function SettingsPage() {
@@ -35,6 +36,13 @@ export default async function SettingsPage() {
           <p className="text-sm text-muted">{tc("email")}</p>
           <p className="font-medium text-ink">{user?.email ?? "—"}</p>
         </Card>
+      </section>
+
+      <section className="space-y-2">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
+          {t("appearance.heading")}
+        </h2>
+        <ThemeSettingsForm />
       </section>
 
       <section className="space-y-2">

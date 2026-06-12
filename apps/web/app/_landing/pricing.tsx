@@ -32,7 +32,7 @@ export function Pricing({ isAuthed }: { isAuthed: boolean }) {
           className="overflow-hidden rounded-2xl border border-brand bg-white shadow-xl shadow-brand/10 ring-1 ring-brand"
         >
           {/* Free tier */}
-          <div className="border-b border-[color:var(--border)] p-8 text-center">
+          <div className="border-b border-border p-8 text-center">
             <span className="inline-flex rounded-full bg-brand-light px-3 py-1 text-xs font-semibold text-brand-dark">
               5 karyawan pertama
             </span>

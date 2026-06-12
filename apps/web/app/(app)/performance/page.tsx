@@ -104,7 +104,7 @@ export default async function PerformancePage({
                 className={`rounded-full px-3 py-1 text-sm ${
                   c.id === selectedCycle?.id
                     ? "bg-brand text-white"
-                    : "border border-[color:var(--border)] text-ink hover:bg-brand-light"
+                    : "border border-border text-ink hover:bg-brand-light"
                 }`}
               >
                 {c.name}

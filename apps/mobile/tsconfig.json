@@ -5,8 +5,17 @@
     "noEmit": true,
     "moduleResolution": "Bundler",
     "paths": {
-      "@nexis/types": ["../../packages/types/src/index.ts"]
+      "@nexis/types": [
+        "../../packages/types/src/index.ts"
+      ]
     }
   },
-  "include": ["app", "lib", "*.ts", "*.tsx"]
+  "include": [
+    "app",
+    "lib",
+    "*.ts",
+    "*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ]
 }

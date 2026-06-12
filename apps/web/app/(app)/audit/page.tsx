@@ -165,7 +165,7 @@ function FilterChip({ label, href, active }: { label: string; href: string; acti
       className={`rounded-full border px-3 py-1 text-sm ${
         active
           ? "border-brand bg-brand text-white"
-          : "border-[color:var(--border)] bg-white text-ink hover:bg-brand-light"
+          : "border-border bg-white text-ink hover:bg-brand-light"
       }`}
     >
       {label}

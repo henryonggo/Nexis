@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 import { getCompanyClaims, getReceiptUrl, type ClaimView } from "@/lib/claims";
 import { ClaimStatusBadge } from "./status-badge";
-import { ClaimDecisionButtons } from "./decision-buttons";
+import { PendingClaimsList } from "./pending-claims-list";
 import { Card } from "@/components/ui/card";
 import {
   Table,
@@ -28,13 +28,13 @@ export default async function ClaimsPage() {
   const pending = claims.filter((c) => c.status === "pending");
   const decided = claims.filter((c) => c.status !== "pending");
 
-  const receiptUrls = new Map<string, string>();
+  const receiptUrls: Record<string, string> = {};
   await Promise.all(
     pending
       .filter((c) => c.receiptPath)
       .map(async (c) => {
         const url = await getReceiptUrl(supabase, c.receiptPath!);
-        if (url) receiptUrls.set(c.id, url);
+        if (url) receiptUrls[c.id] = url;
       }),
   );
 
@@ -49,38 +49,11 @@ export default async function ClaimsPage() {
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
           {t("pending", { count: pending.length })}
         </h2>
-        {pending.length === 0 ? (
-          <Card className="px-4 py-6 text-center text-sm text-muted">{t("noPending")}</Card>
-        ) : (
-          <div className="space-y-3">
-            {pending.map((c) => (
-              <Card key={c.id} className="p-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="font-semibold text-ink">{c.employeeName}</p>
-                    <p className="text-sm text-muted">
-                      {c.claimTypeName} ·{" "}
-                      <span className="font-medium text-ink">{formatRupiah(c.amount)}</span>
-                      {c.taxable ? ` · ${t("taxable")}` : ` · ${t("nonTaxable")}`}
-                    </p>
-                    {c.description && <p className="mt-1 text-sm text-ink">“{c.description}”</p>}
-                    {receiptUrls.has(c.id) && (
-                      <a
-                        href={receiptUrls.get(c.id)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-1 inline-block text-sm text-brand hover:underline"
-                      >
-                        {t("viewReceipt")}
-                      </a>
-                    )}
-                  </div>
-                  {canApprove && <ClaimDecisionButtons claimId={c.id} />}
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
+        <PendingClaimsList
+          pending={pending}
+          canApprove={canApprove}
+          receiptUrls={receiptUrls}
+        />
       </section>
 
       <section className="space-y-3">

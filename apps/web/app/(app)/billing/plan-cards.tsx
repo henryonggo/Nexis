@@ -48,7 +48,7 @@ export function PlanCards({ currentPlan }: { currentPlan: PlanTier }) {
               className={`flex flex-col rounded-lg border p-4 transition ${
                 isSelected
                   ? "border-brand ring-1 ring-brand"
-                  : "border-[color:var(--border)]"
+                  : "border-border"
               } ${isSelectable ? "cursor-pointer hover:border-brand" : ""} ${
                 isCurrent ? "bg-brand-light/40" : "bg-white"
               }`}

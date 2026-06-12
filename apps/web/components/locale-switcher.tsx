@@ -31,7 +31,7 @@ export function LocaleSwitcher() {
       value={locale}
       disabled={saving || pending}
       onChange={(e) => onChange(e.target.value as Locale)}
-      className="rounded-md border border-[color:var(--border)] bg-white px-2 py-1.5 text-sm text-ink hover:bg-brand-light disabled:opacity-60"
+      className="rounded-md border border-border bg-white px-2 py-1.5 text-sm text-ink hover:bg-brand-light disabled:opacity-60"
     >
       {LOCALES.map((l) => (
         <option key={l} value={l}>

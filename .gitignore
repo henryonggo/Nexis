@@ -42,3 +42,9 @@ test-results/
 playwright-report/
 .playwright/
 playwright/.auth/
+
+# agent & scratch directories
+.agent/
+.claude/
+.gemini/
+scratch/

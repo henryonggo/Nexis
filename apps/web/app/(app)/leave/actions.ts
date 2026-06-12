@@ -101,3 +101,62 @@ export async function rejectLeave(
   revalidatePath("/leave");
   return { ok: true };
 }
+
+export async function approveLeavesBulk(ids: string[]): Promise<DecisionState> {
+  if (!ids || ids.length === 0) return { error: "Tidak ada permintaan yang dipilih." };
+
+  const active = await getActiveCompany();
+  if (!active) return { error: "Tidak ada perusahaan aktif." };
+  if (!canApprove(active.role)) return { error: "Tidak punya akses menyetujui cuti." };
+
+  const supabase = createClient();
+  const errors: string[] = [];
+
+  for (const id of ids) {
+    const { error } = await supabase.rpc("approve_leave", { p_request_id: id });
+    if (error) {
+      errors.push(`${id}: ${error.message}`);
+    } else {
+      await notifyLeaveDecision(supabase, id, true);
+    }
+  }
+
+  revalidatePath("/leave");
+
+  if (errors.length > 0) {
+    return { error: `Gagal menyetujui beberapa cuti: ${errors.join(", ")}` };
+  }
+
+  return { ok: true };
+}
+
+export async function rejectLeavesBulk(ids: string[], note?: string): Promise<DecisionState> {
+  if (!ids || ids.length === 0) return { error: "Tidak ada permintaan yang dipilih." };
+
+  const active = await getActiveCompany();
+  if (!active) return { error: "Tidak ada perusahaan aktif." };
+  if (!canApprove(active.role)) return { error: "Tidak punya akses menolak cuti." };
+
+  const supabase = createClient();
+  const errors: string[] = [];
+
+  for (const id of ids) {
+    const { error } = await supabase.rpc("reject_leave", {
+      p_request_id: id,
+      p_decision_note: note || undefined,
+    });
+    if (error) {
+      errors.push(`${id}: ${error.message}`);
+    } else {
+      await notifyLeaveDecision(supabase, id, false);
+    }
+  }
+
+  revalidatePath("/leave");
+
+  if (errors.length > 0) {
+    return { error: `Gagal menolak beberapa cuti: ${errors.join(", ")}` };
+  }
+
+  return { ok: true };
+}

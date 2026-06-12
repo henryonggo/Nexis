@@ -63,6 +63,36 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
 
   if (!run) notFound();
 
+  // Fetch previous month's completed/paid run for comparison
+  const prevYear = run.period_month === 1 ? run.period_year - 1 : run.period_year;
+  const prevMonth = run.period_month === 1 ? 12 : run.period_month - 1;
+
+  const { data: prevRun } = await supabase
+    .from("payroll_runs")
+    .select("id, total_gross, total_bpjs_employee, total_bpjs_employer, total_pph21, total_net")
+    .eq("company_id", active.id)
+    .eq("period_year", prevYear)
+    .eq("period_month", prevMonth)
+    .in("status", ["completed", "paid"])
+    .maybeSingle();
+
+  const prevItemsMap = new Map<string, { gross: number; net: number; pph21: number }>();
+  if (prevRun) {
+    const { data: prevItems } = await supabase
+      .from("payroll_items")
+      .select("employee_id, gross_pay, net_pay, pph21")
+      .eq("payroll_run_id", prevRun.id);
+    if (prevItems) {
+      for (const it of prevItems) {
+        prevItemsMap.set(it.employee_id, {
+          gross: Number(it.gross_pay),
+          net: Number(it.net_pay),
+          pph21: Number(it.pph21),
+        });
+      }
+    }
+  }
+
   const isPersisted = PERSISTED_STATUSES.includes(run.status);
 
   let lines: DisplayLine[] = [];
@@ -142,6 +172,14 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
     }));
   }
 
+  const totalsDiff = prevRun
+    ? {
+        gross: totals.gross - prevRun.total_gross,
+        net: totals.net - prevRun.total_net,
+        pph21: totals.pph21 - prevRun.total_pph21,
+      }
+    : null;
+
   return (
     <div className="space-y-6">
       <div>
@@ -162,10 +200,10 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
       ))}
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <SummaryCard label={t("summary.gross")} value={totals.gross} />
+        <SummaryCard label={t("summary.gross")} value={totals.gross} diff={totalsDiff?.gross} />
         <SummaryCard label={t("summary.bpjsEmployee")} value={totals.bpjsEmployee} />
-        <SummaryCard label={t("summary.pph21")} value={totals.pph21} />
-        <SummaryCard label={t("summary.net")} value={totals.net} emphasize />
+        <SummaryCard label={t("summary.pph21")} value={totals.pph21} diff={totalsDiff?.pph21} />
+        <SummaryCard label={t("summary.net")} value={totals.net} diff={totalsDiff?.net} emphasize />
       </div>
 
       <ActionBar runId={run.id} status={run.status} />
@@ -191,14 +229,37 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
             ) : (
               lines.map((line) => {
                 const employeeDeductions = line.bpjsKesEmployee + line.jhtEmployee + line.jpEmployee + line.pph21;
+                const prev = prevItemsMap.get(line.employeeId);
+                const isNew = prevRun && !prev;
+                const grossDiff = prev ? line.gross - prev.gross : 0;
+                const netDiff = prev ? line.net - prev.net : 0;
+
                 return (
                   <TableRow key={line.employeeId} className="align-top">
                     <TableCell>
-                      <div className="font-medium text-ink">{line.name}</div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-semibold text-ink">{line.name}</span>
+                        {isNew && (
+                          <span className="inline-flex items-center rounded-full bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                            {t("detail.newBadge")}
+                          </span>
+                        )}
+                      </div>
                       {line.warnings.map((w) => (
-                        <div key={w} className="mt-0.5 text-xs text-warning">⚠ {w}</div>
+                        <div
+                          key={w}
+                          className="mt-1 text-[11px] font-medium bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded flex items-center gap-1.5 w-fit"
+                        >
+                          <span>⚠ {w}</span>
+                          <Link
+                            href={`/employees/${line.employeeId}`}
+                            className="underline hover:text-amber-900 dark:hover:text-amber-200 ml-1 font-semibold"
+                          >
+                            {t("detail.updateProfile")}
+                          </Link>
+                        </div>
                       ))}
-                      <details className="mt-1">
+                      <details className="mt-2">
                         <summary className="cursor-pointer text-xs text-brand hover:underline">{t("breakdown")}</summary>
                         <dl className="mt-2 space-y-1 text-xs text-muted">
                           <BreakdownRow label={t("breakdownRows.bpjsKesEmployee")} value={line.bpjsKesEmployee} />
@@ -217,9 +278,31 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
                       {t("detail.terCategory", { category: line.terCategory ?? "—", rate: formatRateBps(line.terRateBps) })}
                       {line.hasNpwp === false && <span className="ml-1 text-warning">{t("noNpwp")}</span>}
                     </TableCell>
-                    <TableCell className="text-right tabular-nums text-ink">{formatRupiah(line.gross)}</TableCell>
+                    <TableCell className="text-right tabular-nums text-ink">
+                      <div>{formatRupiah(line.gross)}</div>
+                      {grossDiff !== 0 && (
+                        <div
+                          className={`text-[10px] font-semibold mt-0.5 ${
+                            grossDiff > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+                          }`}
+                        >
+                          {grossDiff > 0 ? "▲ +" : "▼ -"}{formatRupiah(Math.abs(grossDiff), { withSymbol: false })}
+                        </div>
+                      )}
+                    </TableCell>
                     <TableCell className="text-right tabular-nums text-ink">−{formatRupiah(employeeDeductions, { withSymbol: false })}</TableCell>
-                    <TableCell className="text-right font-medium tabular-nums text-ink">{formatRupiah(line.net)}</TableCell>
+                    <TableCell className="text-right font-medium tabular-nums text-ink">
+                      <div>{formatRupiah(line.net)}</div>
+                      {netDiff !== 0 && (
+                        <div
+                          className={`text-[10px] font-semibold mt-0.5 ${
+                            netDiff > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+                          }`}
+                        >
+                          {netDiff > 0 ? "▲ +" : "▼ -"}{formatRupiah(Math.abs(netDiff), { withSymbol: false })}
+                        </div>
+                      )}
+                    </TableCell>
                   </TableRow>
                 );
               })
@@ -231,11 +314,32 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
   );
 }
 
-function SummaryCard({ label, value, emphasize }: { label: string; value: number; emphasize?: boolean }) {
+function SummaryCard({
+  label,
+  value,
+  diff,
+  emphasize,
+}: {
+  label: string;
+  value: number;
+  diff?: number;
+  emphasize?: boolean;
+}) {
   return (
     <Card className={`p-3 ${emphasize ? "border-brand/30 bg-brand-light/50" : ""}`}>
       <div className="text-xs text-muted">{label}</div>
-      <div className="mt-1 text-lg font-bold tabular-nums text-ink">{formatRupiah(value)}</div>
+      <div className="mt-1 flex items-baseline justify-between gap-1 flex-wrap">
+        <div className="text-lg font-bold tabular-nums text-ink">{formatRupiah(value)}</div>
+        {diff != null && diff !== 0 && (
+          <span
+            className={`text-xs font-semibold ${
+              diff > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+            }`}
+          >
+            {diff > 0 ? "▲ +" : "▼ "}{formatRupiah(Math.abs(diff), { withSymbol: false })}
+          </span>
+        )}
+      </div>
     </Card>
   );
 }

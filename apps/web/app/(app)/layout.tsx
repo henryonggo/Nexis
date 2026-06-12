@@ -7,6 +7,8 @@ import { CompanySwitcher } from "@/components/company-switcher";
 import { IdleTimeout } from "@/components/idle-timeout";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { DesktopSidebar, MobileNav, type NavItem } from "@/components/app-sidebar";
+import { TopNav } from "@/components/top-nav";
+import { CommandCenter } from "@/components/command-center";
 import { Button } from "@/components/ui/button";
 
 const NAV = [
@@ -45,12 +47,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen">
       <IdleTimeout />
-      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-surface px-4 sm:px-6">
+      <header className="sticky top-0 z-40 flex h-14 items-center justify-between glass-panel border-t-0 border-x-0 rounded-none px-4 sm:px-6">
         <div className="flex items-center gap-3">
           <MobileNav items={navItems} />
           <span className="text-lg font-bold text-brand">Nexis</span>
           <CompanySwitcher companies={memberships} activeId={active!.id} />
         </div>
+
+        <TopNav />
+
         <div className="flex items-center gap-2 sm:gap-3">
           <span className="hidden text-sm text-muted sm:inline">{user.email}</span>
           <LocaleSwitcher />
@@ -68,6 +73,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <div className="mx-auto max-w-7xl">{children}</div>
         </main>
       </div>
+      <CommandCenter />
     </div>
   );
 }

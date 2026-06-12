@@ -4,11 +4,11 @@ import { getActiveCompany } from "@/lib/company";
 import {
   getCompanyLeaveRequests,
   getLeaveAttachmentUrl,
-  formatDateRange,
   type LeaveRequestView,
 } from "@/lib/leave";
+import { formatDateRange } from "@/lib/date";
 import { LeaveStatusBadge } from "./status-badge";
-import { LeaveDecisionButtons } from "./decision-buttons";
+import { PendingLeavesList } from "./pending-leaves-list";
 import { Card } from "@/components/ui/card";
 import {
   Table,
@@ -33,13 +33,13 @@ export default async function LeavePage() {
   const decided = requests.filter((r) => r.status !== "pending");
 
   // Pre-sign attachments for pending rows (the queue the manager acts on).
-  const attachmentUrls = new Map<string, string>();
+  const attachmentUrls: Record<string, string> = {};
   await Promise.all(
     pending
       .filter((r) => r.attachmentPath)
       .map(async (r) => {
         const url = await getLeaveAttachmentUrl(supabase, r.attachmentPath!);
-        if (url) attachmentUrls.set(r.id, url);
+        if (url) attachmentUrls[r.id] = url;
       }),
   );
 
@@ -54,38 +54,11 @@ export default async function LeavePage() {
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
           {t("pending", { count: pending.length })}
         </h2>
-        {pending.length === 0 ? (
-          <Card className="px-4 py-6 text-center text-sm text-muted">{t("noPending")}</Card>
-        ) : (
-          <div className="space-y-3">
-            {pending.map((r) => (
-              <Card key={r.id} className="p-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="font-semibold text-ink">{r.employeeName}</p>
-                    <p className="text-sm text-muted">
-                      {r.leaveTypeName} · {formatDateRange(r.startDate, r.endDate)} ·{" "}
-                      <span className="font-medium text-ink">{r.days} {t("daysLabel")}</span>
-                      {r.halfDay && ` ${t("halfDay")}`}
-                    </p>
-                    {r.reason && <p className="mt-1 text-sm text-ink">“{r.reason}”</p>}
-                    {attachmentUrls.has(r.id) && (
-                      <a
-                        href={attachmentUrls.get(r.id)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-1 inline-block text-sm text-brand hover:underline"
-                      >
-                        {t("viewAttachment")}
-                      </a>
-                    )}
-                  </div>
-                  {canApprove && <LeaveDecisionButtons requestId={r.id} />}
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
+        <PendingLeavesList
+          pending={pending}
+          canApprove={canApprove}
+          attachmentUrls={attachmentUrls}
+        />
       </section>
 
       <section className="space-y-3">

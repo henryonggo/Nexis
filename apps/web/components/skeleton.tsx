@@ -35,7 +35,7 @@ export function CardGridSkeleton({ count = 3, columns = 3 }: { count?: number; c
   return (
     <div className={`grid gap-4 ${colClass}`}>
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="space-y-3 rounded-lg border border-[color:var(--border)] bg-white p-5">
+        <div key={i} className="space-y-3 rounded-lg border border-border bg-white p-5">
           <Skeleton className="h-4 w-24" />
           <Skeleton className="h-8 w-20" />
           <Skeleton className="h-3 w-32" />
@@ -48,13 +48,13 @@ export function CardGridSkeleton({ count = 3, columns = 3 }: { count?: number; c
 /** A table with a header row and shimmering body rows. */
 export function TableSkeleton({ columns = 5, rows = 6 }: { columns?: number; rows?: number }) {
   return (
-    <div className="overflow-hidden rounded-lg border border-[color:var(--border)] bg-white">
+    <div className="overflow-hidden rounded-lg border border-border bg-white">
       <div className="flex gap-4 bg-brand-light/60 px-4 py-2.5">
         {Array.from({ length: columns }).map((_, i) => (
           <Skeleton key={i} className="h-4 flex-1" />
         ))}
       </div>
-      <div className="divide-y divide-[color:var(--border)]">
+      <div className="divide-y divide-border">
         {Array.from({ length: rows }).map((_, r) => (
           <div key={r} className="flex gap-4 px-4 py-3.5">
             {Array.from({ length: columns }).map((_, c) => (
@@ -70,7 +70,7 @@ export function TableSkeleton({ columns = 5, rows = 6 }: { columns?: number; row
 /** Stacked label + input pairs for create/edit forms. */
 export function FormSkeleton({ fields = 6 }: { fields?: number }) {
   return (
-    <div className="max-w-xl space-y-5 rounded-lg border border-[color:var(--border)] bg-white p-6">
+    <div className="max-w-xl space-y-5 rounded-lg border border-border bg-white p-6">
       {Array.from({ length: fields }).map((_, i) => (
         <div key={i} className="space-y-2">
           <Skeleton className="h-4 w-28" />
