@@ -1,6 +1,9 @@
 # Handoff — Stage 7: Loans & Advances (Kasbon)
 
-> **Status:** app layer built (Claude), **blocked on schema (Antigravity)**.
+> **Status:** ✅ **COMPLETE.** Schema landed (Antigravity,
+> `supabase/migrations/20260605020000_stage7_loans.sql`); app wired to generated
+> types — the `loanDb()` quarantine cast is gone and no `TODO(db)` remains in
+> `apps/web/lib/loans.ts`.
 > Branch: `claude/stage-07-loans`. This doc is the `TODO(db)` tracking item per the
 > handoff protocol in `docs/08-agent-boundaries.md`.
 

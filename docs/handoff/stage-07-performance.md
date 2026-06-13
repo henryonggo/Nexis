@@ -1,6 +1,9 @@
 # Handoff — Stage 7: Performance & KPI
 
-> **Status:** app layer built (Claude), **blocked on schema (Antigravity)**.
+> **Status:** ✅ **COMPLETE.** Schema landed (Antigravity,
+> `supabase/migrations/20260605030000_stage7_performance.sql`); app wired to
+> generated types — the `perfDb()` quarantine cast is gone and no `TODO(db)`
+> remains in `apps/web/lib/performance.ts`.
 > Branch: `claude/stage-07-performance`. This doc is the `TODO(db)` tracking item per
 > the handoff protocol in `docs/08-agent-boundaries.md` (mirrors the loans handoff).
 
