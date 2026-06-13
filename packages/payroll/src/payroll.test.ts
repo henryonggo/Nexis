@@ -2,6 +2,8 @@ import { describe, it, expect } from "vitest";
 import {
   computeMonthlyPayroll,
   computeOvertimePay,
+  computeOvertimePayFromEntries,
+  isRestDayOrHoliday,
   overtimePayWeekday,
   overtimePayRestDay,
   ptkpCategory,
@@ -111,6 +113,42 @@ describe("overtime pay (statutory multipliers)", () => {
     expect(overtimePayRestDay(9, 3_460_000)).toBe(380_000); // + 60k
     expect(overtimePayRestDay(10, 3_460_000)).toBe(460_000); // + 80k
     expect(overtimePayRestDay(11, 3_460_000)).toBe(540_000); // + another 80k
+  });
+});
+
+describe("overtime classification + entry aggregation (shared with worker)", () => {
+  // 2026-06-15 = Monday (weekday), 2026-06-14 = Sunday (rest), 2026-06-13 = Saturday.
+  const holidays = new Set<string>(["2026-06-16"]); // a seeded holiday (Tuesday)
+
+  it("classifies Sunday, Saturday-on-5-day, and holidays as rest days", () => {
+    expect(isRestDayOrHoliday("2026-06-15", holidays, 5)).toBe(false); // Monday
+    expect(isRestDayOrHoliday("2026-06-14", holidays, 5)).toBe(true); // Sunday
+    expect(isRestDayOrHoliday("2026-06-13", holidays, 5)).toBe(true); // Saturday, 5-day week
+    expect(isRestDayOrHoliday("2026-06-13", holidays, 6)).toBe(false); // Saturday, 6-day week
+    expect(isRestDayOrHoliday("2026-06-16", holidays, 5)).toBe(true); // seeded holiday
+  });
+
+  it("sums entries into weekday vs rest-day buckets, matching computeOvertimePay", () => {
+    const pay = computeOvertimePayFromEntries({
+      entries: [
+        { date: "2026-06-15", durationMinutes: 120 }, // Mon → 2 weekday hours
+        { date: "2026-06-14", durationMinutes: 480 }, // Sun → 8 rest-day hours
+      ],
+      monthlyWage: 3_460_000,
+      holidayDates: holidays,
+      workweekDays: 5,
+    });
+    // 2 weekday (30k+40k) + 8 rest-day (8×40k) = 70k + 320k.
+    expect(pay).toBe(
+      computeOvertimePay({ monthlyWage: 3_460_000, weekdayHours: 2, restDayHours: 8 }),
+    );
+    expect(pay).toBe(390_000);
+  });
+
+  it("is zero with no entries", () => {
+    expect(
+      computeOvertimePayFromEntries({ entries: [], monthlyWage: 3_460_000, holidayDates: holidays, workweekDays: 5 }),
+    ).toBe(0);
   });
 });
 

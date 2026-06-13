@@ -4,6 +4,7 @@ import { useFormState } from "react-dom";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { createDraftRun, type RunActionState } from "../actions";
+import type { EmployeeBlocker } from "@/lib/payroll";
 import { SubmitButton } from "@/components/submit-button";
 import { Card } from "@/components/ui/card";
 import { fieldClasses } from "@/components/ui/input";
@@ -15,9 +16,11 @@ const initial: RunActionState = {};
 export function NewRunForm({
   defaultYear,
   defaultMonth,
+  blockers,
 }: {
   defaultYear: number;
   defaultMonth: number;
+  blockers: EmployeeBlocker[];
 }) {
   const t = useTranslations("payroll.newRun");
   const months = t.raw("months") as string[];
@@ -28,6 +31,23 @@ export function NewRunForm({
     <Card className="max-w-lg p-8">
       <h1 className="mb-1 text-xl font-bold text-ink">{t("title")}</h1>
       <p className="mb-5 text-sm text-muted">{t("subtitle")}</p>
+
+      {blockers.length > 0 && (
+        <Alert variant="warning" className="mb-4">
+          <p className="font-semibold">{t("readiness.heading", { count: blockers.length })}</p>
+          <p className="mt-0.5 text-xs">{t("readiness.hint")}</p>
+          <ul className="mt-2 space-y-1">
+            {blockers.map((b) => (
+              <li key={b.employeeId} className="text-xs">
+                <Link href={`/employees/${b.employeeId}`} className="font-medium underline">
+                  {b.name}
+                </Link>{" "}
+                — {b.issues.map((i) => t(`readiness.issue.${i}`)).join(", ")}
+              </li>
+            ))}
+          </ul>
+        </Alert>
+      )}
 
       {state.error && <Alert variant="destructive" className="mb-4">{state.error}</Alert>}
 

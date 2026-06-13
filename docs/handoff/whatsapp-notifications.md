@@ -1,6 +1,10 @@
-# Handoff — WhatsApp notifications — 🟡 PROPOSED
+# Handoff — WhatsApp notifications — 🟢 DB DONE / 🟡 INFRA OPEN
 
 **Requested by:** Claude (app layer) · **Owner:** Antigravity (DB + Edge) / human (Meta acct) · 2026-06-09
+
+> **Status:** ✅ **TODO(db) complete** — `profiles.whatsapp_opt_in` landed; app
+> wired to generated types (cast removed, `page.tsx` reads the column). **⚠️ Still
+> open:** the `send-notification` WhatsApp channel (TODO(infra) below, Antigravity + Meta acct).
 
 Adds WhatsApp as a third notification channel alongside the existing Expo push + email
 (`supabase/functions/send-notification`). The app-layer opt-in UI is built; it writes one
@@ -14,12 +18,11 @@ column that doesn't exist yet.
   behind a quarantine cast in [settings/actions.ts](../../apps/web/app/(app)/settings/actions.ts)
   (`updateNotifications`). Validates phone (8–15 digits) and requires a number when opting in.
 
-## TODO(db) — Antigravity
+## TODO(db) — Antigravity — ✅ DONE
 
-1. **Column:** `profiles.whatsapp_opt_in boolean not null default false`.
-2. **RLS:** allow a user to **update their own** `profiles` row for `phone` + `whatsapp_opt_in`
-   (`id = auth.uid()`). The settings action does a direct `update` (no RPC).
-3. Regenerate `packages/types`.
+1. ✅ **Column:** `profiles.whatsapp_opt_in boolean not null default false`.
+2. ✅ **RLS:** user can update their own `profiles` row for `phone` + `whatsapp_opt_in`.
+3. ✅ `packages/types` regenerated.
 
 ## TODO(infra) — `send-notification` WhatsApp channel
 
@@ -36,10 +39,9 @@ WhatsApp Cloud API** (template message) — in addition to push/email.
 - Respect opt-in: no opt-in or no phone → silently skip the WA leg (push/email still send).
 - Log delivery + failures (reuse the function's existing logging).
 
-## App-side follow-up (Claude, after the column lands)
+## App-side follow-up (Claude) — ✅ DONE
 
-- Change the prefs read in [settings/page.tsx](../../apps/web/app/(app)/settings/page.tsx)
-  from `select("phone")` to `select("phone, whatsapp_opt_in")` and drop the quarantine cast
-  in `settings/actions.ts` (use the generated type).
-- Optional: surface per-event toggles if product wants granular control (currently a single
-  global WhatsApp opt-in).
+- ✅ `settings/page.tsx` reads `select("phone, whatsapp_opt_in")`; quarantine cast removed
+  from `settings/actions.ts` (uses the generated type).
+- Optional (deferred): per-event toggles if product wants granular control (currently a
+  single global WhatsApp opt-in).

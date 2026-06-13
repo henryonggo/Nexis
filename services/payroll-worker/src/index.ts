@@ -14,6 +14,7 @@ import {
   computeDecemberReconciliation,
   computeThr,
   ptkpCategory,
+  computeOvertimePayFromEntries,
   type EmployeePayrollInput,
   type JkkRiskClass,
   type PtkpStatus,
@@ -99,15 +100,6 @@ function sumFixedAllowances(value: unknown): number {
     }, 0);
   }
   return 0;
-}
-
-/** Check if a date is a weekend day or public holiday */
-function isRestDayOrHoliday(dateStr: string, holidayDates: Set<string>, workweekDays: number): boolean {
-  const date = new Date(dateStr);
-  const day = date.getUTCDay(); // UTC day to avoid timezone offset shifts on YYYY-MM-DD
-  if (day === 0) return true; // Sunday is always a rest day
-  if (day === 6 && workweekDays === 5) return true; // Saturday is rest day for 5-day workweeks
-  return holidayDates.has(dateStr);
 }
 
 /** Compute months of tenure for THR proration */
@@ -479,45 +471,20 @@ app.post("/process", async (req, res) => {
           monthsWorked: months,
         };
       } else {
-        // Compute Overtime hours
-        let weekdayHours = 0;
-        let restDayHours = 0;
-        const empOt = (overtimeEntries || []).filter((o) => o.employee_id === emp.id);
-        for (const ot of empOt) {
-          const hours = ot.duration_minutes / 60;
-          if (isRestDayOrHoliday(ot.date, holidayDates, workweekDays)) {
-            restDayHours += hours;
-          } else {
-            weekdayHours += hours;
-          }
-        }
+        // Compute Overtime pay using the shared engine helper to prevent calculation drift
+        const empOt = (overtimeEntries || [])
+          .filter((o) => o.employee_id === emp.id)
+          .map((o) => ({
+            date: o.date,
+            durationMinutes: Number(o.duration_minutes),
+          }));
 
-        // Calculate lembur rupiah
-        const hourlyBase = Math.round(baseSalary / 173);
-        
-        // Calculate weekday OT
-        let weekdayOtPay = 0;
-        if (weekdayHours > 0) {
-          const ceilHours = Math.ceil(weekdayHours);
-          const firstHour = Math.round(hourlyBase * 1.5);
-          const restHours = Math.round(hourlyBase * 2.0) * (ceilHours - 1);
-          weekdayOtPay = firstHour + restHours;
-        }
-
-        // Calculate restday OT
-        let restDayOtPay = 0;
-        if (restDayHours > 0) {
-          const ceilHours = Math.ceil(restDayHours);
-          const band1 = Math.min(ceilHours, 8);
-          const band2 = Math.min(Math.max(ceilHours - 8, 0), 1);
-          const band3 = Math.min(Math.max(ceilHours - 9, 0), 2);
-          restDayOtPay = 
-            Math.round(hourlyBase * 2.0) * band1 +
-            Math.round(hourlyBase * 3.0) * band2 +
-            Math.round(hourlyBase * 4.0) * band3;
-        }
-        
-        const overtimePay = weekdayOtPay + restDayOtPay;
+        const overtimePay = computeOvertimePayFromEntries({
+          entries: empOt,
+          monthlyWage: baseSalary,
+          holidayDates,
+          workweekDays,
+        });
 
         const input: EmployeePayrollInput = {
           baseSalary,

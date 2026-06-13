@@ -176,6 +176,54 @@ export function computeOvertimePay(args: {
   );
 }
 
+/** One approved overtime row, reduced to what pay computation needs. */
+export interface OvertimeEntry {
+  /** YYYY-MM-DD. */
+  date: string;
+  durationMinutes: number;
+}
+
+/**
+ * Whether a YYYY-MM-DD date is a rest day / public holiday for overtime
+ * classification: Sunday always rests; Saturday rests on a 5-day workweek; any
+ * seeded holiday rests. UTC day avoids a timezone offset shifting the weekday.
+ */
+export function isRestDayOrHoliday(
+  dateStr: string,
+  holidayDates: Set<string>,
+  workweekDays: number,
+): boolean {
+  const day = new Date(dateStr).getUTCDay();
+  if (day === 0) return true;
+  if (day === 6 && workweekDays === 5) return true;
+  return holidayDates.has(dateStr);
+}
+
+/**
+ * Total approved-overtime rupiah for a period from raw entries. Single source of
+ * truth shared by the run preview (apps/web) and the payroll worker (services)
+ * so the draft and the processed run agree to the rupiah. Classifies each entry
+ * by date, sums hours per bucket, then applies the statutory bands above.
+ */
+export function computeOvertimePayFromEntries(args: {
+  entries: OvertimeEntry[];
+  monthlyWage: Rupiah;
+  holidayDates: Set<string>;
+  workweekDays: number;
+}): Rupiah {
+  let weekdayHours = 0;
+  let restDayHours = 0;
+  for (const e of args.entries) {
+    const hours = e.durationMinutes / 60;
+    if (isRestDayOrHoliday(e.date, args.holidayDates, args.workweekDays)) {
+      restDayHours += hours;
+    } else {
+      weekdayHours += hours;
+    }
+  }
+  return computeOvertimePay({ monthlyWage: args.monthlyWage, weekdayHours, restDayHours });
+}
+
 // ───────────────────────────────────────────────────────────────────────────
 // PPh 21 TER category + data-driven rate lookup (docs/05 §1).
 // The rate *numbers* are seed data in the reference tables (Antigravity); this

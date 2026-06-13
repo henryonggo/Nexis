@@ -6,6 +6,7 @@ import { formatRupiah, type Rupiah } from "@nexis/money";
 import {
   buildPayrollConfig,
   computeMonthlyPayroll,
+  computeOvertimePayFromEntries,
   computeThr,
   ptkpCategory,
   type EmployeePayrollInput,
@@ -130,6 +131,12 @@ function periodEffectiveDate(year: number, month: number): string {
   return `${year}-${String(month).padStart(2, "0")}-01`;
 }
 
+/** Last day of the run period (YYYY-MM-DD), for period-bounded queries. */
+function periodEndDate(year: number, month: number): string {
+  const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  return `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+}
+
 /** Whole months of service between join date and the end of the run period. */
 function monthsOfService(joinDate: string | null, year: number, month: number): number {
   if (!joinDate) return 12; // unknown tenure → treat as full entitlement, warn separately
@@ -157,9 +164,18 @@ export async function computeRunPreview(
 ): Promise<RunPreview> {
   const { year, month, runType, plan } = args;
   const effectiveDate = periodEffectiveDate(year, month);
+  const periodEnd = periodEndDate(year, month);
 
-  const [config, { data: employees }, { data: settings }, { data: comps }, { data: taxes }, { data: minWages }] =
-    await Promise.all([
+  const [
+    config,
+    { data: employees },
+    { data: settings },
+    { data: comps },
+    { data: taxes },
+    { data: minWages },
+    { data: overtimeEntries },
+    { data: holidays },
+  ] = await Promise.all([
       loadPayrollConfig(supabase, effectiveDate),
       supabase
         .from("employees")
@@ -169,7 +185,7 @@ export async function computeRunPreview(
         .order("full_name", { ascending: true }),
       supabase
         .from("company_settings")
-        .select("jkk_risk_class, region")
+        .select("jkk_risk_class, region, workweek_days")
         .eq("company_id", companyId)
         .maybeSingle(),
       supabase
@@ -183,7 +199,34 @@ export async function computeRunPreview(
       supabase
         .from("minimum_wages")
         .select("region, amount, effective_from, effective_to"),
+      // Approved overtime for the period — same filter the worker uses, so the
+      // preview's overtime pay matches the processed run (shared engine helper).
+      supabase
+        .from("overtime_entries")
+        .select("employee_id, date, duration_minutes")
+        .eq("company_id", companyId)
+        .eq("is_approved", true)
+        .gte("date", effectiveDate)
+        .lte("date", periodEnd),
+      supabase
+        .from("holidays")
+        .select("date")
+        .gte("date", effectiveDate)
+        .lte("date", periodEnd),
     ]);
+
+  // Overtime inputs shared with the worker: approved entries grouped by employee,
+  // the holiday set, and the company workweek (drives Saturday rest-day rule).
+  const workweekDays = settings?.workweek_days ?? 5;
+  const holidayDates = new Set(
+    ((holidays as { date: string }[] | null) ?? []).map((h) => h.date),
+  );
+  const otByEmployee = new Map<string, { date: string; durationMinutes: number }[]>();
+  for (const row of (overtimeEntries as { employee_id: string; date: string; duration_minutes: number }[] | null) ?? []) {
+    const list = otByEmployee.get(row.employee_id) ?? [];
+    list.push({ date: row.date, durationMinutes: row.duration_minutes });
+    otByEmployee.set(row.employee_id, list);
+  }
 
   // Latest-effective compensation per employee (≤ the run period).
   const compByEmployee = new Map<string, CompensationRow>();
@@ -266,7 +309,12 @@ export async function computeRunPreview(
     const input: EmployeePayrollInput = {
       baseSalary,
       fixedAllowances: sumFixedAllowances(comp.fixed_allowances),
-      overtimePay: 0, // TODO(stage4): derive from approved attendance overtime hours
+      overtimePay: computeOvertimePayFromEntries({
+        entries: otByEmployee.get(emp.id) ?? [],
+        monthlyWage: baseSalary,
+        holidayDates,
+        workweekDays,
+      }),
       ptkpStatus,
       hasNpwp,
       jkkRiskClass: companyRisk,
@@ -352,6 +400,71 @@ export async function computeRunPreview(
       },
     },
   };
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// Pre-run readiness gate (Case-02 G7). A draft must not silently fall back to
+// TK/0 / zero-pay for employees with incomplete master data — block instead and
+// list exactly who needs what. Computed entirely from existing tables (no DB
+// object): each active employee needs compensation in force, a tax profile, and
+// a bank account with an account number.
+// ───────────────────────────────────────────────────────────────────────────
+
+/** Stable issue codes; the UI maps these to localized labels. */
+export type ReadinessIssue = "compensation" | "tax" | "bank";
+
+export interface EmployeeBlocker {
+  employeeId: string;
+  name: string;
+  issues: ReadinessIssue[];
+}
+
+export interface RunReadiness {
+  ready: boolean;
+  blockers: EmployeeBlocker[];
+}
+
+export async function computeRunReadiness(
+  supabase: SupabaseClient<Database>,
+  companyId: string,
+  args: { year: number; month: number },
+): Promise<RunReadiness> {
+  const effectiveDate = periodEffectiveDate(args.year, args.month);
+
+  const [{ data: employees }, { data: comps }, { data: taxes }, { data: banks }] = await Promise.all([
+    supabase
+      .from("employees")
+      .select("id, full_name")
+      .eq("company_id", companyId)
+      .eq("status", "active")
+      .order("full_name", { ascending: true }),
+    supabase.from("compensation").select("employee_id, effective_from").eq("company_id", companyId),
+    supabase.from("tax_profile").select("employee_id").eq("company_id", companyId),
+    supabase.from("bank_accounts").select("employee_id, account_no").eq("company_id", companyId),
+  ]);
+
+  const hasComp = new Set(
+    ((comps as { employee_id: string; effective_from: string }[] | null) ?? [])
+      .filter((c) => c.effective_from <= effectiveDate)
+      .map((c) => c.employee_id),
+  );
+  const hasTax = new Set(((taxes as { employee_id: string }[] | null) ?? []).map((t) => t.employee_id));
+  const hasBank = new Set(
+    ((banks as { employee_id: string; account_no: string | null }[] | null) ?? [])
+      .filter((b) => (b.account_no ?? "").trim() !== "")
+      .map((b) => b.employee_id),
+  );
+
+  const blockers: EmployeeBlocker[] = [];
+  for (const emp of (employees as { id: string; full_name: string }[] | null) ?? []) {
+    const issues: ReadinessIssue[] = [];
+    if (!hasComp.has(emp.id)) issues.push("compensation");
+    if (!hasTax.has(emp.id)) issues.push("tax");
+    if (!hasBank.has(emp.id)) issues.push("bank");
+    if (issues.length > 0) blockers.push({ employeeId: emp.id, name: emp.full_name, issues });
+  }
+
+  return { ready: blockers.length === 0, blockers };
 }
 
 // Re-export client-safe formatters so server components can keep importing them

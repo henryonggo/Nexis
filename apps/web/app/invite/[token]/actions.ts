@@ -20,6 +20,8 @@ export async function acceptInvite(token: string): Promise<AcceptState> {
   } = await supabase.auth.getUser();
   if (!user) redirect(`/sign-in?redirectTo=/invite/${token}`);
 
+  // accept_invitation also links employees.user_id = auth.uid() for unclaimed
+  // employee rows matching the invited email, so employee self-service works.
   const { data: companyId, error } = await supabase.rpc("accept_invitation", {
     p_token: token,
   });

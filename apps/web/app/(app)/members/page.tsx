@@ -21,7 +21,14 @@ interface MemberJoin {
   profiles: { full_name: string | null } | null;
 }
 
-export default async function MembersPage() {
+const INVITE_ROLES = ["admin", "manager", "employee"] as const;
+type InviteRole = (typeof INVITE_ROLES)[number];
+
+export default async function MembersPage({
+  searchParams,
+}: {
+  searchParams?: { email?: string; role?: string };
+}) {
   const supabase = createClient();
   const active = await getActiveCompany();
   if (!active) return null;
@@ -78,7 +85,14 @@ export default async function MembersPage() {
 
       {isAdmin && (
         <>
-          <InviteForm />
+          <InviteForm
+            defaultEmail={searchParams?.email ?? ""}
+            defaultRole={
+              INVITE_ROLES.includes(searchParams?.role as InviteRole)
+                ? (searchParams!.role as InviteRole)
+                : "employee"
+            }
+          />
 
           {inviteRows.length > 0 && (
             <div>

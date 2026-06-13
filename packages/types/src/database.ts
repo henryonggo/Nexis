@@ -2619,9 +2619,25 @@ export type Database = {
         }
         Returns: string
       }
+      generate_overtime_entries: {
+        Args: { p_company_id: string; p_date: string }
+        Returns: undefined
+      }
       generate_scim_token: {
         Args: { p_company_id: string; p_expires_at?: string }
         Returns: string
+      }
+      get_payroll_readiness: {
+        Args: { p_company_id: string }
+        Returns: {
+          employee_id: string
+          full_name: string
+          has_bank_account: boolean
+          has_compensation: boolean
+          has_tax_profile: boolean
+          is_ready: boolean
+          issues: string[]
+        }[]
       }
       get_scim_user_by_id: {
         Args: { p_company_id: string; p_user_id: string }
@@ -2646,6 +2662,14 @@ export type Database = {
       get_user_id_by_email: { Args: { p_email: string }; Returns: string }
       hire_application: { Args: { p_application_id: string }; Returns: string }
       is_current_user_active: { Args: never; Returns: boolean }
+      link_employee_account: {
+        Args: { p_employee_id: string; p_user_id: string }
+        Returns: undefined
+      }
+      recompute_employee_overtime: {
+        Args: { p_date: string; p_employee_id: string }
+        Returns: undefined
+      }
       record_attendance: {
         Args: {
           p_company_id: string
@@ -2683,9 +2707,14 @@ export type Database = {
         Args: { p_active: boolean; p_company_id: string; p_user_id: string }
         Returns: undefined
       }
+      seed_indonesian_holidays: { Args: { p_year: number }; Returns: undefined }
       submit_review: { Args: { p_review_id: string }; Returns: undefined }
       user_has_company_access: { Args: { target: string }; Returns: boolean }
       user_is_company_admin: { Args: { target: string }; Returns: boolean }
+      user_is_company_manager_or_admin: {
+        Args: { target: string }
+        Returns: boolean
+      }
       user_role_in_company: {
         Args: { target: string }
         Returns: Database["public"]["Enums"]["company_role"]

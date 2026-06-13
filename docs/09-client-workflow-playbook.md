@@ -63,6 +63,18 @@ W1 Signup ─▶ W2 Company setup ─▶ W3 Workforce setup ─▶ W4 Attendance
 **North-star activation metric:** time from signup → first approved payroll run
 ("time-to-first-payroll", target ≤ 7 days for a ≤5-employee company).
 
+**Biggest-value UX backlog (flagged ★ in their stage checklists below):** the three
+items with the highest activation/trust leverage right now —
+
+1. **Bulk-import refinement (W3)** — CSV import ships, but XLSX template + per-row
+   error report is the single biggest onboarding-friction reducer.
+2. **Payslip "Explain this number" (W5)** — per-line TER/BPJS values render today, but
+   no plain-language explainer. Trust in the math is the product.
+3. **Pre-run validation gate (W5)** — no blocking-issue list before draft today; a
+   gate that lists missing bank/tax fields prevents mid-run failure.
+
+These three are the recommended next pulls into the roadmap (see §5 for full audit).
+
 ---
 
 ## W1 — Signup & account
@@ -126,8 +138,8 @@ W1 Signup ─▶ W2 Company setup ─▶ W3 Workforce setup ─▶ W4 Attendance
 - **Success criteria:** 0 employees with missing payroll-blocking data at W5 entry;
   invite acceptance ≥ 90%; seat-limit block fires with a clear, non-punitive prompt.
 - **UX improvements (human):**
-  - [ ] Bulk import (CSV/XLSX template) — typing 5–20 employees by hand is the single
-        biggest onboarding friction.
+  - [ ] ★ Bulk import refinement — CSV ships; add XLSX template + per-row error report.
+        Typing 5–20 employees by hand is the single biggest onboarding friction.
   - [ ] "Payroll-readiness" badge per employee showing exactly which field is missing.
   - [ ] Inline PTKP/BPJS explainers in plain Bahasa — admins shouldn't need to know
         tax jargon to pick a status.
@@ -181,9 +193,9 @@ W1 Signup ─▶ W2 Company setup ─▶ W3 Workforce setup ─▶ W4 Attendance
   surcharge applied where relevant; re-running after a rate change never mutates this
   run; admin completes review in one sitting.
 - **UX improvements (human):**
-  - [ ] "Explain this number" on every payslip line — show the TER bracket, BPJS cap,
+  - [ ] ★ "Explain this number" on every payslip line — show the TER bracket, BPJS cap,
         and formula in plain language. Trust in the math is the product.
-  - [ ] Pre-run validation gate listing every blocking issue before the draft (missing
+  - [ ] ★ Pre-run validation gate listing every blocking issue before the draft (missing
         bank account, missing tax profile) — never fail mid-run.
   - [ ] Side-by-side diff vs. the previous run (first run: vs. expected gross).
   - [ ] Bank-transfer-ready export grouped by bank.
@@ -349,3 +361,32 @@ detail, not a rewrite:
   measure time-to-first-payroll.
 - **Quarterly:** review §2 against the API surface; promote one stage's agent-readiness
   items into the roadmap.
+
+---
+
+## 5. Live-code audit — 2026-06-12
+
+Snapshot of the shipped product vs. the intended journey above. Scope: `apps/web`
+(App Router) + `apps/mobile` (Expo). Legend: ✅ present · ◑ partial · ❌ missing.
+
+| Stage | Status | What exists in code | Gaps vs. this playbook |
+|---|---|---|---|
+| **W1 Signup** | ◑ | Email/password signup, verify, forgot/reset (`app/(auth)/**`); 2-hour inactivity sign-out shipped (`components/idle-timeout` wired in `app/(app)/layout.tsx`). | **Google OAuth not built** — signup is password-only; callback route (`app/auth/callback/route.ts`) is generic but no `signInWithOAuth` path or provider button. W1 UX checkbox "Google OAuth up front" still open. |
+| **W2 Company setup** | ◑ | `create_company_with_owner` via `app/(onboarding)/actions.ts` + `companies/new/actions.ts`; free tier, no NPWP on free path. | No post-create "next 3 steps" checklist; no machine-readable `setup_checklist` JSON (both W2 items open). |
+| **W3 Workforce setup** | ✅ | Employee CRUD (`employees/**`), member invites (`members/**`, `invite/[token]`), **CSV bulk import shipped** (`employees/import` — quoted-field parser, header row), seat-limit enforced (`free_seat_limit`). | Import is CSV only (no XLSX); field-level validation rules not yet exposed as schema (agent item open). |
+| **W4 Attendance** | ✅ | Web Realtime board (`attendance/live-board.tsx`); **mobile clock-in with geofence + selfie liveness** (`expo-camera`, `expo-location`, `nearestGeofence`, `livenessPhase`) incl. permission handling. | **Offline/poor-signal queueing missing** — `pendingKind` is in-flight capture state only, no AsyncStorage/retry persistence. Anomaly webhook feed (agent item) open. |
+| **W5 First payroll ★** | ✅ | Full state machine `draft → queued → paid` (`payroll/actions.ts`); `config_snapshot` captured at draft; **role gate** (owner/admin) on approve/mark-paid; idempotent approve; per-employee breakdown page (`payroll/[runId]`) with per-line BPJS rows, **TER category + rate shown**, and **side-by-side diff vs. prior run** (`totalsDiff`); Cloud Run worker generates payslips. | Approval gate is role-based, **not** human-vs-agent credential — `actor_type` distinction (§2.5) not yet encoded. No plain-language "Explain this number" tooltip — numbers are labeled but not explained (no popover/formula UI). |
+| **W6 Self-service** | ✅ | Leave + claims on web (`leave/**`, `claims/**`) and mobile (`(app)/leave.tsx`, `claims.tsx`). | Policy-as-data, receipt OCR hook, delegated-approval API (agent items) open. |
+| **W7 Steady-state loop** | ❌ (process) | No productized in-app cycle checklist found; the D-7…D+3 table is still doc-only. | Biggest agent surface (§W7) unbuilt: no scheduled-task/cron hooks for cutoff events. |
+| **W8 Reporting & upgrade** | ✅ | Reports export **e-Bupot / SIPP / PPh21 → XLSX** (`reports/actions.ts`); billing upgrade flow (`billing/**` — plan cards, upgrade form). | **Filing calendar with statutory deadlines missing** (no match in reports/settings). Export manifest/checksum (agent verify) open. |
+| **W9 Growth & API** | ◑ | Company switcher (`companies/**`); **developer API shipped** — API keys (`developer/key-form`, `secret-reveal`) + **webhooks with event subscriptions** (`WEBHOOK_EVENTS`). | Accountant **portfolio dashboard** (cross-company status view) not found; per-company scoped tokens / rate limits unverified. |
+
+**Headline gaps to feed the roadmap:**
+1. **Google OAuth** (W1) — listed as a friction-killer, still password-only.
+2. **Onboarding checklist** (W2) — empty dashboard after company create; no `setup_checklist`.
+3. **Steady-state automation** (W7) — the highest-value agent loop has no cron/webhook scheduling yet.
+4. **`actor_type` attribution** (§2.5 / W5) — payroll gate is role-based; human-vs-agent distinction not encoded, blocking the W5 hard-gate and clean agent audit trails.
+5. **Accountant portfolio view** (W9) — the "killer agent surface" has no cross-company dashboard.
+
+> Method: route/grep audit only; not a behavioral test pass. Re-run before each
+> quarterly review (§4) and bump the date.
