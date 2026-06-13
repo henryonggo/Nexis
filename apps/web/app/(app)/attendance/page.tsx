@@ -31,8 +31,8 @@ export default async function AttendancePage() {
 
   const canCorrect = active.role !== "employee";
   const canConfigure = active.role === "owner" || active.role === "admin";
-  // Overtime writes are owner/admin-only at the RLS layer (user_is_company_admin).
-  const canApproveOvertime = canConfigure;
+  // Overtime writes allow owner/admin/manager (user_is_company_manager_or_admin RLS).
+  const canApproveOvertime = canCorrect;
   const since = startOfTodayJakartaIso();
   const t = await getTranslations("attendance");
 

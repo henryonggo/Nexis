@@ -122,8 +122,6 @@ export async function approveRun(
   if (!active) return { error: "Tidak ada perusahaan aktif." };
   if (!isAdmin(active.role)) return { error: "Hanya admin/pemilik yang dapat menyetujui run." };
 
-  // TODO(db): enforce plan/NPWP gate for tax-affecting runs here once Antigravity
-  // lands typed gate errors (PLAN_GATE_FREE / NPWP_REQUIRED) — docs/handoff/plan-tax-gating.md
   const supabase = createClient();
   const { error } = await supabase
     .from("payroll_runs")
@@ -132,7 +130,22 @@ export async function approveRun(
     .eq("company_id", active.id)
     .eq("status", "draft"); // only a draft can be approved (idempotent)
 
-  if (error) return { error: error.message };
+  if (error) {
+    // Plan/NPWP gate raised by enforce_payroll_run_gating on status → queued.
+    if (error.message.includes("PLAN_GATE_FREE")) {
+      return {
+        error:
+          "Run payroll bulanan tidak tersedia di paket gratis. Upgrade paket di Tagihan untuk memprosesnya.",
+      };
+    }
+    if (error.message.includes("NPWP_REQUIRED")) {
+      return {
+        error:
+          "NPWP perusahaan belum diisi. Lengkapi NPWP perusahaan sebelum memproses payroll bulanan.",
+      };
+    }
+    return { error: error.message };
+  }
 
   // Hand off to the payroll worker (computes + writes payroll_items/payslips and
   // advances the run to completed). The run is already 'queued', so if the worker
