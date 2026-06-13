@@ -122,6 +122,8 @@ export async function approveRun(
   if (!active) return { error: "Tidak ada perusahaan aktif." };
   if (!isAdmin(active.role)) return { error: "Hanya admin/pemilik yang dapat menyetujui run." };
 
+  // TODO(db): enforce plan/NPWP gate for tax-affecting runs here once Antigravity
+  // lands typed gate errors (PLAN_GATE_FREE / NPWP_REQUIRED) — docs/handoff/plan-tax-gating.md
   const supabase = createClient();
   const { error } = await supabase
     .from("payroll_runs")

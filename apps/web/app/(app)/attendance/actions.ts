@@ -71,6 +71,7 @@ export async function approveOvertime(
   const active = await getActiveCompany();
   if (!active) return { error: "Tidak ada perusahaan aktif." };
   // RLS on overtime_entries restricts writes to owner/admin (user_is_company_admin).
+  // TODO(db): widen RLS + this gate to managers — docs/handoff/overtime-approval-roles.md
   if (active.role !== "owner" && active.role !== "admin") {
     return { error: "Hanya pemilik/admin yang dapat menyetujui lembur." };
   }
