@@ -31,6 +31,8 @@ export default async function AttendancePage() {
 
   const canCorrect = active.role !== "employee";
   const canConfigure = active.role === "owner" || active.role === "admin";
+  // Overtime writes are owner/admin-only at the RLS layer (user_is_company_admin).
+  const canApproveOvertime = canConfigure;
   const since = startOfTodayJakartaIso();
   const t = await getTranslations("attendance");
 
@@ -45,8 +47,8 @@ export default async function AttendancePage() {
       .eq("company_id", active.id)
       .gte("event_at", since)
       .order("event_at", { ascending: false }),
-    // Pending overtime awaiting approval — shown only to admin/manager roles.
-    canCorrect
+    // Pending overtime awaiting approval — owner/admin only (matches RLS).
+    canApproveOvertime
       ? supabase
           .from("overtime_entries")
           .select("id, employee_id, date, duration_minutes, multiplier")
@@ -81,7 +83,7 @@ export default async function AttendancePage() {
         )}
       </div>
 
-      {canCorrect && (
+      {canApproveOvertime && (
         <OvertimeQueue
           pending={(pendingOvertime as PendingOvertime[] | null) ?? []}
           nameById={nameById}

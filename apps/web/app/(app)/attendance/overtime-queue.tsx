@@ -46,7 +46,7 @@ export function OvertimeQueue({
             <TableHead>{t("employee")}</TableHead>
             <TableHead>{t("date")}</TableHead>
             <TableHead>{t("hours")}</TableHead>
-            <TableHead>{t("multiplier")}</TableHead>
+            <TableHead>{t("category")}</TableHead>
             <TableHead className="w-28 text-right">{t("action")}</TableHead>
           </TableRow>
         </TableHeader>
@@ -58,7 +58,9 @@ export function OvertimeQueue({
               </TableCell>
               <TableCell className="text-muted">{o.date}</TableCell>
               <TableCell className="text-muted">{(o.duration_minutes / 60).toFixed(1)}</TableCell>
-              <TableCell className="text-muted">×{o.multiplier}</TableCell>
+              <TableCell className="text-muted">
+                {o.multiplier >= 2 ? t("restDay") : t("weekday")}
+              </TableCell>
               <TableCell>
                 <div className="flex justify-end gap-1">
                   <ActionButton action={approveOvertime} id={o.id} variant="approve" label={t("approve")} />

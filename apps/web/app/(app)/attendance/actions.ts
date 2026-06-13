@@ -70,8 +70,9 @@ export async function approveOvertime(
 
   const active = await getActiveCompany();
   if (!active) return { error: "Tidak ada perusahaan aktif." };
-  if (active.role === "employee") {
-    return { error: "Hanya admin/manajer yang dapat menyetujui lembur." };
+  // RLS on overtime_entries restricts writes to owner/admin (user_is_company_admin).
+  if (active.role !== "owner" && active.role !== "admin") {
+    return { error: "Hanya pemilik/admin yang dapat menyetujui lembur." };
   }
 
   const supabase = createClient();
@@ -101,8 +102,8 @@ export async function rejectOvertime(
 
   const active = await getActiveCompany();
   if (!active) return { error: "Tidak ada perusahaan aktif." };
-  if (active.role === "employee") {
-    return { error: "Hanya admin/manajer yang dapat menolak lembur." };
+  if (active.role !== "owner" && active.role !== "admin") {
+    return { error: "Hanya pemilik/admin yang dapat menolak lembur." };
   }
 
   const supabase = createClient();
