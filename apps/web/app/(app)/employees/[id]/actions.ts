@@ -17,6 +17,7 @@ const updateSchema = z.object({
   baseSalary: z.coerce.number().int().min(0).default(0),
   ptkpStatus: z.enum(["TK/0", "TK/1", "TK/2", "TK/3", "K/0", "K/1", "K/2", "K/3"]),
   npwp: z.string().max(30).optional().or(z.literal("")),
+  managerId: z.string().uuid().optional().or(z.literal("")),
 });
 
 export type EditState = { error?: string; success?: string };
@@ -45,6 +46,8 @@ export async function updateEmployee(_prev: EditState, formData: FormData): Prom
       department: d.department || null,
       status: d.status,
       employment_type: d.employmentType,
+      // Self can't be its own manager; empty → no manager (unscopes from any team).
+      manager_id: d.managerId && d.managerId !== d.id ? d.managerId : null,
       updated_at: new Date().toISOString(),
     })
     .eq("id", d.id)
