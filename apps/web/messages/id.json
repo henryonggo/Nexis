@@ -540,6 +540,17 @@
       "sandboxNote": "Pembayaran berjalan di mode sandbox — belum ada kartu yang ditagih.",
       "confirm": "Konfirmasi upgrade"
     },
+    "taxDetails": {
+      "title": "Detail pajak perusahaan",
+      "subtitle": "NPWP & nomor BPJS perusahaan. NPWP wajib diisi untuk menyetujui payroll bulanan.",
+      "success": "Detail pajak diperbarui.",
+      "npwpLabel": "NPWP perusahaan",
+      "npwpHint": "15 atau 16 digit.",
+      "bpjsKesLabel": "No. BPJS Kesehatan",
+      "bpjsTkLabel": "No. BPJS Ketenagakerjaan",
+      "billingEmailLabel": "Email penagihan",
+      "save": "Simpan detail"
+    },
     "cards": {
       "current": "Paket saat ini",
       "selected": "Dipilih",

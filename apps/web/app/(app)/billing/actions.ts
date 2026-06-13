@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
-import { upgradeSchema } from "@/lib/billing";
+import { upgradeSchema, taxDetailsSchema } from "@/lib/billing";
 
 export type BillingActionState = { error?: string; ok?: boolean };
 
@@ -67,5 +67,50 @@ export async function upgradePlan(
 
   revalidatePath("/billing");
   revalidatePath("/employees");
+  return { ok: true };
+}
+
+/**
+ * Update company legal/tax details (NPWP + BPJS numbers + billing email) without
+ * changing the plan. NPWP is required to approve tax-affecting payroll runs
+ * (enforce_payroll_run_gating → NPWP_REQUIRED), so this gives an owner a way to
+ * set/fix it outside the upgrade flow. Owner-only, matching the company_billing
+ * RLS ("billing: owner write").
+ */
+export async function updateBillingDetails(
+  _prev: BillingActionState,
+  formData: FormData,
+): Promise<BillingActionState> {
+  const parsed = taxDetailsSchema.safeParse({
+    npwp: formData.get("npwp"),
+    bpjsKes: formData.get("bpjsKes"),
+    bpjsTk: formData.get("bpjsTk"),
+    billingEmail: formData.get("billingEmail"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Data tidak valid." };
+  }
+
+  const active = await getActiveCompany();
+  if (!active) return { error: "Tidak ada perusahaan aktif." };
+  if (active.role !== "owner") {
+    return { error: "Hanya pemilik perusahaan yang dapat mengubah detail pajak." };
+  }
+
+  const supabase = createClient();
+  const { npwp, bpjsKes, bpjsTk, billingEmail } = parsed.data;
+  const { error } = await supabase
+    .from("company_billing")
+    .update({
+      npwp,
+      bpjs_kes_no: bpjsKes,
+      bpjs_tk_no: bpjsTk,
+      billing_email: billingEmail,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("company_id", active.id);
+  if (error) return { error: error.message };
+
+  revalidatePath("/billing");
   return { ok: true };
 }

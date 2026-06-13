@@ -76,3 +76,13 @@ export const upgradeSchema = z.object({
 });
 
 export type UpgradeInput = z.infer<typeof upgradeSchema>;
+
+/** Company legal/tax details, editable independently of a plan change. */
+export const taxDetailsSchema = z.object({
+  npwp: npwpSchema,
+  bpjsKes: bpjsSchema,
+  bpjsTk: bpjsSchema,
+  billingEmail: z.string().trim().email("Email penagihan tidak valid."),
+});
+
+export type TaxDetailsInput = z.infer<typeof taxDetailsSchema>;

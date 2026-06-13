@@ -540,6 +540,17 @@
       "sandboxNote": "Payments run in sandbox mode — no card is charged yet.",
       "confirm": "Confirm upgrade"
     },
+    "taxDetails": {
+      "title": "Company tax details",
+      "subtitle": "Company NPWP & BPJS numbers. NPWP is required to approve monthly payroll.",
+      "success": "Tax details updated.",
+      "npwpLabel": "Company NPWP",
+      "npwpHint": "15 or 16 digits.",
+      "bpjsKesLabel": "BPJS Kesehatan no.",
+      "bpjsTkLabel": "BPJS Ketenagakerjaan no.",
+      "billingEmailLabel": "Billing email",
+      "save": "Save details"
+    },
     "cards": {
       "current": "Current plan",
       "selected": "Selected",
