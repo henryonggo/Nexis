@@ -363,6 +363,11 @@ tight and testable.
 Everything else in `case-02` (G8 liveness, G9 web download, Cloud Tasks) is
 below-the-line for beta.
 
+**Post-beta DB contract (Antigravity, started early):** the role matrix promises Manager =
+"own team" on every approval surface, but the policies are still company-wide
+(`employees.manager_id` exists, unused). Handoff queued: `docs/handoff/manager-team-scoping.md`.
+Medium priority — lands before multi-team companies.
+
 ---
 
 ## Role access summary

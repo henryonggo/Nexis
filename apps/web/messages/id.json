@@ -90,7 +90,12 @@
       "nameLabel": "Nama perusahaan",
       "industryLabel": "Industri",
       "industryPlaceholder": "mis. Ritel, Teknologi",
-      "submit": "Buat perusahaan"
+      "submit": "Buat perusahaan",
+      "joinTitle": "Gabung perusahaan",
+      "joinSubtitle": "Masukkan kode undangan Anda untuk bergabung dengan perusahaan yang sudah ada.",
+      "codeLabel": "Kode undangan",
+      "codePlaceholder": "Tempel kode undangan Anda di sini",
+      "joinSubmit": "Gabung perusahaan"
     }
   },
   "dashboard": {
