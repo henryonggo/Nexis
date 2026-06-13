@@ -33,10 +33,10 @@ export async function signUp(_prev: ActionState, formData: FormData): Promise<Ac
   }
 
   const { email, password, fullName } = parsed.data;
+  const redirectTo = formData.get("redirectTo") as string;
 
-  // Verification link lands on the login page after confirming.
-  const verifyRedirect = `${siteUrl()}/auth/callback?next=/sign-in`;
-  // const verifyRedirect = `${siteUrl()}/auth/callback?next=/dashboard`; // dev: straight into the app
+  // Verification link lands on the login page (or invite redirect) after confirming.
+  const verifyRedirect = `${siteUrl()}/auth/callback?next=${encodeURIComponent(redirectTo || "/sign-in")}`;
 
   // App-managed confirmation: when configured, create the user + mint our own
   // confirmation link (generateLink does NOT send an email), then send a branded

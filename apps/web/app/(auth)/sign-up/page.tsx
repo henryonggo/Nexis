@@ -2,7 +2,9 @@
 
 import { useFormState } from "react-dom";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { Suspense } from "react";
 import { signUp, type ActionState } from "../actions";
 import { SubmitButton } from "@/components/submit-button";
 import { PasswordInput } from "@/components/password-input";
@@ -13,10 +15,12 @@ import { Alert } from "@/components/ui/alert";
 
 const initial: ActionState = {};
 
-export default function SignUpPage() {
+function SignUpForm() {
   const t = useTranslations("auth.signUp");
   const tc = useTranslations("common");
   const [state, action] = useFormState(signUp, initial);
+  const params = useSearchParams();
+  const redirectTo = params.get("redirectTo");
 
   return (
     <Card className="w-full max-w-md p-8">
@@ -27,6 +31,7 @@ export default function SignUpPage() {
       {state.success && <Alert variant="success" className="mb-4">{state.success}</Alert>}
 
       <form action={action} className="space-y-4">
+        {redirectTo && <input type="hidden" name="redirectTo" value={redirectTo} />}
         <div className="space-y-1.5">
           <Label htmlFor="fullName">{t("fullName")}</Label>
           <Input id="fullName" name="fullName" autoComplete="name" required />
@@ -45,10 +50,21 @@ export default function SignUpPage() {
 
       <p className="mt-5 text-center text-sm text-muted">
         {t("haveAccount")}{" "}
-        <Link href="/sign-in" className="font-medium text-brand hover:underline">
+        <Link
+          href={`/sign-in${redirectTo ? `?redirectTo=${encodeURIComponent(redirectTo)}` : ""}`}
+          className="font-medium text-brand hover:underline"
+        >
           {t("signInLink")}
         </Link>
       </p>
     </Card>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense>
+      <SignUpForm />
+    </Suspense>
   );
 }

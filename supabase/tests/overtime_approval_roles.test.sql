@@ -24,9 +24,9 @@ insert into company_members (company_id, user_id, role) values
   ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '33333333-3333-3333-3333-333333333333', 'employee');
 
 -- Employees mapping
-insert into employees (id, company_id, user_id, full_name) values
-  ('e1111111-1111-1111-1111-111111111111', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '22222222-2222-2222-2222-222222222222', 'Manager Emp'),
-  ('e2222222-2222-2222-2222-222222222222', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '33333333-3333-3333-3333-333333333333', 'Employee Emp');
+insert into employees (id, company_id, user_id, full_name, manager_id) values
+  ('e1111111-1111-1111-1111-111111111111', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '22222222-2222-2222-2222-222222222222', 'Manager Emp', null),
+  ('e2222222-2222-2222-2222-222222222222', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '33333333-3333-3333-3333-333333333333', 'Employee Emp', 'e1111111-1111-1111-1111-111111111111');
 
 -- Insert unapproved overtime entries
 insert into public.overtime_entries (company_id, employee_id, date, duration_minutes, multiplier, is_approved) values
@@ -69,10 +69,12 @@ select throws_ok(
   'Manager is blocked by RLS from approving their own overtime entry'
 );
 
--- Test 5: Manager can edit duration on their own entry (as long as it is not approved)
-select lives_ok(
+-- Test 5: Manager cannot edit duration on their own entry
+select throws_ok(
   $$ update public.overtime_entries set duration_minutes = 90 where employee_id = 'e1111111-1111-1111-1111-111111111111' and date = '2026-06-01' $$,
-  'Manager can edit duration of their own unapproved overtime entry'
+  '42501',
+  NULL,
+  'Manager is blocked by RLS from editing duration of their own overtime entry'
 );
 
 -- Test 6: Regular employee cannot approve any entry (including their own)

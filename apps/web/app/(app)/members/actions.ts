@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getActiveCompany } from "@/lib/company";
 import { sendInviteEmail } from "@/lib/email";
 
@@ -55,16 +56,37 @@ export async function inviteMember(
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
   const inviteUrl = `${base}/invite/${invite!.token}`;
 
+  let emailSent = false;
+
   // Try to email the invite. If Resend isn't configured (or fails), fall back to
   // surfacing the link in-app so the admin can share it manually.
-  const mail = await sendInviteEmail({
-    to: parsed.data.email,
-    inviteUrl,
-    companyName: active.name,
-    role: parsed.data.role,
-  });
+  if (process.env.RESEND_API_KEY) {
+    const mail = await sendInviteEmail({
+      to: parsed.data.email,
+      inviteUrl,
+      companyName: active.name,
+      role: parsed.data.role,
+    });
+    emailSent = mail.sent;
+  } else if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    try {
+      const admin = createAdminClient();
+      const { error: inviteError } = await admin.auth.admin.inviteUserByEmail(
+        parsed.data.email.toLowerCase(),
+        {
+          redirectTo: inviteUrl,
+          data: { full_name: "" }
+        }
+      );
+      if (!inviteError) {
+        emailSent = true;
+      }
+    } catch (e) {
+      console.error("Failed to send invite email via Supabase admin client:", e);
+    }
+  }
 
-  if (mail.sent) {
+  if (emailSent) {
     return { success: `Undangan terkirim ke ${parsed.data.email}.` };
   }
   return {

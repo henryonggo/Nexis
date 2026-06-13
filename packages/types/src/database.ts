@@ -2709,6 +2709,10 @@ export type Database = {
       }
       seed_indonesian_holidays: { Args: { p_year: number }; Returns: undefined }
       submit_review: { Args: { p_review_id: string }; Returns: undefined }
+      user_can_manage_employee: {
+        Args: { p_employee_id: string }
+        Returns: boolean
+      }
       user_has_company_access: { Args: { target: string }; Returns: boolean }
       user_is_company_admin: { Args: { target: string }; Returns: boolean }
       user_is_company_manager_or_admin: {
