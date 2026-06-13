@@ -90,7 +90,12 @@
       "nameLabel": "Company name",
       "industryLabel": "Industry",
       "industryPlaceholder": "e.g. Retail, Technology",
-      "submit": "Create company"
+      "submit": "Create company",
+      "joinTitle": "Join company",
+      "joinSubtitle": "Enter your invitation code to join an existing company.",
+      "codeLabel": "Invitation code",
+      "codePlaceholder": "Paste your invitation code here",
+      "joinSubmit": "Join company"
     }
   },
   "dashboard": {

@@ -55,7 +55,10 @@ function SignInForm() {
 
       <p className="mt-5 text-center text-sm text-muted">
         {t("noAccount")}{" "}
-        <Link href="/sign-up" className="font-medium text-brand hover:underline">
+        <Link
+          href={`/sign-up${redirectTo ? `?redirectTo=${encodeURIComponent(redirectTo)}` : ""}`}
+          className="font-medium text-brand hover:underline"
+        >
           {t("signUpLink")}
         </Link>
       </p>
