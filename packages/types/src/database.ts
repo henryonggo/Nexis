@@ -2711,6 +2711,10 @@ export type Database = {
       submit_review: { Args: { p_review_id: string }; Returns: undefined }
       user_has_company_access: { Args: { target: string }; Returns: boolean }
       user_is_company_admin: { Args: { target: string }; Returns: boolean }
+      user_is_company_manager_or_admin: {
+        Args: { target: string }
+        Returns: boolean
+      }
       user_role_in_company: {
         Args: { target: string }
         Returns: Database["public"]["Enums"]["company_role"]
