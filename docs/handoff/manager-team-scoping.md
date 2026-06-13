@@ -1,4 +1,4 @@
-# Handoff — Manager "own team" scoping — 🟡 OPEN (Antigravity)
+# Handoff — Manager "own team" scoping — 🟢 COMPLETE
 
 > **Owner:** Antigravity (RLS + approval RPCs) → Claude (minor app follow-up).
 > Tracking item per `docs/08-agent-boundaries.md`. Source: `docs/10-beta-workflow-painpoints.md`
