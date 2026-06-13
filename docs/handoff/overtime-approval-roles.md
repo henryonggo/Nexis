@@ -1,7 +1,8 @@
-# Handoff — Overtime approval: allow managers — 🟡 OPEN (Antigravity)
+# Handoff — Overtime approval: allow managers — ✅ COMPLETE
 
 > **Owner:** Antigravity (RLS) → Claude (app follow-up). Tracking item per
 > `docs/08-agent-boundaries.md`. Source: `docs/cases/case-02-attendance-to-first-payroll.md` step 30.
+> **Status:** ✅ **COMPLETE** (Antigravity). Migration and pgTAP tests implemented.
 
 ## Problem
 

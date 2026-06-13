@@ -1,8 +1,9 @@
-# Handoff — Plan / NPWP gating for tax-affecting runs — 🟡 OPEN (Antigravity)
+# Handoff — Plan / NPWP gating for tax-affecting runs — ✅ COMPLETE
 
 > **Owner:** Antigravity (enforcement in DB/worker). Tracking item per
 > `docs/08-agent-boundaries.md`. Source: `docs/cases/case-02-attendance-to-first-payroll.md`
 > step 42, Gap G9(c).
+> **Status:** ✅ **COMPLETE** (Antigravity). Migration and pgTAP tests implemented.
 
 ## Problem
 
