@@ -37,7 +37,6 @@ export async function updateSession(request: NextRequest) {
     path.startsWith("/sign-in") ||
     path.startsWith("/sign-up") ||
     path.startsWith("/forgot-password") ||
-    path.startsWith("/reset-password") ||
     path.startsWith("/auth");
   const isProtected =
     path.startsWith("/dashboard") ||

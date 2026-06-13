@@ -48,12 +48,15 @@ Result: a manager can approve/correct any employee in the company, violating the
 
 4. Regenerate `packages/types` (new function only; no column change).
 
-## App follow-up — Claude (after RLS lands)
+## App follow-up — Claude — ✅ DONE
 
-Mostly automatic — the web queues already read RLS-filtered rows, so a manager will simply
-see only their team's pending items. Verify:
-- App role gates stay `role !== "employee"` (RLS does the team narrowing now).
-- Optional copy: label the manager's queues as "your team" where it adds clarity.
+- ✅ **Manager assignment UI** (the missing enabler): the employee edit form now sets
+  `employees.manager_id` via a "Manajer / Atasan" picker (`employees/[id]/form.tsx` +
+  `actions.ts` + page passes coworker list). Without this, `manager_id` was always null and
+  every manager queue was empty.
+- ✅ Verified app role gates stay `role !== "employee"` (overtime queue, attendance correction,
+  leave/claims approval) — RLS now does the team narrowing, so the existing queues auto-filter
+  to a manager's direct reports.
 
 ## Acceptance
 

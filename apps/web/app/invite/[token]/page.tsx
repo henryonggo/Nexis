@@ -9,7 +9,14 @@ export default async function InvitePage({ params }: { params: { token: string }
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect(`/sign-in?redirectTo=/invite/${params.token}`);
+  if (!user) {
+    const { data: email } = await supabase.rpc("get_invite_email", { p_token: params.token });
+    if (email) {
+      redirect(`/sign-up?email=${encodeURIComponent(email)}&redirectTo=/invite/${params.token}`);
+    } else {
+      redirect("/sign-in");
+    }
+  }
 
   const t = await getTranslations("invite");
   const tc = await getTranslations("common");

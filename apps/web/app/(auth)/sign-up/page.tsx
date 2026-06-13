@@ -21,6 +21,7 @@ function SignUpForm() {
   const [state, action] = useFormState(signUp, initial);
   const params = useSearchParams();
   const redirectTo = params.get("redirectTo");
+  const emailParam = params.get("email") || "";
 
   return (
     <Card className="w-full max-w-md p-8">
@@ -38,7 +39,16 @@ function SignUpForm() {
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="email">{tc("email")}</Label>
-          <Input id="email" name="email" type="email" autoComplete="email" required />
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            defaultValue={emailParam}
+            readOnly={!!emailParam}
+            className={emailParam ? "bg-muted cursor-not-allowed" : ""}
+            required
+          />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="password">{tc("password")}</Label>
@@ -51,7 +61,9 @@ function SignUpForm() {
       <p className="mt-5 text-center text-sm text-muted">
         {t("haveAccount")}{" "}
         <Link
-          href={`/sign-in${redirectTo ? `?redirectTo=${encodeURIComponent(redirectTo)}` : ""}`}
+          href={`/sign-in${redirectTo ? `?redirectTo=${encodeURIComponent(redirectTo)}` : ""}${
+            emailParam ? `${redirectTo ? "&" : "?"}email=${encodeURIComponent(emailParam)}` : ""
+          }`}
           className="font-medium text-brand hover:underline"
         >
           {t("signInLink")}

@@ -2627,6 +2627,7 @@ export type Database = {
         Args: { p_company_id: string; p_expires_at?: string }
         Returns: string
       }
+      get_invite_email: { Args: { p_token: string }; Returns: string }
       get_payroll_readiness: {
         Args: { p_company_id: string }
         Returns: {
