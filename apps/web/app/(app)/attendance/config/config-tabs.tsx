@@ -339,7 +339,7 @@ function EmployeeScheduleRow({
   );
 }
 
-// ── Holidays (read-only; seed RPC pending — TODO(db)) ────────────────────────
+// ── Holidays (read-only list + admin seed via seed_indonesian_holidays RPC) ──
 
 function HolidaysTab({ holidays, year }: { holidays: Holiday[]; year: number }) {
   const t = useTranslations("attendance.config");
