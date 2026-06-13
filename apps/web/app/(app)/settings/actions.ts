@@ -19,11 +19,7 @@ const phoneSchema = z
     message: "Nomor telepon tidak valid.",
   });
 
-/**
- * Save the user's notification preferences: WhatsApp phone number + opt-in.
- * `profiles.phone` is a real column; `whatsapp_opt_in` is pending — see
- * `docs/handoff/whatsapp-notifications.md`.
- */
+/** Save the user's notification preferences: WhatsApp phone number + opt-in. */
 export async function updateNotifications(
   _prev: NotificationsState,
   formData: FormData,
@@ -44,17 +40,13 @@ export async function updateNotifications(
   } = await supabase.auth.getUser();
   if (!user) redirect("/sign-in");
 
-  // TODO(db): need column profiles.whatsapp_opt_in (boolean, default false) + self-update
-  // RLS for phone/whatsapp_opt_in — Antigravity (docs/handoff/whatsapp-notifications.md).
-  // Quarantine cast until the column lands in packages/types.
-  const update = {
-    phone: phone || null,
-    whatsapp_opt_in: optIn,
-    updated_at: new Date().toISOString(),
-  };
   const { error } = await supabase
     .from("profiles")
-    .update(update as never)
+    .update({
+      phone: phone || null,
+      whatsapp_opt_in: optIn,
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", user.id);
   if (error) return { error: error.message };
 

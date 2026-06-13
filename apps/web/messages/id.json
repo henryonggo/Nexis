@@ -333,7 +333,7 @@
     "subtitle": "Jalankan dan tinjau payroll bulanan {name}.",
     "runPayroll": "Jalankan payroll",
     "runFirst": "Jalankan yang pertama",
-    "newRun": { "title": "Jalankan payroll", "subtitle": "Pilih periode dan jenis run. Anda akan meninjau rincian per karyawan sebelum menyetujui.", "month": "Bulan", "year": "Tahun", "runType": "Jenis run", "monthly": "Gaji bulanan", "thr": "THR (Tunjangan Hari Raya)", "submit": "Buat draf run", "cancel": "Batal", "months": ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"] },
+    "newRun": { "title": "Jalankan payroll", "subtitle": "Pilih periode dan jenis run. Anda akan meninjau rincian per karyawan sebelum menyetujui.", "month": "Bulan", "year": "Tahun", "runType": "Jenis run", "monthly": "Gaji bulanan", "thr": "THR (Tunjangan Hari Raya)", "submit": "Buat draf run", "cancel": "Batal", "months": ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"], "readiness": { "heading": "{count} karyawan belum siap untuk payroll", "hint": "Lengkapi data berikut dulu. Draf tidak dapat dibuat selama masih ada yang kurang.", "issue": { "compensation": "kompensasi", "tax": "profil pajak", "bank": "rekening bank" } } },
     "columns": { "period": "Periode", "status": "Status", "gross": "Bruto", "net": "Neto (take-home)", "employee": "Karyawan", "pph21": "PPh 21 (TER)", "deductions": "Potongan karyawan" },
     "status": { "draft": "Draf", "queued": "Antre", "processing": "Diproses", "completed": "Selesai", "paid": "Dibayar", "failed": "Gagal", "cancelled": "Dibatalkan" },
     "empty": "Belum ada run payroll.",

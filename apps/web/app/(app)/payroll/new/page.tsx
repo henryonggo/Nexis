@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 import { getActiveCompany } from "@/lib/company";
+import { createClient } from "@/lib/supabase/server";
+import { computeRunReadiness } from "@/lib/payroll";
 import { NewRunForm } from "./form";
 
 /** Default to the most recently completed month (payroll usually runs in arrears). */
@@ -17,5 +19,14 @@ export default async function NewPayrollRunPage() {
   }
 
   const { year, month } = previousMonth();
-  return <NewRunForm defaultYear={year} defaultMonth={month} />;
+  const supabase = createClient();
+  const readiness = await computeRunReadiness(supabase, active.id, { year, month });
+
+  return (
+    <NewRunForm
+      defaultYear={year}
+      defaultMonth={month}
+      blockers={readiness.blockers}
+    />
+  );
 }

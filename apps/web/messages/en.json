@@ -333,7 +333,7 @@
     "subtitle": "Run and review monthly payroll for {name}.",
     "runPayroll": "Run payroll",
     "runFirst": "Run your first one",
-    "newRun": { "title": "Run payroll", "subtitle": "Pick a period and run type. You'll review the per-employee breakdown before approving.", "month": "Month", "year": "Year", "runType": "Run type", "monthly": "Monthly salary", "thr": "THR (religious holiday allowance)", "submit": "Create draft run", "cancel": "Cancel", "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"] },
+    "newRun": { "title": "Run payroll", "subtitle": "Pick a period and run type. You'll review the per-employee breakdown before approving.", "month": "Month", "year": "Year", "runType": "Run type", "monthly": "Monthly salary", "thr": "THR (religious holiday allowance)", "submit": "Create draft run", "cancel": "Cancel", "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"], "readiness": { "heading": "{count} employees not ready for payroll", "hint": "Complete the data below first. A draft can't be created while any are missing.", "issue": { "compensation": "compensation", "tax": "tax profile", "bank": "bank account" } } },
     "columns": { "period": "Period", "status": "Status", "gross": "Gross", "net": "Net (take-home)", "employee": "Employee", "pph21": "PPh 21 (TER)", "deductions": "Employee deductions" },
     "status": { "draft": "Draft", "queued": "Queued", "processing": "Processing", "completed": "Completed", "paid": "Paid", "failed": "Failed", "cancelled": "Cancelled" },
     "empty": "No payroll runs yet.",

@@ -402,6 +402,71 @@ export async function computeRunPreview(
   };
 }
 
+// ───────────────────────────────────────────────────────────────────────────
+// Pre-run readiness gate (Case-02 G7). A draft must not silently fall back to
+// TK/0 / zero-pay for employees with incomplete master data — block instead and
+// list exactly who needs what. Computed entirely from existing tables (no DB
+// object): each active employee needs compensation in force, a tax profile, and
+// a bank account with an account number.
+// ───────────────────────────────────────────────────────────────────────────
+
+/** Stable issue codes; the UI maps these to localized labels. */
+export type ReadinessIssue = "compensation" | "tax" | "bank";
+
+export interface EmployeeBlocker {
+  employeeId: string;
+  name: string;
+  issues: ReadinessIssue[];
+}
+
+export interface RunReadiness {
+  ready: boolean;
+  blockers: EmployeeBlocker[];
+}
+
+export async function computeRunReadiness(
+  supabase: SupabaseClient<Database>,
+  companyId: string,
+  args: { year: number; month: number },
+): Promise<RunReadiness> {
+  const effectiveDate = periodEffectiveDate(args.year, args.month);
+
+  const [{ data: employees }, { data: comps }, { data: taxes }, { data: banks }] = await Promise.all([
+    supabase
+      .from("employees")
+      .select("id, full_name")
+      .eq("company_id", companyId)
+      .eq("status", "active")
+      .order("full_name", { ascending: true }),
+    supabase.from("compensation").select("employee_id, effective_from").eq("company_id", companyId),
+    supabase.from("tax_profile").select("employee_id").eq("company_id", companyId),
+    supabase.from("bank_accounts").select("employee_id, account_no").eq("company_id", companyId),
+  ]);
+
+  const hasComp = new Set(
+    ((comps as { employee_id: string; effective_from: string }[] | null) ?? [])
+      .filter((c) => c.effective_from <= effectiveDate)
+      .map((c) => c.employee_id),
+  );
+  const hasTax = new Set(((taxes as { employee_id: string }[] | null) ?? []).map((t) => t.employee_id));
+  const hasBank = new Set(
+    ((banks as { employee_id: string; account_no: string | null }[] | null) ?? [])
+      .filter((b) => (b.account_no ?? "").trim() !== "")
+      .map((b) => b.employee_id),
+  );
+
+  const blockers: EmployeeBlocker[] = [];
+  for (const emp of (employees as { id: string; full_name: string }[] | null) ?? []) {
+    const issues: ReadinessIssue[] = [];
+    if (!hasComp.has(emp.id)) issues.push("compensation");
+    if (!hasTax.has(emp.id)) issues.push("tax");
+    if (!hasBank.has(emp.id)) issues.push("bank");
+    if (issues.length > 0) blockers.push({ employeeId: emp.id, name: emp.full_name, issues });
+  }
+
+  return { ready: blockers.length === 0, blockers };
+}
+
 // Re-export client-safe formatters so server components can keep importing them
 // from "@/lib/payroll".
 export { MONTH_NAMES_ID, formatPeriod, formatRupiah } from "./payroll-format";
