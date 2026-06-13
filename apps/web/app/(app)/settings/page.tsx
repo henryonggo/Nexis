@@ -13,15 +13,12 @@ export default async function SettingsPage() {
   const t = await getTranslations("settings");
   const tc = await getTranslations("common");
 
-  // Notification prefs live on the user's profile. `phone` is a real column;
-  // `whatsapp_opt_in` is pending (docs/handoff/whatsapp-notifications.md) — read it
-  // behind a quarantine cast so the form prefills once the column lands.
-  const { data: profile } = await supabase
+  // Notification prefs live on the user's profile.
+  const { data: prefs } = await supabase
     .from("profiles")
-    .select("phone")
+    .select("phone, whatsapp_opt_in")
     .eq("id", user?.id ?? "")
     .maybeSingle();
-  const prefs = profile as ({ phone: string | null; whatsapp_opt_in?: boolean | null }) | null;
 
   return (
     <div className="max-w-xl space-y-6">

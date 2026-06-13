@@ -64,8 +64,8 @@ The flow works end-to-end. Gap G1 (invited employee is never linked to their emp
 
 Access is enforced in three layers: page guards (`active.role`), server-action role
 checks, and RLS. The matrix below is what the **employee** role gets, verified
-against code; items marked ❌G1 are *designed* to work but return empty until G1 is
-fixed because they all join through `employees.user_id = auth.uid()`.
+against code. Self-service rows join through `employees.user_id = auth.uid()`,
+populated at invite-accept since G1 landed (migration `20260612081500`).
 
 | Surface | Employee access | Enforced by | Status |
 |---|---|---|---|

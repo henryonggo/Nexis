@@ -154,7 +154,76 @@
     "approve": "Setujui",
     "markInvalid": "Tandai tidak valid",
     "updated": "Kehadiran diperbarui.",
-    "kind": { "clock_in": "Masuk", "clock_out": "Keluar", "break_start": "Mulai istirahat", "break_end": "Selesai istirahat" }
+    "configure": "Pengaturan",
+    "overtime": {
+      "title": "Lembur menunggu persetujuan ({count})",
+      "hint": "Lembur yang disetujui ikut dihitung pada payroll berikutnya.",
+      "employee": "Karyawan",
+      "date": "Tanggal",
+      "hours": "Jam",
+      "category": "Kategori",
+      "weekday": "Hari kerja",
+      "restDay": "Hari libur",
+      "action": "Aksi",
+      "approve": "Setujui",
+      "reject": "Tolak",
+      "unknown": "(tidak dikenal)"
+    },
+    "kind": { "clock_in": "Masuk", "clock_out": "Keluar", "break_start": "Mulai istirahat", "break_end": "Selesai istirahat" },
+    "config": {
+      "title": "Pengaturan Kehadiran",
+      "subtitle": "Atur lokasi geofence, shift, jadwal kerja, dan kalender libur.",
+      "back": "Kembali ke kehadiran",
+      "delete": "Hapus",
+      "tabs": { "geofences": "Lokasi", "shifts": "Shift", "schedules": "Jadwal Kerja", "holidays": "Hari Libur" },
+      "days": { "0": "Min", "1": "Sen", "2": "Sel", "3": "Rab", "4": "Kam", "5": "Jum", "6": "Sab" },
+      "geofences": {
+        "addTitle": "Tambah lokasi",
+        "hint": "Karyawan harus berada dalam radius ini saat absen agar dianggap valid.",
+        "listTitle": "Lokasi terdaftar",
+        "empty": "Belum ada lokasi geofence.",
+        "name": "Nama lokasi",
+        "namePlaceholder": "Kantor Pusat",
+        "latitude": "Lintang",
+        "longitude": "Bujur",
+        "coords": "Koordinat",
+        "radius": "Radius (meter)",
+        "add": "Tambah lokasi"
+      },
+      "shifts": {
+        "addTitle": "Tambah shift",
+        "hint": "Jam kerja standar yang dipakai untuk menghitung lembur.",
+        "listTitle": "Shift terdaftar",
+        "empty": "Belum ada shift.",
+        "name": "Nama shift",
+        "namePlaceholder": "Reguler",
+        "start": "Jam mulai",
+        "end": "Jam selesai",
+        "hours": "Jam kerja",
+        "grace": "Toleransi (menit)",
+        "graceHint": "Keterlambatan yang masih ditoleransi sebelum dianggap telat.",
+        "minutes": "mnt",
+        "add": "Tambah shift"
+      },
+      "schedules": {
+        "hint": "Pilih shift untuk tiap hari. Hari tanpa shift dianggap hari libur kerja.",
+        "off": "Libur",
+        "save": "Simpan jadwal",
+        "needShifts": "Tambahkan shift dulu sebelum mengatur jadwal kerja.",
+        "needEmployees": "Tambahkan karyawan dulu untuk mengatur jadwal kerja."
+      },
+      "holidays": {
+        "title": "Kalender libur {year}",
+        "hint": "Hari libur nasional memengaruhi klasifikasi lembur.",
+        "empty": "Belum ada hari libur untuk tahun {year}.",
+        "date": "Tanggal",
+        "name": "Nama",
+        "type": "Jenis",
+        "national": "Nasional",
+        "company": "Perusahaan",
+        "seed": "Isi libur {year}"
+      }
+    }
   },
   "leave": {
     "title": "Cuti",
@@ -264,7 +333,7 @@
     "subtitle": "Jalankan dan tinjau payroll bulanan {name}.",
     "runPayroll": "Jalankan payroll",
     "runFirst": "Jalankan yang pertama",
-    "newRun": { "title": "Jalankan payroll", "subtitle": "Pilih periode dan jenis run. Anda akan meninjau rincian per karyawan sebelum menyetujui.", "month": "Bulan", "year": "Tahun", "runType": "Jenis run", "monthly": "Gaji bulanan", "thr": "THR (Tunjangan Hari Raya)", "submit": "Buat draf run", "cancel": "Batal", "months": ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"] },
+    "newRun": { "title": "Jalankan payroll", "subtitle": "Pilih periode dan jenis run. Anda akan meninjau rincian per karyawan sebelum menyetujui.", "month": "Bulan", "year": "Tahun", "runType": "Jenis run", "monthly": "Gaji bulanan", "thr": "THR (Tunjangan Hari Raya)", "submit": "Buat draf run", "cancel": "Batal", "months": ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"], "readiness": { "heading": "{count} karyawan belum siap untuk payroll", "hint": "Lengkapi data berikut dulu. Draf tidak dapat dibuat selama masih ada yang kurang.", "issue": { "compensation": "kompensasi", "tax": "profil pajak", "bank": "rekening bank" } } },
     "columns": { "period": "Periode", "status": "Status", "gross": "Bruto", "net": "Neto (take-home)", "employee": "Karyawan", "pph21": "PPh 21 (TER)", "deductions": "Potongan karyawan" },
     "status": { "draft": "Draf", "queued": "Antre", "processing": "Diproses", "completed": "Selesai", "paid": "Dibayar", "failed": "Gagal", "cancelled": "Dibatalkan" },
     "empty": "Belum ada run payroll.",
@@ -274,7 +343,7 @@
     "actions": { "approve": "Setujui & proses", "markPaid": "Tandai sudah dibayar", "cancel": "Batalkan run" },
     "breakdown": "Rincian",
     "noNpwp": "(+20% tanpa NPWP)",
-    "detail": { "back": "← Penggajian", "heading": "Payroll {period}", "noEmployees": "Tidak ada karyawan untuk dihitung.", "terCategory": "Kategori {category} · {rate}", "newBadge": "Baru", "updateProfile": "Perbarui Profil" },
+    "detail": { "back": "← Penggajian", "heading": "Payroll {period}", "noEmployees": "Tidak ada karyawan untuk dihitung.", "terCategory": "Kategori {category} · {rate}", "newBadge": "Baru", "updateProfile": "Perbarui Profil", "downloadPayslip": "Unduh slip gaji" },
     "monitoring": "memantau…",
     "connecting": "menyambung…",
     "summary": { "gross": "Bruto", "bpjsEmployee": "BPJS (karyawan)", "pph21": "PPh 21", "net": "Neto (take-home)" },
@@ -470,6 +539,17 @@
       "billingEmailLabel": "Email penagihan",
       "sandboxNote": "Pembayaran berjalan di mode sandbox — belum ada kartu yang ditagih.",
       "confirm": "Konfirmasi upgrade"
+    },
+    "taxDetails": {
+      "title": "Detail pajak perusahaan",
+      "subtitle": "NPWP & nomor BPJS perusahaan. NPWP wajib diisi untuk menyetujui payroll bulanan.",
+      "success": "Detail pajak diperbarui.",
+      "npwpLabel": "NPWP perusahaan",
+      "npwpHint": "15 atau 16 digit.",
+      "bpjsKesLabel": "No. BPJS Kesehatan",
+      "bpjsTkLabel": "No. BPJS Ketenagakerjaan",
+      "billingEmailLabel": "Email penagihan",
+      "save": "Simpan detail"
     },
     "cards": {
       "current": "Paket saat ini",

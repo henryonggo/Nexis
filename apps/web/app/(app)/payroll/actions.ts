@@ -6,7 +6,7 @@ import { z } from "zod";
 import type { Database } from "@nexis/types";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
-import { computeRunPreview, type RunType } from "@/lib/payroll";
+import { computeRunPreview, computeRunReadiness, type RunType } from "@/lib/payroll";
 import { enqueuePayrollRun } from "@/lib/payroll-worker";
 
 const now = new Date();
@@ -66,6 +66,16 @@ export async function createDraftRun(
     redirect(`/payroll/${existing.id}`);
   }
 
+  // Readiness gate (G7): refuse to draft while any active employee is missing
+  // compensation, a tax profile, or a bank account — otherwise the engine would
+  // silently fall back (e.g. TK/0) and produce a wrong-but-plausible payroll.
+  const readiness = await computeRunReadiness(supabase, active.id, { year, month });
+  if (!readiness.ready) {
+    return {
+      error: `Belum bisa membuat draf: ${readiness.blockers.length} karyawan belum lengkap (rekening bank, profil pajak, atau kompensasi). Lengkapi data karyawan dulu.`,
+    };
+  }
+
   const preview = await computeRunPreview(supabase, active.id, {
     year,
     month,
@@ -120,7 +130,22 @@ export async function approveRun(
     .eq("company_id", active.id)
     .eq("status", "draft"); // only a draft can be approved (idempotent)
 
-  if (error) return { error: error.message };
+  if (error) {
+    // Plan/NPWP gate raised by enforce_payroll_run_gating on status → queued.
+    if (error.message.includes("PLAN_GATE_FREE")) {
+      return {
+        error:
+          "Run payroll bulanan tidak tersedia di paket gratis. Upgrade paket di Tagihan untuk memprosesnya.",
+      };
+    }
+    if (error.message.includes("NPWP_REQUIRED")) {
+      return {
+        error:
+          "NPWP perusahaan belum diisi. Lengkapi NPWP perusahaan sebelum memproses payroll bulanan.",
+      };
+    }
+    return { error: error.message };
+  }
 
   // Hand off to the payroll worker (computes + writes payroll_items/payslips and
   // advances the run to completed). The run is already 'queued', so if the worker

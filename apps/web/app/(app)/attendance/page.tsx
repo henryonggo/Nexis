@@ -1,8 +1,11 @@
 import { getTranslations } from "next-intl/server";
+import Link from "next/link";
+import { Settings2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 import type { Database } from "@nexis/types";
 import { LiveBoard, type AttendanceRecord } from "./live-board";
+import { OvertimeQueue, type PendingOvertime } from "./overtime-queue";
 
 /** Start of "today" in Asia/Jakarta (WIB, UTC+7, no DST), as a UTC ISO string. */
 function startOfTodayJakartaIso(): string {
@@ -27,10 +30,13 @@ export default async function AttendancePage() {
   if (!active) return null;
 
   const canCorrect = active.role !== "employee";
+  const canConfigure = active.role === "owner" || active.role === "admin";
+  // Overtime writes allow owner/admin/manager (user_is_company_manager_or_admin RLS).
+  const canApproveOvertime = canCorrect;
   const since = startOfTodayJakartaIso();
   const t = await getTranslations("attendance");
 
-  const [{ data: employees }, { data: records }] = await Promise.all([
+  const [{ data: employees }, { data: records }, { data: pendingOvertime }] = await Promise.all([
     supabase
       .from("employees")
       .select("id, full_name")
@@ -41,6 +47,15 @@ export default async function AttendancePage() {
       .eq("company_id", active.id)
       .gte("event_at", since)
       .order("event_at", { ascending: false }),
+    // Pending overtime awaiting approval — owner/admin only (matches RLS).
+    canApproveOvertime
+      ? supabase
+          .from("overtime_entries")
+          .select("id, employee_id, date, duration_minutes, multiplier")
+          .eq("company_id", active.id)
+          .eq("is_approved", false)
+          .order("date", { ascending: false })
+      : Promise.resolve({ data: [] as PendingOvertime[] }),
   ]);
 
   const nameById: Record<string, string> = {};
@@ -52,10 +67,28 @@ export default async function AttendancePage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
-        <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
+          <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
+        </div>
+        {canConfigure && (
+          <Link
+            href="/attendance/config"
+            className="inline-flex shrink-0 items-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-sm font-medium text-ink hover:bg-brand-light hover:text-brand-dark"
+          >
+            <Settings2 className="h-4 w-4" />
+            {t("configure")}
+          </Link>
+        )}
       </div>
+
+      {canApproveOvertime && (
+        <OvertimeQueue
+          pending={(pendingOvertime as PendingOvertime[] | null) ?? []}
+          nameById={nameById}
+        />
+      )}
 
       <LiveBoard
         companyId={active.id}

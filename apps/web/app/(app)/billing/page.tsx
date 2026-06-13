@@ -10,6 +10,7 @@ import {
   formatRupiah,
 } from "@/lib/billing";
 import { UpgradeForm } from "./upgrade-form";
+import { TaxDetailsForm } from "./tax-details-form";
 import { Card } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
 import {
@@ -113,6 +114,17 @@ export default async function BillingPage() {
           </div>
         </dl>
       </Card>
+
+      {/* Company tax details — editable independently of the plan (owner only).
+          NPWP is required to approve tax-affecting payroll runs (G9c gate). */}
+      {isOwner && (
+        <TaxDetailsForm
+          npwp={billing?.npwp ?? ""}
+          bpjsKes={billing?.bpjs_kes_no ?? ""}
+          bpjsTk={billing?.bpjs_tk_no ?? ""}
+          billingEmail={billing?.billing_email ?? user?.email ?? ""}
+        />
+      )}
 
       {/* Upgrade (owner only) */}
       {isOwner ? (

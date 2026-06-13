@@ -154,7 +154,76 @@
     "approve": "Approve",
     "markInvalid": "Mark invalid",
     "updated": "Attendance updated.",
-    "kind": { "clock_in": "Clock in", "clock_out": "Clock out", "break_start": "Break start", "break_end": "Break end" }
+    "configure": "Settings",
+    "overtime": {
+      "title": "Overtime pending approval ({count})",
+      "hint": "Approved overtime is included in the next payroll run.",
+      "employee": "Employee",
+      "date": "Date",
+      "hours": "Hours",
+      "category": "Category",
+      "weekday": "Weekday",
+      "restDay": "Rest day",
+      "action": "Action",
+      "approve": "Approve",
+      "reject": "Reject",
+      "unknown": "(unknown)"
+    },
+    "kind": { "clock_in": "Clock in", "clock_out": "Clock out", "break_start": "Break start", "break_end": "Break end" },
+    "config": {
+      "title": "Attendance Settings",
+      "subtitle": "Configure geofence locations, shifts, work schedules, and the holiday calendar.",
+      "back": "Back to attendance",
+      "delete": "Delete",
+      "tabs": { "geofences": "Locations", "shifts": "Shifts", "schedules": "Work Schedules", "holidays": "Holidays" },
+      "days": { "0": "Sun", "1": "Mon", "2": "Tue", "3": "Wed", "4": "Thu", "5": "Fri", "6": "Sat" },
+      "geofences": {
+        "addTitle": "Add location",
+        "hint": "Employees must clock in within this radius for the record to count as valid.",
+        "listTitle": "Registered locations",
+        "empty": "No geofence locations yet.",
+        "name": "Location name",
+        "namePlaceholder": "Head Office",
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "coords": "Coordinates",
+        "radius": "Radius (meters)",
+        "add": "Add location"
+      },
+      "shifts": {
+        "addTitle": "Add shift",
+        "hint": "Standard working hours used to compute overtime.",
+        "listTitle": "Registered shifts",
+        "empty": "No shifts yet.",
+        "name": "Shift name",
+        "namePlaceholder": "Regular",
+        "start": "Start time",
+        "end": "End time",
+        "hours": "Hours",
+        "grace": "Grace (minutes)",
+        "graceHint": "Lateness tolerated before a clock-in counts as late.",
+        "minutes": "min",
+        "add": "Add shift"
+      },
+      "schedules": {
+        "hint": "Pick a shift for each day. Days with no shift count as rest days.",
+        "off": "Off",
+        "save": "Save schedule",
+        "needShifts": "Add a shift first before setting work schedules.",
+        "needEmployees": "Add an employee first to set work schedules."
+      },
+      "holidays": {
+        "title": "{year} holiday calendar",
+        "hint": "National holidays affect overtime classification.",
+        "empty": "No holidays recorded for {year}.",
+        "date": "Date",
+        "name": "Name",
+        "type": "Type",
+        "national": "National",
+        "company": "Company",
+        "seed": "Seed {year} holidays"
+      }
+    }
   },
   "leave": {
     "title": "Leave",
@@ -264,7 +333,7 @@
     "subtitle": "Run and review monthly payroll for {name}.",
     "runPayroll": "Run payroll",
     "runFirst": "Run your first one",
-    "newRun": { "title": "Run payroll", "subtitle": "Pick a period and run type. You'll review the per-employee breakdown before approving.", "month": "Month", "year": "Year", "runType": "Run type", "monthly": "Monthly salary", "thr": "THR (religious holiday allowance)", "submit": "Create draft run", "cancel": "Cancel", "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"] },
+    "newRun": { "title": "Run payroll", "subtitle": "Pick a period and run type. You'll review the per-employee breakdown before approving.", "month": "Month", "year": "Year", "runType": "Run type", "monthly": "Monthly salary", "thr": "THR (religious holiday allowance)", "submit": "Create draft run", "cancel": "Cancel", "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"], "readiness": { "heading": "{count} employees not ready for payroll", "hint": "Complete the data below first. A draft can't be created while any are missing.", "issue": { "compensation": "compensation", "tax": "tax profile", "bank": "bank account" } } },
     "columns": { "period": "Period", "status": "Status", "gross": "Gross", "net": "Net (take-home)", "employee": "Employee", "pph21": "PPh 21 (TER)", "deductions": "Employee deductions" },
     "status": { "draft": "Draft", "queued": "Queued", "processing": "Processing", "completed": "Completed", "paid": "Paid", "failed": "Failed", "cancelled": "Cancelled" },
     "empty": "No payroll runs yet.",
@@ -274,7 +343,7 @@
     "actions": { "approve": "Approve & process", "markPaid": "Mark as paid", "cancel": "Cancel run" },
     "breakdown": "Breakdown",
     "noNpwp": "(+20% without NPWP)",
-    "detail": { "back": "← Payroll", "heading": "Payroll {period}", "noEmployees": "No employees to calculate.", "terCategory": "Category {category} · {rate}", "newBadge": "New", "updateProfile": "Update Profile" },
+    "detail": { "back": "← Payroll", "heading": "Payroll {period}", "noEmployees": "No employees to calculate.", "terCategory": "Category {category} · {rate}", "newBadge": "New", "updateProfile": "Update Profile", "downloadPayslip": "Download payslip" },
     "monitoring": "monitoring…",
     "connecting": "connecting…",
     "summary": { "gross": "Gross", "bpjsEmployee": "BPJS (employee)", "pph21": "PPh 21", "net": "Net (take-home)" },
@@ -470,6 +539,17 @@
       "billingEmailLabel": "Billing email",
       "sandboxNote": "Payments run in sandbox mode — no card is charged yet.",
       "confirm": "Confirm upgrade"
+    },
+    "taxDetails": {
+      "title": "Company tax details",
+      "subtitle": "Company NPWP & BPJS numbers. NPWP is required to approve monthly payroll.",
+      "success": "Tax details updated.",
+      "npwpLabel": "Company NPWP",
+      "npwpHint": "15 or 16 digits.",
+      "bpjsKesLabel": "BPJS Kesehatan no.",
+      "bpjsTkLabel": "BPJS Ketenagakerjaan no.",
+      "billingEmailLabel": "Billing email",
+      "save": "Save details"
     },
     "cards": {
       "current": "Current plan",
