@@ -6,6 +6,7 @@ import { formatRupiah, type Rupiah } from "@nexis/money";
 import {
   buildPayrollConfig,
   computeMonthlyPayroll,
+  computeOvertimePayFromEntries,
   computeThr,
   ptkpCategory,
   type EmployeePayrollInput,
@@ -130,6 +131,12 @@ function periodEffectiveDate(year: number, month: number): string {
   return `${year}-${String(month).padStart(2, "0")}-01`;
 }
 
+/** Last day of the run period (YYYY-MM-DD), for period-bounded queries. */
+function periodEndDate(year: number, month: number): string {
+  const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  return `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+}
+
 /** Whole months of service between join date and the end of the run period. */
 function monthsOfService(joinDate: string | null, year: number, month: number): number {
   if (!joinDate) return 12; // unknown tenure → treat as full entitlement, warn separately
@@ -157,9 +164,18 @@ export async function computeRunPreview(
 ): Promise<RunPreview> {
   const { year, month, runType, plan } = args;
   const effectiveDate = periodEffectiveDate(year, month);
+  const periodEnd = periodEndDate(year, month);
 
-  const [config, { data: employees }, { data: settings }, { data: comps }, { data: taxes }, { data: minWages }] =
-    await Promise.all([
+  const [
+    config,
+    { data: employees },
+    { data: settings },
+    { data: comps },
+    { data: taxes },
+    { data: minWages },
+    { data: overtimeEntries },
+    { data: holidays },
+  ] = await Promise.all([
       loadPayrollConfig(supabase, effectiveDate),
       supabase
         .from("employees")
@@ -169,7 +185,7 @@ export async function computeRunPreview(
         .order("full_name", { ascending: true }),
       supabase
         .from("company_settings")
-        .select("jkk_risk_class, region")
+        .select("jkk_risk_class, region, workweek_days")
         .eq("company_id", companyId)
         .maybeSingle(),
       supabase
@@ -183,7 +199,34 @@ export async function computeRunPreview(
       supabase
         .from("minimum_wages")
         .select("region, amount, effective_from, effective_to"),
+      // Approved overtime for the period — same filter the worker uses, so the
+      // preview's overtime pay matches the processed run (shared engine helper).
+      supabase
+        .from("overtime_entries")
+        .select("employee_id, date, duration_minutes")
+        .eq("company_id", companyId)
+        .eq("is_approved", true)
+        .gte("date", effectiveDate)
+        .lte("date", periodEnd),
+      supabase
+        .from("holidays")
+        .select("date")
+        .gte("date", effectiveDate)
+        .lte("date", periodEnd),
     ]);
+
+  // Overtime inputs shared with the worker: approved entries grouped by employee,
+  // the holiday set, and the company workweek (drives Saturday rest-day rule).
+  const workweekDays = settings?.workweek_days ?? 5;
+  const holidayDates = new Set(
+    ((holidays as { date: string }[] | null) ?? []).map((h) => h.date),
+  );
+  const otByEmployee = new Map<string, { date: string; durationMinutes: number }[]>();
+  for (const row of (overtimeEntries as { employee_id: string; date: string; duration_minutes: number }[] | null) ?? []) {
+    const list = otByEmployee.get(row.employee_id) ?? [];
+    list.push({ date: row.date, durationMinutes: row.duration_minutes });
+    otByEmployee.set(row.employee_id, list);
+  }
 
   // Latest-effective compensation per employee (≤ the run period).
   const compByEmployee = new Map<string, CompensationRow>();
@@ -266,11 +309,12 @@ export async function computeRunPreview(
     const input: EmployeePayrollInput = {
       baseSalary,
       fixedAllowances: sumFixedAllowances(comp.fixed_allowances),
-      // TODO(db): blocked on the overtime_entries writer — nothing populates that
-      // table yet, so summing it here would always be 0. Once the writer lands,
-      // sum approved entries for the period into overtimePay so the draft preview
-      // matches the worker. Spec: docs/handoff/overtime-pipeline.md — Antigravity
-      overtimePay: 0,
+      overtimePay: computeOvertimePayFromEntries({
+        entries: otByEmployee.get(emp.id) ?? [],
+        monthlyWage: baseSalary,
+        holidayDates,
+        workweekDays,
+      }),
       ptkpStatus,
       hasNpwp,
       jkkRiskClass: companyRisk,

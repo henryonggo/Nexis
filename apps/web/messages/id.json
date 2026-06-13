@@ -155,6 +155,18 @@
     "markInvalid": "Tandai tidak valid",
     "updated": "Kehadiran diperbarui.",
     "configure": "Pengaturan",
+    "overtime": {
+      "title": "Lembur menunggu persetujuan ({count})",
+      "hint": "Lembur yang disetujui ikut dihitung pada payroll berikutnya.",
+      "employee": "Karyawan",
+      "date": "Tanggal",
+      "hours": "Jam",
+      "multiplier": "Pengali",
+      "action": "Aksi",
+      "approve": "Setujui",
+      "reject": "Tolak",
+      "unknown": "(tidak dikenal)"
+    },
     "kind": { "clock_in": "Masuk", "clock_out": "Keluar", "break_start": "Mulai istirahat", "break_end": "Selesai istirahat" },
     "config": {
       "title": "Pengaturan Kehadiran",
@@ -329,7 +341,7 @@
     "actions": { "approve": "Setujui & proses", "markPaid": "Tandai sudah dibayar", "cancel": "Batalkan run" },
     "breakdown": "Rincian",
     "noNpwp": "(+20% tanpa NPWP)",
-    "detail": { "back": "← Penggajian", "heading": "Payroll {period}", "noEmployees": "Tidak ada karyawan untuk dihitung.", "terCategory": "Kategori {category} · {rate}", "newBadge": "Baru", "updateProfile": "Perbarui Profil" },
+    "detail": { "back": "← Penggajian", "heading": "Payroll {period}", "noEmployees": "Tidak ada karyawan untuk dihitung.", "terCategory": "Kategori {category} · {rate}", "newBadge": "Baru", "updateProfile": "Perbarui Profil", "downloadPayslip": "Unduh slip gaji" },
     "monitoring": "memantau…",
     "connecting": "menyambung…",
     "summary": { "gross": "Bruto", "bpjsEmployee": "BPJS (karyawan)", "pph21": "PPh 21", "net": "Neto (take-home)" },

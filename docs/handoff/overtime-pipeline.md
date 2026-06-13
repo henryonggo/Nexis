@@ -1,7 +1,11 @@
 # Handoff — Overtime Pipeline (Case-02 G5)
 
-> **Status:** DB writer implemented by Antigravity (migration + pgTAP tests passed); app follow-ups
-> (approval UI, estimator wiring) return to Claude after the migration.
+> **Status:** ✅ **COMPLETE.** DB writer implemented by Antigravity (migration + pgTAP);
+> app follow-ups landed (Claude): overtime approval queue on `/attendance`
+> (`approveOvertime`/`rejectOvertime` + `overtime-queue.tsx`) and estimator wiring via the
+> shared `computeOvertimePayFromEntries` helper in `@nexis/payroll` (so the preview matches
+> the worker to the rupiah). **Note:** the worker still inlines the same banding —
+> it should adopt `computeOvertimePayFromEntries` to permanently kill drift (Antigravity).
 > This doc is the `TODO(db)` tracking item per `docs/08-agent-boundaries.md`.
 > Full audit trail: `docs/cases/case-02-attendance-to-first-payroll.md` (steps 29, 30, 36).
 

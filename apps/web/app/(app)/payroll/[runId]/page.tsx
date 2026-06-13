@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { Download } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import type { Database } from "@nexis/types";
 import { createClient } from "@/lib/supabase/server";
@@ -26,6 +27,7 @@ interface DisplayLine {
   terCategory: string | null;
   terRateBps: number | null;
   hasNpwp: boolean | null;
+  payslipId: string | null;
   gross: number;
   bpjsKesEmployee: number;
   bpjsKesEmployer: number;
@@ -120,12 +122,23 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
       .eq("company_id", active.id);
     const nameById = new Map((employees ?? []).map((e) => [e.id, e.full_name]));
 
+    // Payslip PDFs for this run, so admins can download per employee from the web.
+    const { data: payslips } = await supabase
+      .from("payslips")
+      .select("id, employee_id, payroll_items!inner(payroll_run_id)")
+      .eq("company_id", active.id)
+      .eq("payroll_items.payroll_run_id", run.id);
+    const payslipByEmployee = new Map(
+      (payslips ?? []).map((p) => [p.employee_id, p.id]),
+    );
+
     lines = (items ?? []).map((it) => ({
       employeeId: it.employee_id,
       name: nameById.get(it.employee_id) ?? it.employee_id,
       terCategory: it.ter_category,
       terRateBps: it.ter_rate_bps,
       hasNpwp: null,
+      payslipId: payslipByEmployee.get(it.employee_id) ?? null,
       gross: it.gross_pay,
       bpjsKesEmployee: it.bpjs_kes_employee,
       bpjsKesEmployer: it.bpjs_kes_employer,
@@ -157,6 +170,7 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
       terCategory: l.terCategory,
       terRateBps: l.result?.terRateBps ?? null,
       hasNpwp: l.hasNpwp,
+      payslipId: null,
       gross: l.result?.gross ?? l.thrAmount ?? 0,
       bpjsKesEmployee: l.result?.bpjsKesEmployee ?? 0,
       bpjsKesEmployer: l.result?.bpjsKesEmployer ?? 0,
@@ -273,6 +287,17 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
                           <BreakdownRow label={t("breakdownRows.pph21")} value={line.pph21} />
                         </dl>
                       </details>
+                      {line.payslipId && (
+                        <a
+                          href={`/payroll/${run.id}/payslip/${line.payslipId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-brand hover:underline"
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                          {t("detail.downloadPayslip")}
+                        </a>
+                      )}
                     </TableCell>
                     <TableCell className="text-xs text-muted">
                       {t("detail.terCategory", { category: line.terCategory ?? "—", rate: formatRateBps(line.terRateBps) })}

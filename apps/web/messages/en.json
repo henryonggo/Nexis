@@ -155,6 +155,18 @@
     "markInvalid": "Mark invalid",
     "updated": "Attendance updated.",
     "configure": "Settings",
+    "overtime": {
+      "title": "Overtime pending approval ({count})",
+      "hint": "Approved overtime is included in the next payroll run.",
+      "employee": "Employee",
+      "date": "Date",
+      "hours": "Hours",
+      "multiplier": "Multiplier",
+      "action": "Action",
+      "approve": "Approve",
+      "reject": "Reject",
+      "unknown": "(unknown)"
+    },
     "kind": { "clock_in": "Clock in", "clock_out": "Clock out", "break_start": "Break start", "break_end": "Break end" },
     "config": {
       "title": "Attendance Settings",
@@ -329,7 +341,7 @@
     "actions": { "approve": "Approve & process", "markPaid": "Mark as paid", "cancel": "Cancel run" },
     "breakdown": "Breakdown",
     "noNpwp": "(+20% without NPWP)",
-    "detail": { "back": "← Payroll", "heading": "Payroll {period}", "noEmployees": "No employees to calculate.", "terCategory": "Category {category} · {rate}", "newBadge": "New", "updateProfile": "Update Profile" },
+    "detail": { "back": "← Payroll", "heading": "Payroll {period}", "noEmployees": "No employees to calculate.", "terCategory": "Category {category} · {rate}", "newBadge": "New", "updateProfile": "Update Profile", "downloadPayslip": "Download payslip" },
     "monitoring": "monitoring…",
     "connecting": "connecting…",
     "summary": { "gross": "Gross", "bpjsEmployee": "BPJS (employee)", "pph21": "PPh 21", "net": "Net (take-home)" },

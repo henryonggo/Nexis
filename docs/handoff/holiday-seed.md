@@ -1,6 +1,8 @@
 # Handoff — Holiday Calendar Seeding RPC (Case-02 G6)
 
-> **Status:** app layer setup prepared (Claude), **blocked on DB writer (Antigravity)**.
+> **Status:** ✅ **RESOLVED.** RPC `seed_indonesian_holidays(p_year)` landed
+> (`supabase/migrations/20260612170500_holiday_seeding_rpc.sql`, Antigravity); the
+> web Seed button is wired (`seedHolidays` action in `attendance/config/actions.ts`, Claude).
 > This doc is the `TODO(db)` tracking item per `docs/08-agent-boundaries.md`.
 > Full audit trail: `docs/cases/case-02-attendance-to-first-payroll.md` (step 21, Gap G6).
 

@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 import type { Database } from "@nexis/types";
 import { LiveBoard, type AttendanceRecord } from "./live-board";
+import { OvertimeQueue, type PendingOvertime } from "./overtime-queue";
 
 /** Start of "today" in Asia/Jakarta (WIB, UTC+7, no DST), as a UTC ISO string. */
 function startOfTodayJakartaIso(): string {
@@ -33,7 +34,7 @@ export default async function AttendancePage() {
   const since = startOfTodayJakartaIso();
   const t = await getTranslations("attendance");
 
-  const [{ data: employees }, { data: records }] = await Promise.all([
+  const [{ data: employees }, { data: records }, { data: pendingOvertime }] = await Promise.all([
     supabase
       .from("employees")
       .select("id, full_name")
@@ -44,6 +45,15 @@ export default async function AttendancePage() {
       .eq("company_id", active.id)
       .gte("event_at", since)
       .order("event_at", { ascending: false }),
+    // Pending overtime awaiting approval — shown only to admin/manager roles.
+    canCorrect
+      ? supabase
+          .from("overtime_entries")
+          .select("id, employee_id, date, duration_minutes, multiplier")
+          .eq("company_id", active.id)
+          .eq("is_approved", false)
+          .order("date", { ascending: false })
+      : Promise.resolve({ data: [] as PendingOvertime[] }),
   ]);
 
   const nameById: Record<string, string> = {};
@@ -70,6 +80,13 @@ export default async function AttendancePage() {
           </Link>
         )}
       </div>
+
+      {canCorrect && (
+        <OvertimeQueue
+          pending={(pendingOvertime as PendingOvertime[] | null) ?? []}
+          nameById={nameById}
+        />
+      )}
 
       <LiveBoard
         companyId={active.id}
