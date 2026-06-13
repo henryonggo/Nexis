@@ -2627,6 +2627,18 @@ export type Database = {
         Args: { p_company_id: string; p_expires_at?: string }
         Returns: string
       }
+      get_payroll_readiness: {
+        Args: { p_company_id: string }
+        Returns: {
+          employee_id: string
+          full_name: string
+          has_bank_account: boolean
+          has_compensation: boolean
+          has_tax_profile: boolean
+          is_ready: boolean
+          issues: string[]
+        }[]
+      }
       get_scim_user_by_id: {
         Args: { p_company_id: string; p_user_id: string }
         Returns: {
