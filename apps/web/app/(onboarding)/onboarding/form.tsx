@@ -21,13 +21,13 @@ export function OnboardingForm() {
 
   return (
     <Card className="w-full max-w-md p-8">
-      <div className="mb-6 flex rounded-lg bg-muted p-1">
+      <div className="mb-6 flex rounded-lg bg-surface-2 p-1">
         <button
           type="button"
           onClick={() => setMode("create")}
           className={`flex-1 rounded-md py-1.5 text-center text-sm font-medium transition-all ${
             mode === "create"
-              ? "bg-background text-ink shadow-sm"
+              ? "bg-surface text-ink shadow-elev-1"
               : "text-muted hover:text-ink"
           }`}
         >
@@ -38,7 +38,7 @@ export function OnboardingForm() {
           onClick={() => setMode("join")}
           className={`flex-1 rounded-md py-1.5 text-center text-sm font-medium transition-all ${
             mode === "join"
-              ? "bg-background text-ink shadow-sm"
+              ? "bg-surface text-ink shadow-elev-1"
               : "text-muted hover:text-ink"
           }`}
         >
