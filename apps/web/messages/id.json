@@ -388,7 +388,11 @@
     "noTrend": "Belum ada run payroll yang selesai untuk ditampilkan.",
     "unitPeople": "org",
     "unitDays": "hari",
-    "grossLabel": "bruto"
+    "unitHours": "jam",
+    "grossLabel": "bruto",
+    "overtimeTitle": "Lembur disetujui per bulan",
+    "noOvertime": "Belum ada lembur disetujui pada periode ini.",
+    "period": { "label": "Periode", "months": "{count} bulan terakhir" }
   },
   "audit": {
     "title": "Audit & Kepatuhan",

@@ -2735,7 +2735,7 @@ export type Database = {
         | "rejected"
       attendance_kind: "clock_in" | "clock_out" | "break_start" | "break_end"
       claim_status: "pending" | "approved" | "rejected" | "paid"
-      company_role: "owner" | "admin" | "manager" | "employee"
+      company_role: "owner" | "admin" | "manager" | "employee" | "accountant"
       employee_status: "active" | "probation" | "inactive" | "terminated"
       employment_type: "permanent" | "contract" | "intern" | "daily"
       goal_status: "on_track" | "at_risk" | "off_track" | "done" | "cancelled"
@@ -2900,7 +2900,7 @@ export const Constants = {
       ],
       attendance_kind: ["clock_in", "clock_out", "break_start", "break_end"],
       claim_status: ["pending", "approved", "rejected", "paid"],
-      company_role: ["owner", "admin", "manager", "employee"],
+      company_role: ["owner", "admin", "manager", "employee", "accountant"],
       employee_status: ["active", "probation", "inactive", "terminated"],
       employment_type: ["permanent", "contract", "intern", "daily"],
       goal_status: ["on_track", "at_risk", "off_track", "done", "cancelled"],
