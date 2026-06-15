@@ -1,4 +1,9 @@
-# Handoff — Selfie liveness / anti-spoof (G8) — 🟢 DB DONE / 🟡 INFRA OPEN
+# Handoff — Selfie liveness / anti-spoof (G8) — 🟢 DB + WEB DONE / 🟡 MOBILE CHECK OPEN
+
+> **Web side complete:** columns + flag trigger (Antigravity) and the live-board "Face check
+> failed" badge (Claude) are landed. **Still open:** the real on-capture check (vendor vs
+> on-device product decision + `verify-liveness` path), then the mobile flow swap. Nothing writes
+> `liveness_passed = false` yet, so the badge stays dormant until the real check ships.
 
 > **Owner:** Antigravity (infra/verification) + product (vendor vs on-device decision) →
 > Claude/mobile (capture flow). Post-beta. Source:
@@ -25,12 +30,11 @@ Pick the verification approach — drives everything else:
    secret (mirror `send-notification`), returning pass/fail + score; never embed the key in the
    app. If on-device: ship the model + a signed attestation the server can trust.
 2. ✅ **DB Done**: Extended `attendance_records` with `liveness_passed boolean`, `liveness_score numeric`, `liveness_method text` columns.
-3. ⏳ **Policy trigger — Antigravity, planned, NOT yet landed** (capacity-limited): a
-   `BEFORE INSERT OR UPDATE OF liveness_passed` trigger setting `is_valid = false` + appending
-   `[Failed liveness check]` to `note` when `liveness_passed = false` (flag, don't hard-block, like
-   the geofence). Migration `20260615100700_attendance_liveness_policy.sql` + pgTAP. **Until this
-   lands, nothing flips `is_valid` on a liveness fail — the web badge below only lights up once the
-   trigger (and a real check that writes `liveness_passed = false`) exist.**
+3. ✅ **Policy trigger — Antigravity, landed**: `trg_validate_attendance_liveness`
+   (`20260615100700_attendance_liveness_policy.sql` + pgTAP) — `BEFORE INSERT OR UPDATE OF
+   liveness_passed`, sets `is_valid = false` + appends `[Failed liveness check]` to `note` when
+   `liveness_passed = false` (flag, don't hard-block). The web badge keys off the
+   `liveness_passed` column, so it's already aligned.
 
 ## App follow-up — Claude / mobile
 
