@@ -1,8 +1,9 @@
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
-import { revokeInvite } from "./actions";
+import { revokeInvite, rotateJoinCode } from "./actions";
 import { InviteForm } from "./invite-form";
+import { JoinRequestsQueue, type JoinRequest } from "./join-requests";
 import type { CompanyRole, InviteStatus } from "@nexis/types";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -51,6 +52,21 @@ export default async function MembersPage({
         .order("created_at", { ascending: false })
     : { data: null };
 
+  const [{ data: company }, { data: joinRequests }] = isAdmin
+    ? await Promise.all([
+        supabase.from("companies").select("join_code").eq("id", active.id).maybeSingle(),
+        supabase
+          .from("company_join_requests")
+          .select("id, email")
+          .eq("company_id", active.id)
+          .eq("status", "pending")
+          .order("created_at", { ascending: true }),
+      ])
+    : [{ data: null }, { data: null }];
+
+  const joinCode = (company as { join_code: string } | null)?.join_code ?? null;
+  const requestRows = (joinRequests as JoinRequest[] | null) ?? [];
+
   const memberRows = (members as unknown as MemberJoin[] | null) ?? [];
   const inviteRows =
     (invites as unknown as
@@ -85,6 +101,25 @@ export default async function MembersPage({
 
       {isAdmin && (
         <>
+          <Card className="p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-semibold text-ink">{t("joinCode")}</h2>
+                <p className="mt-0.5 text-sm text-muted">{t("joinCodeHint")}</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <code className="rounded-md bg-surface-2 px-3 py-1.5 font-mono text-base font-semibold tracking-widest text-ink">
+                  {joinCode ?? "—"}
+                </code>
+                <form action={rotateJoinCode}>
+                  <Button type="submit" variant="outline" size="sm">{t("rotateCode")}</Button>
+                </form>
+              </div>
+            </div>
+          </Card>
+
+          <JoinRequestsQueue requests={requestRows} canGrantAdmin={active.role === "owner"} />
+
           <InviteForm
             defaultEmail={searchParams?.email ?? ""}
             defaultRole={

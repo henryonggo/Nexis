@@ -25,13 +25,21 @@ Pick the verification approach — drives everything else:
    secret (mirror `send-notification`), returning pass/fail + score; never embed the key in the
    app. If on-device: ship the model + a signed attestation the server can trust.
 2. ✅ **DB Done**: Extended `attendance_records` with `liveness_passed boolean`, `liveness_score numeric`, `liveness_method text` columns.
-3. Policy: a failed liveness flags the record (`is_valid = false`) like an out-of-geofence
-   punch — flag, don't hard-block (same UX rule as the geofence).
+3. ⏳ **Policy trigger — Antigravity, planned, NOT yet landed** (capacity-limited): a
+   `BEFORE INSERT OR UPDATE OF liveness_passed` trigger setting `is_valid = false` + appending
+   `[Failed liveness check]` to `note` when `liveness_passed = false` (flag, don't hard-block, like
+   the geofence). Migration `20260615100700_attendance_liveness_policy.sql` + pgTAP. **Until this
+   lands, nothing flips `is_valid` on a liveness fail — the web badge below only lights up once the
+   trigger (and a real check that writes `liveness_passed = false`) exist.**
 
 ## App follow-up — Claude / mobile
 
-- Replace the timed mock in the mobile capture flow with the real check; surface a retry on
-  failure. Show the liveness flag on the web live board next to the geofence flag. i18n.
+- ✅ **Web live board (Claude, done):** the validity column now distinguishes the reason — a
+  record invalid with `liveness_passed = false` shows **"Face check failed"**, otherwise
+  "Out of area". Reads `attendance_records.liveness_passed`; aligns with the planned trigger.
+  i18n id-ID + en. (`live-board.tsx`, `attendance/page.tsx`.)
+- ⏳ **Mobile (blocked):** replace the timed mock with the real check + retry on failure. Needs the
+  vendor-vs-on-device decision and the `verify-liveness` path first.
 
 ## Acceptance
 
