@@ -12,20 +12,29 @@ over existing tables, no DB views:
 
 This is the baseline. The "reporting dashboard" is the **delta** below.
 
-## Delta to scope (Claude-lane)
+## Delta — status
 
-1. **Date-range / period filter** — today it's hard-coded (current year, latest runs). Add a
-   period picker (last 3/6/12 months, custom) threaded through the `lib/analytics` reads.
-2. **Attendance & overtime analytics** — punctuality (on-time vs late from `attendance_records`
-   + shift `grace_period_minutes`), overtime-hours trend from approved `overtime_entries`.
-3. **Headcount over time / turnover** — joins vs terminations from `employees.join_date` +
-   status; simple monthly net-headcount line.
-4. **Employer-cost breakdown** — total employer cost (gross + BPJS employer legs) per period and
-   per department, from `payroll_items`.
-5. **Export** — CSV/PDF of the current view; reuse the signed-URL route pattern from
-   `payroll/[runId]/payslip` if PDF, or a client CSV for tables.
+1. ✅ **Period filter** — `?months=3|6|12` threading the trend reads (`period-filter.tsx`).
+2. ✅ **Overtime-hours trend** — `getOvertimeTrend` (approved `overtime_entries`, per month).
+   ✅ **Punctuality** — `getPunctuality` (on-time vs late clock-ins vs scheduled shift start +
+   `grace_period_minutes`, WIB).
+3. ⏳ **Turnover** — **blocked on DB.** Net headcount over time needs termination timing;
+   `employees.join_date` exists but there is no `termination_date`. See TODO(db) below.
+4. ✅ **Employer-cost breakdown** — `getEmployerCostByDept` (gross + employer BPJS legs from the
+   latest finalized run's `payroll_items`, by department).
+5. ✅ **Export** — client-side CSV of the current view (`export-button.tsx`).
 
-All read from tables that already exist; charts reuse `analytics/charts.tsx` primitives.
+All shipped items read from existing tables; charts reuse `analytics/charts.tsx`.
+
+## TODO(db) — Antigravity (unblocks turnover)
+
+```sql
+-- TODO(db): employees.termination_date (date, nullable) — set when status → terminated.
+-- Enables monthly turnover / net-headcount-over-time in /analytics. — Antigravity
+```
+
+After it lands: a `getHeadcountOverTime(months)` reading `join_date` (joins) + `termination_date`
+(leavers) for a net-headcount line. Claude-lane once the column exists.
 
 ## DB seam — only if scale demands it (Antigravity, optional)
 

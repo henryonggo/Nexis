@@ -6,10 +6,13 @@ export function BarList({
   items,
   emptyText,
   unit,
+  format,
 }: {
   items: NamedCount[];
   emptyText: string;
   unit?: string;
+  /** Optional value formatter (e.g. rupiah). Defaults to the raw number. */
+  format?: (value: number) => string;
 }) {
   if (items.length === 0) {
     return <p className="py-4 text-center text-sm text-muted">{emptyText}</p>;
@@ -23,7 +26,7 @@ export function BarList({
           <div className="mb-0.5 flex items-baseline justify-between text-sm">
             <span className="truncate text-ink">{item.label}</span>
             <span className="ml-2 shrink-0 tabular-nums font-medium text-ink">
-              {item.value}
+              {format ? format(item.value) : item.value}
               {unit ? ` ${unit}` : ""}
             </span>
           </div>
