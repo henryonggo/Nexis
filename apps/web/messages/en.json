@@ -92,10 +92,11 @@
       "industryPlaceholder": "e.g. Retail, Technology",
       "submit": "Create company",
       "joinTitle": "Join company",
-      "joinSubtitle": "Enter your invitation code to join an existing company.",
-      "codeLabel": "Invitation code",
-      "codePlaceholder": "Paste your invitation code here",
-      "joinSubmit": "Join company"
+      "joinSubtitle": "Enter a company code to request to join. An admin will approve.",
+      "codeLabel": "Company code",
+      "codePlaceholder": "e.g. NEXIS7K2Q",
+      "joinSubmit": "Request to join",
+      "joinPending": "Request sent. Awaiting approval from a company admin."
     }
   },
   "dashboard": {
@@ -483,6 +484,12 @@
     "noName": "(no name)",
     "pendingInvites": "Pending invitations",
     "revoke": "Revoke",
+    "joinCode": "Company join code",
+    "joinCodeHint": "Share this code so people can request to join.",
+    "rotateCode": "Rotate code",
+    "joinRequests": "Join requests",
+    "approve": "Approve",
+    "reject": "Reject",
     "invite": {
       "title": "Invite member",
       "shareLink": "Share this invitation link:",

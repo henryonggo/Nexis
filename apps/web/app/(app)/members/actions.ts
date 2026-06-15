@@ -101,3 +101,81 @@ export async function revokeInvite(formData: FormData): Promise<void> {
   await supabase.from("invitations").update({ status: "revoked" }).eq("id", id);
   revalidatePath("/members");
 }
+
+/** Rotate the company join code (owner/admin). RLS/RPC enforce the role too. */
+export async function rotateJoinCode(): Promise<void> {
+  const supabase = createClient();
+  const active = await getActiveCompany();
+  if (!active) return;
+  if (active.role !== "owner" && active.role !== "admin") return;
+  await supabase.rpc("rotate_company_join_code", { p_company_id: active.id });
+  revalidatePath("/members");
+}
+
+const decideSchema = z.object({
+  requestId: z.string().uuid("ID tidak valid"),
+  role: z.enum(["admin", "manager", "employee"]),
+});
+
+const JOIN_ERRORS: Record<string, string> = {
+  INSUFFICIENT_ROLE: "Anda tidak berwenang memberikan peran tersebut.",
+  REQUEST_ALREADY_DECIDED: "Permintaan sudah diputuskan.",
+  REQUEST_NOT_FOUND: "Permintaan tidak ditemukan.",
+};
+
+function mapJoinError(message: string): string {
+  const key = Object.keys(JOIN_ERRORS).find((k) => message.includes(k));
+  return key ? JOIN_ERRORS[key]! : message;
+}
+
+/** Approve a join request with the chosen role. The RPC enforces the grant matrix. */
+export async function approveJoinRequest(
+  _prev: MemberState,
+  formData: FormData,
+): Promise<MemberState> {
+  const parsed = decideSchema.safeParse({
+    requestId: formData.get("requestId"),
+    role: formData.get("role"),
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Data tidak valid" };
+
+  const supabase = createClient();
+  const active = await getActiveCompany();
+  if (!active) return { error: "Tidak ada perusahaan aktif." };
+  if (active.role !== "owner" && active.role !== "admin") {
+    return { error: "Hanya pemilik/admin yang dapat menyetujui permintaan." };
+  }
+
+  const { error } = await supabase.rpc("approve_join_request", {
+    p_request_id: parsed.data.requestId,
+    p_role: parsed.data.role,
+  });
+  if (error) return { error: mapJoinError(error.message) };
+
+  revalidatePath("/members");
+  return { success: "Permintaan disetujui." };
+}
+
+/** Reject a join request (owner/admin). */
+export async function rejectJoinRequest(
+  _prev: MemberState,
+  formData: FormData,
+): Promise<MemberState> {
+  const requestId = z.string().uuid().safeParse(formData.get("requestId"));
+  if (!requestId.success) return { error: "ID tidak valid" };
+
+  const supabase = createClient();
+  const active = await getActiveCompany();
+  if (!active) return { error: "Tidak ada perusahaan aktif." };
+  if (active.role !== "owner" && active.role !== "admin") {
+    return { error: "Hanya pemilik/admin yang dapat menolak permintaan." };
+  }
+
+  const { error } = await supabase.rpc("reject_join_request", {
+    p_request_id: requestId.data,
+  });
+  if (error) return { error: mapJoinError(error.message) };
+
+  revalidatePath("/members");
+  return { success: "Permintaan ditolak." };
+}

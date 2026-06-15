@@ -92,10 +92,11 @@
       "industryPlaceholder": "mis. Ritel, Teknologi",
       "submit": "Buat perusahaan",
       "joinTitle": "Gabung perusahaan",
-      "joinSubtitle": "Masukkan kode undangan Anda untuk bergabung dengan perusahaan yang sudah ada.",
-      "codeLabel": "Kode undangan",
-      "codePlaceholder": "Tempel kode undangan Anda di sini",
-      "joinSubmit": "Gabung perusahaan"
+      "joinSubtitle": "Masukkan kode perusahaan untuk mengajukan permintaan bergabung. Admin akan menyetujui.",
+      "codeLabel": "Kode perusahaan",
+      "codePlaceholder": "mis. NEXIS7K2Q",
+      "joinSubmit": "Ajukan bergabung",
+      "joinPending": "Permintaan terkirim. Menunggu persetujuan admin perusahaan."
     }
   },
   "dashboard": {
@@ -483,6 +484,12 @@
     "noName": "(tanpa nama)",
     "pendingInvites": "Undangan tertunda",
     "revoke": "Batalkan",
+    "joinCode": "Kode perusahaan",
+    "joinCodeHint": "Bagikan kode ini agar orang dapat mengajukan permintaan bergabung.",
+    "rotateCode": "Ganti kode",
+    "joinRequests": "Permintaan bergabung",
+    "approve": "Setujui",
+    "reject": "Tolak",
     "invite": {
       "title": "Undang anggota",
       "shareLink": "Bagikan tautan undangan ini:",
