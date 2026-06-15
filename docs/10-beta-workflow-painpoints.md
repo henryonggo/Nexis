@@ -340,8 +340,8 @@ tight and testable.
 |---|---|
 | e-Bupot / BPJS SIPP export | Filing-format output — valuable after payroll is trusted, not before. Handoff: `docs/handoff/compliance-exports.md` |
 | Government filing integration (DJP Online, SIPP) | Requires company NPWP + paid plan gating. Handoff: `docs/handoff/gov-filing-integration.md` |
-| Analytics & HR reporting dashboard | Nice to have; not a pain point that blocks payroll |
-| Multi-company view (accountant portal) | Power feature for accounting firms; not the beta persona |
+| Analytics & HR reporting dashboard | Nice to have; not a pain point that blocks payroll. Spec: `docs/handoff/analytics-reporting.md` |
+| Multi-company view (accountant portal) | Power feature for accounting firms; not the beta persona. Spec: `docs/handoff/multi-company-portal.md` |
 | Loan management (pinjaman karyawan) | Secondary feature; no compliance obligation |
 | Performance management | Entirely separate product surface |
 | Billing & plan upgrade UI | Needed before public launch, not before beta |
