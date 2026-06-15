@@ -338,17 +338,17 @@ tight and testable.
 
 | Feature | Why excluded from beta |
 |---|---|
-| e-Bupot / BPJS SIPP export | Filing-format output — valuable after payroll is trusted, not before |
-| Government filing integration (DJP Online, SIPP) | Requires company NPWP + paid plan gating |
-| Analytics & HR reporting dashboard | Nice to have; not a pain point that blocks payroll |
-| Multi-company view (accountant portal) | Power feature for accounting firms; not the beta persona |
+| e-Bupot / BPJS SIPP export | Filing-format output — valuable after payroll is trusted, not before. Handoff: `docs/handoff/compliance-exports.md` |
+| Government filing integration (DJP Online, SIPP) | Requires company NPWP + paid plan gating. Handoff: `docs/handoff/gov-filing-integration.md` |
+| Analytics & HR reporting dashboard | Nice to have; not a pain point that blocks payroll. Spec: `docs/handoff/analytics-reporting.md` |
+| Multi-company view (accountant portal) | Power feature for accounting firms; not the beta persona. Spec: `docs/handoff/multi-company-portal.md` |
 | Loan management (pinjaman karyawan) | Secondary feature; no compliance obligation |
 | Performance management | Entirely separate product surface |
 | Billing & plan upgrade UI | Needed before public launch, not before beta |
 | Admin re-link UI for employee accounts | Edge case; HR can use invite flow as workaround |
 | Web payslip PDF download (HR view) | Mobile covers employees; web admin download is convenience |
-| Selfie liveness (anti-spoof) | Current mock is sufficient for beta; production liveness = post-beta |
-| Cloud Tasks retry queue for payroll worker | Direct HTTP is fine for ≤5-employee beta; retry semantics = post-beta |
+| Selfie liveness (anti-spoof) | Current mock is sufficient for beta; production liveness = post-beta. Handoff: `docs/handoff/selfie-liveness.md` |
+| Cloud Tasks retry queue for payroll worker | Direct HTTP is fine for ≤5-employee beta; retry semantics = post-beta. Handoff: `docs/handoff/payroll-worker-queue.md` |
 
 ---
 

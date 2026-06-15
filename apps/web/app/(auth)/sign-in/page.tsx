@@ -21,6 +21,7 @@ function SignInForm() {
   const [state, action] = useFormState(signIn, initial);
   const params = useSearchParams();
   const redirectTo = params.get("redirectTo") ?? "/dashboard";
+  const emailParam = params.get("email") || "";
   const justReset = params.get("reset") === "1";
   const timedOut = params.get("timeout") === "1";
   const deactivated = params.get("deactivated") === "1";
@@ -39,7 +40,7 @@ function SignInForm() {
         <input type="hidden" name="redirectTo" value={redirectTo} />
         <div className="space-y-1.5">
           <Label htmlFor="email">{tc("email")}</Label>
-          <Input id="email" name="email" type="email" autoComplete="email" required />
+          <Input id="email" name="email" type="email" autoComplete="email" defaultValue={emailParam} required />
         </div>
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
@@ -56,7 +57,9 @@ function SignInForm() {
       <p className="mt-5 text-center text-sm text-muted">
         {t("noAccount")}{" "}
         <Link
-          href={`/sign-up${redirectTo ? `?redirectTo=${encodeURIComponent(redirectTo)}` : ""}`}
+          href={`/sign-up${redirectTo ? `?redirectTo=${encodeURIComponent(redirectTo)}` : ""}${
+            emailParam ? `${redirectTo ? "&" : "?"}email=${encodeURIComponent(emailParam)}` : ""
+          }`}
           className="font-medium text-brand hover:underline"
         >
           {t("signUpLink")}

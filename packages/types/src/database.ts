@@ -124,6 +124,9 @@ export type Database = {
           is_valid: boolean
           kind: Database["public"]["Enums"]["attendance_kind"]
           latitude: number | null
+          liveness_method: string | null
+          liveness_passed: boolean | null
+          liveness_score: number | null
           longitude: number | null
           note: string | null
           selfie_url: string | null
@@ -138,6 +141,9 @@ export type Database = {
           is_valid?: boolean
           kind: Database["public"]["Enums"]["attendance_kind"]
           latitude?: number | null
+          liveness_method?: string | null
+          liveness_passed?: boolean | null
+          liveness_score?: number | null
           longitude?: number | null
           note?: string | null
           selfie_url?: string | null
@@ -152,6 +158,9 @@ export type Database = {
           is_valid?: boolean
           kind?: Database["public"]["Enums"]["attendance_kind"]
           latitude?: number | null
+          liveness_method?: string | null
+          liveness_passed?: boolean | null
+          liveness_score?: number | null
           longitude?: number | null
           note?: string | null
           selfie_url?: string | null
@@ -912,6 +921,7 @@ export type Database = {
           phone: string | null
           position: string | null
           status: Database["public"]["Enums"]["employee_status"]
+          termination_date: string | null
           updated_at: string
           user_id: string | null
         }
@@ -930,6 +940,7 @@ export type Database = {
           phone?: string | null
           position?: string | null
           status?: Database["public"]["Enums"]["employee_status"]
+          termination_date?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -948,6 +959,7 @@ export type Database = {
           phone?: string | null
           position?: string | null
           status?: Database["public"]["Enums"]["employee_status"]
+          termination_date?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -1033,6 +1045,60 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      filing_submissions: {
+        Row: {
+          company_id: string
+          created_at: string
+          external_ref: string | null
+          id: string
+          kind: string
+          response_payload: Json | null
+          run_id: string
+          status: string
+          submitted_at: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          external_ref?: string | null
+          id?: string
+          kind: string
+          response_payload?: Json | null
+          run_id: string
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          external_ref?: string | null
+          id?: string
+          kind?: string
+          response_payload?: Json | null
+          run_id?: string
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "filing_submissions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "filing_submissions_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_runs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       geofences: {
         Row: {
@@ -2627,6 +2693,7 @@ export type Database = {
         Args: { p_company_id: string; p_expires_at?: string }
         Returns: string
       }
+      get_invite_email: { Args: { p_token: string }; Returns: string }
       get_payroll_readiness: {
         Args: { p_company_id: string }
         Returns: {
@@ -2734,7 +2801,7 @@ export type Database = {
         | "rejected"
       attendance_kind: "clock_in" | "clock_out" | "break_start" | "break_end"
       claim_status: "pending" | "approved" | "rejected" | "paid"
-      company_role: "owner" | "admin" | "manager" | "employee"
+      company_role: "owner" | "admin" | "manager" | "employee" | "accountant"
       employee_status: "active" | "probation" | "inactive" | "terminated"
       employment_type: "permanent" | "contract" | "intern" | "daily"
       goal_status: "on_track" | "at_risk" | "off_track" | "done" | "cancelled"
@@ -2899,7 +2966,7 @@ export const Constants = {
       ],
       attendance_kind: ["clock_in", "clock_out", "break_start", "break_end"],
       claim_status: ["pending", "approved", "rejected", "paid"],
-      company_role: ["owner", "admin", "manager", "employee"],
+      company_role: ["owner", "admin", "manager", "employee", "accountant"],
       employee_status: ["active", "probation", "inactive", "terminated"],
       employment_type: ["permanent", "contract", "intern", "daily"],
       goal_status: ["on_track", "at_risk", "off_track", "done", "cancelled"],

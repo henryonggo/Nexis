@@ -33,6 +33,15 @@ export default async function EmployeeDetailPage({ params }: { params: { id: str
     .eq("employee_id", params.id)
     .maybeSingle();
 
+  // Candidate managers: other active employees in the company (drives team scoping).
+  const { data: coworkers } = await supabase
+    .from("employees")
+    .select("id, full_name")
+    .eq("company_id", active.id)
+    .in("status", ["active", "probation"])
+    .neq("id", params.id)
+    .order("full_name", { ascending: true });
+
   const canEdit = active.role === "owner" || active.role === "admin";
   const t = await getTranslations("employees");
 
@@ -69,6 +78,7 @@ export default async function EmployeeDetailPage({ params }: { params: { id: str
         baseSalary={comp?.base_salary ?? 0}
         ptkpStatus={tax?.ptkp_status ?? "TK/0"}
         npwp={tax?.npwp ?? ""}
+        coworkers={coworkers ?? []}
       />
     </div>
   );

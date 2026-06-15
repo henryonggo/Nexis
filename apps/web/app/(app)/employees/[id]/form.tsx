@@ -21,12 +21,14 @@ export function EditEmployeeForm({
   baseSalary,
   ptkpStatus,
   npwp,
+  coworkers,
 }: {
   canEdit: boolean;
   employee: EmployeeRow;
   baseSalary: number;
   ptkpStatus: string;
   npwp: string;
+  coworkers: { id: string; full_name: string }[];
 }) {
   const t = useTranslations("employees");
   const tc = useTranslations("common");
@@ -92,6 +94,23 @@ export function EditEmployeeForm({
             <Label htmlFor="email">{tc("email")}</Label>
             <Input id="email" name="email" type="email" defaultValue={employee.email ?? ""} disabled={disabled} />
           </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="managerId">{t("form.manager")}</Label>
+          <select
+            id="managerId"
+            name="managerId"
+            className={fieldClasses}
+            defaultValue={employee.manager_id ?? ""}
+            disabled={disabled}
+          >
+            <option value="">{t("form.managerNone")}</option>
+            {coworkers.map((c) => (
+              <option key={c.id} value={c.id}>{c.full_name}</option>
+            ))}
+          </select>
+          <p className="text-xs text-muted">{t("form.managerHint")}</p>
         </div>
 
         <Separator />
