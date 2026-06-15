@@ -1,4 +1,9 @@
-# Handoff — Two-way company join (invite + self-request) — 🟡 PROPOSED (Antigravity DB → Claude UI)
+# Handoff — Two-way company join (invite + self-request) — ✅ COMPLETE
+
+> **Status:** ✅ DB landed (Antigravity, `20260615100600_two_way_company_join.sql` — join_code,
+> `company_join_requests`, request/approve/reject/rotate RPCs, grant matrix, pgTAP). ✅ App landed
+> (Claude): onboarding join-by-code → pending request; `/members` join-code card + rotate +
+> approval queue with caller-limited role select. Contract matched the spec exactly.
 
 > **Owner:** Antigravity (join code, `company_join_requests`, RLS, RPCs, role-grant matrix) →
 > Claude (join-by-code UI + approval queue UI). Tracking item per `docs/08-agent-boundaries.md`.
