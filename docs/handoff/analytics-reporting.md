@@ -1,4 +1,4 @@
-# Spec — Analytics & HR reporting dashboard — 🟡 PROPOSED (mostly Claude)
+# Spec — Analytics & HR reporting dashboard — 🟢 DB DONE / 🟡 APP PROPOSED
 
 > **Owner:** Claude (app-side reads + charts); Antigravity only if scale forces DB aggregation.
 > Post-beta. Source: `docs/10-beta-workflow-painpoints.md` "NOT in beta" (nice-to-have).
@@ -18,19 +18,18 @@ This is the baseline. The "reporting dashboard" is the **delta** below.
 2. ✅ **Overtime-hours trend** — `getOvertimeTrend` (approved `overtime_entries`, per month).
    ✅ **Punctuality** — `getPunctuality` (on-time vs late clock-ins vs scheduled shift start +
    `grace_period_minutes`, WIB).
-3. ⏳ **Turnover** — **blocked on DB.** Net headcount over time needs termination timing;
-   `employees.join_date` exists but there is no `termination_date`. See TODO(db) below.
+3. ⏳ **Turnover** — **DB complete.** Net headcount over time needs termination timing;
+   `employees.termination_date` column is added to the database.
 4. ✅ **Employer-cost breakdown** — `getEmployerCostByDept` (gross + employer BPJS legs from the
    latest finalized run's `payroll_items`, by department).
 5. ✅ **Export** — client-side CSV of the current view (`export-button.tsx`).
 
 All shipped items read from existing tables; charts reuse `analytics/charts.tsx`.
 
-## TODO(db) — Antigravity (unblocks turnover)
+## TODO(db) — Antigravity (unblocks turnover) — ✅ DONE
 
 ```sql
--- TODO(db): employees.termination_date (date, nullable) — set when status → terminated.
--- Enables monthly turnover / net-headcount-over-time in /analytics. — Antigravity
+-- employees.termination_date (date, nullable) is added to employees table.
 ```
 
 After it lands: a `getHeadcountOverTime(months)` reading `join_date` (joins) + `termination_date`
