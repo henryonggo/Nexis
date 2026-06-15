@@ -56,6 +56,14 @@ export async function inviteMember(
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
   const inviteUrl = `${base}/invite/${invite!.token}`;
 
+  // Include the company join code so the recipient can self-request if the link fails.
+  const { data: company } = await supabase
+    .from("companies")
+    .select("join_code")
+    .eq("id", active.id)
+    .maybeSingle();
+  const joinCode = (company as { join_code: string } | null)?.join_code ?? undefined;
+
   let emailSent = false;
 
   // Try to email the invite. If Resend isn't configured (or fails), fall back to
@@ -66,6 +74,7 @@ export async function inviteMember(
       inviteUrl,
       companyName: active.name,
       role: parsed.data.role,
+      joinCode,
     });
     emailSent = mail.sent;
   } else if (process.env.SUPABASE_SERVICE_ROLE_KEY) {

@@ -22,11 +22,19 @@ export async function sendInviteEmail(opts: {
   inviteUrl: string;
   companyName: string;
   role: string;
+  joinCode?: string;
 }): Promise<{ sent: boolean; error?: string }> {
   const key = process.env.RESEND_API_KEY;
   if (!key) return { sent: false };
 
   const roleLabel = ROLE_LABEL[opts.role] ?? opts.role;
+  const joinCodeBlock = opts.joinCode
+    ? `<p style="color:#64748B;font-size:13px;margin-top:16px">Atau, jika tautan tidak berfungsi,
+        daftar lalu ajukan bergabung dengan kode perusahaan:
+        <strong style="font-family:monospace;letter-spacing:1px;color:#0F172A">${escapeHtml(
+          opts.joinCode,
+        )}</strong></p>`
+    : "";
   const html = `
     <div style="font-family:Inter,Arial,sans-serif;color:#0F172A;max-width:520px">
       <h2 style="color:#1F6FEB;margin:0 0 8px">Nexis</h2>
@@ -40,6 +48,7 @@ export async function sendInviteEmail(opts: {
       </p>
       <p style="color:#64748B;font-size:13px">Atau salin tautan ini: ${opts.inviteUrl}</p>
       <p style="color:#64748B;font-size:13px">Tautan berlaku 7 hari.</p>
+      ${joinCodeBlock}
     </div>`;
 
   try {
