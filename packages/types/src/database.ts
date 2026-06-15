@@ -912,6 +912,7 @@ export type Database = {
           phone: string | null
           position: string | null
           status: Database["public"]["Enums"]["employee_status"]
+          termination_date: string | null
           updated_at: string
           user_id: string | null
         }
@@ -930,6 +931,7 @@ export type Database = {
           phone?: string | null
           position?: string | null
           status?: Database["public"]["Enums"]["employee_status"]
+          termination_date?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -948,6 +950,7 @@ export type Database = {
           phone?: string | null
           position?: string | null
           status?: Database["public"]["Enums"]["employee_status"]
+          termination_date?: string | null
           updated_at?: string
           user_id?: string | null
         }
