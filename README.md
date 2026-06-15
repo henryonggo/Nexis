@@ -70,6 +70,11 @@ list below reflects what's implemented today.
 **Multi-company tenancy & security**
 - One account can own or belong to many companies, each with a distinct role
   (`owner` / `admin` / `manager` / `employee`).
+- **Two-way join:** admins invite by email (email-matched accept) **and** new accounts can
+  self-request to join via a rotatable company **join code** — owner/admin approve from a queue
+  and assign the role (admins cannot mint admins; only owners can).
+- **Manager team-scoping:** a manager approves attendance/overtime/leave/claims only for their
+  own direct reports (`employees.manager_id`), enforced in RLS.
 - Security is enforced at the database: Row Level Security on every tenant-scoped table,
   validated by automated pgTAP tests. The app never trusts a client-supplied `company_id`.
 
@@ -83,16 +88,27 @@ list below reflects what's implemented today.
 
 **Attendance & scheduling (Stage 3)**
 - Mobile clock in/out with GPS geofence + selfie capture; work schedules.
+- **Attendance config UI** (admin): geofence CRUD, shifts, per-employee weekly schedule grid,
+  and one-click Indonesian holiday seeding.
 - Admin/manager correction of records (audited); a **live Realtime** attendance board on the
-  web with a present-today count.
+  web with a present-today count; the board distinguishes invalid reasons (out-of-area vs a
+  failed **liveness** check).
+- **Overtime approval queue** on the board (owner/admin/manager): pending entries from clock
+  data are approved/rejected before they reach payroll.
 
 **Payroll engine (Stage 4, compliance-critical)**
 - Pure, exhaustively-tested TypeScript engine implementing Indonesian rules: **PPh 21 (TER,
   PMK 168/2023)**, **BPJS** (Kesehatan + Ketenagakerjaan, employee & employer sides),
   **overtime (1/173)**, the **+20% no-NPWP** surcharge, and net pay.
+- **Pre-run readiness gate:** a draft is blocked while any active employee is missing
+  compensation, a tax profile, or a bank account — listed per employee, so payroll never runs on
+  silent fallbacks.
 - Draft → run → review → approve → mark-paid lifecycle via a Cloud Run worker with Realtime
-  status; per-employee breakdown; **payslip PDFs**; **THR** run type; config snapshotting so
-  re-running after a rate change never alters historical runs. Money is integer rupiah end to end.
+  status; per-employee breakdown; **payslip PDFs** (downloadable from the web run page, not just
+  mobile); **THR** run type; config snapshotting so re-running after a rate change never alters
+  historical runs. Money is integer rupiah end to end.
+- **Plan / NPWP gate:** tax-affecting monthly runs are blocked at approval on the free plan or
+  without a company NPWP (set standalone in Billing), with a clear upgrade path.
 
 **Leave & reimbursement claims (Stage 5)**
 - Leave types, balances, request → manager approval → balance update.
@@ -106,7 +122,9 @@ list below reflects what's implemented today.
   NPWP/BPJS capture on upgrade. (Real payment gateway is specced for handoff.)
 
 **Advanced (Stage 7)**
-- Analytics dashboard (headcount, payroll-cost trend, approvals, leave usage).
+- Analytics dashboard: headcount, payroll-cost trend, approvals, leave usage, plus a
+  **3/6/12-month period filter**, approved-overtime-per-month, **employer-cost by department**,
+  clock-in **punctuality** (on-time vs late vs scheduled shift), and a **CSV export**.
 - Audit & compliance center (filterable log of sensitive actions).
 - Loans & advances (kasbon) with automatic payroll deduction.
 - Performance & KPI (review cycles, weighted goals with progress, employee reviews).
