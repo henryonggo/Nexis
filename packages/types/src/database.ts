@@ -380,6 +380,7 @@ export type Database = {
           created_by: string
           id: string
           industry: string | null
+          join_code: string
           legal_name: string | null
           locale: string
           logo_url: string | null
@@ -394,6 +395,7 @@ export type Database = {
           created_by: string
           id?: string
           industry?: string | null
+          join_code?: string
           legal_name?: string | null
           locale?: string
           logo_url?: string | null
@@ -408,6 +410,7 @@ export type Database = {
           created_by?: string
           id?: string
           industry?: string | null
+          join_code?: string
           legal_name?: string | null
           locale?: string
           logo_url?: string | null
@@ -522,6 +525,47 @@ export type Database = {
             columns: ["subscription_id"]
             isOneToOne: false
             referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_join_requests: {
+        Row: {
+          company_id: string
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          email: string
+          id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          email: string
+          id?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          email?: string
+          id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_join_requests_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]
@@ -2660,6 +2704,13 @@ export type Database = {
         Args: { p_claim_id: string; p_decision_note?: string }
         Returns: undefined
       }
+      approve_join_request: {
+        Args: {
+          p_request_id: string
+          p_role: Database["public"]["Enums"]["company_role"]
+        }
+        Returns: undefined
+      }
       approve_leave: { Args: { p_request_id: string }; Returns: undefined }
       approve_loan: { Args: { p_loan_id: string }; Returns: undefined }
       calculate_overtime_hours: {
@@ -2689,10 +2740,12 @@ export type Database = {
         Args: { p_company_id: string; p_date: string }
         Returns: undefined
       }
+      generate_random_join_code: { Args: never; Returns: string }
       generate_scim_token: {
         Args: { p_company_id: string; p_expires_at?: string }
         Returns: string
       }
+      generate_unique_join_code: { Args: never; Returns: string }
       get_invite_email: { Args: { p_token: string }; Returns: string }
       get_payroll_readiness: {
         Args: { p_company_id: string }
@@ -2753,6 +2806,10 @@ export type Database = {
         Args: { p_claim_id: string; p_decision_note?: string }
         Returns: undefined
       }
+      reject_join_request: {
+        Args: { p_note?: string; p_request_id: string }
+        Returns: undefined
+      }
       reject_leave: {
         Args: { p_decision_note?: string; p_request_id: string }
         Returns: undefined
@@ -2761,6 +2818,7 @@ export type Database = {
         Args: { p_decision_note?: string; p_loan_id: string }
         Returns: undefined
       }
+      request_company_join: { Args: { p_join_code: string }; Returns: string }
       request_loan: {
         Args: {
           p_employee_id: string
@@ -2768,6 +2826,10 @@ export type Database = {
           p_principal: number
           p_reason: string
         }
+        Returns: string
+      }
+      rotate_company_join_code: {
+        Args: { p_company_id: string }
         Returns: string
       }
       scim_set_user_active: {
