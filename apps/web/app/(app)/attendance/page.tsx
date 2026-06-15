@@ -21,7 +21,7 @@ function startOfTodayJakartaIso(): string {
 
 type RecordRow = Pick<
   Database["public"]["Tables"]["attendance_records"]["Row"],
-  "id" | "employee_id" | "kind" | "event_at" | "is_valid" | "latitude" | "longitude" | "note" | "selfie_url"
+  "id" | "employee_id" | "kind" | "event_at" | "is_valid" | "latitude" | "longitude" | "note" | "selfie_url" | "liveness_passed"
 >;
 
 export default async function AttendancePage() {
@@ -43,7 +43,7 @@ export default async function AttendancePage() {
       .eq("company_id", active.id),
     supabase
       .from("attendance_records")
-      .select("id, employee_id, kind, event_at, is_valid, latitude, longitude, note, selfie_url")
+      .select("id, employee_id, kind, event_at, is_valid, latitude, longitude, note, selfie_url, liveness_passed")
       .eq("company_id", active.id)
       .gte("event_at", since)
       .order("event_at", { ascending: false }),

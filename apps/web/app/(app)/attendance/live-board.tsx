@@ -21,7 +21,7 @@ import {
 
 export type AttendanceRecord = Pick<
   Database["public"]["Tables"]["attendance_records"]["Row"],
-  "id" | "employee_id" | "kind" | "event_at" | "is_valid" | "latitude" | "longitude" | "note" | "selfie_url"
+  "id" | "employee_id" | "kind" | "event_at" | "is_valid" | "latitude" | "longitude" | "note" | "selfie_url" | "liveness_passed"
 >;
 
 type Kind = Database["public"]["Enums"]["attendance_kind"];
@@ -174,6 +174,8 @@ export function LiveBoard({
                   <TableCell>
                     {r.is_valid ? (
                       <span className="text-xs text-success">{t("valid")}</span>
+                    ) : r.liveness_passed === false ? (
+                      <span className="text-xs text-danger">{t("livenessFailed")}</span>
                     ) : (
                       <span className="text-xs text-danger">{t("outOfArea")}</span>
                     )}

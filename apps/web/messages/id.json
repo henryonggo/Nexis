@@ -157,6 +157,7 @@
     "columns": { "employee": "Karyawan", "status": "Status", "time": "Waktu", "event": "Kejadian", "validity": "Validitas", "correction": "Koreksi" },
     "valid": "Valid",
     "outOfArea": "Di luar area",
+    "livenessFailed": "Verifikasi wajah gagal",
     "approve": "Setujui",
     "markInvalid": "Tandai tidak valid",
     "updated": "Kehadiran diperbarui.",
