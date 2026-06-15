@@ -392,6 +392,10 @@
     "grossLabel": "bruto",
     "overtimeTitle": "Lembur disetujui per bulan",
     "noOvertime": "Belum ada lembur disetujui pada periode ini.",
+    "employerCostTitle": "Biaya pemberi kerja per departemen",
+    "employerCostMeta": "{period} · total {total}",
+    "noEmployerCost": "Belum ada run payroll selesai untuk dihitung.",
+    "export": "Ekspor CSV",
     "period": { "label": "Periode", "months": "{count} bulan terakhir" }
   },
   "audit": {

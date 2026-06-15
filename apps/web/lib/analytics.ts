@@ -154,6 +154,81 @@ export async function getOvertimeTrend(
   return out;
 }
 
+export interface EmployerCostBreakdown {
+  periodLabel: string | null;
+  total: number;
+  byDepartment: NamedCount[];
+}
+
+/**
+ * Total employer cost of the latest finalized run, split by department. Employer
+ * cost = gross pay + all employer-side BPJS legs (Kes/JHT/JP/JKK/JKM). Joins
+ * `payroll_items` to `employees.department`; aggregates in JS.
+ */
+export async function getEmployerCostByDept(
+  supabase: SupabaseClient<Database>,
+  companyId: string,
+): Promise<EmployerCostBreakdown> {
+  const { data: run } = await supabase
+    .from("payroll_runs")
+    .select("id, period_year, period_month")
+    .eq("company_id", companyId)
+    .in("status", ["completed", "paid"])
+    .order("period_year", { ascending: false })
+    .order("period_month", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!run) return { periodLabel: null, total: 0, byDepartment: [] };
+
+  const [{ data: items }, { data: employees }] = await Promise.all([
+    supabase
+      .from("payroll_items")
+      .select(
+        "employee_id, gross_pay, bpjs_kes_employer, jht_employer, jp_employer, jkk_employer, jkm_employer",
+      )
+      .eq("payroll_run_id", run.id),
+    supabase.from("employees").select("id, department").eq("company_id", companyId),
+  ]);
+
+  const deptById = new Map(
+    ((employees as { id: string; department: string | null }[] | null) ?? []).map((e) => [
+      e.id,
+      e.department?.trim() || "Tanpa departemen",
+    ]),
+  );
+
+  type Item = {
+    employee_id: string;
+    gross_pay: number;
+    bpjs_kes_employer: number;
+    jht_employer: number;
+    jp_employer: number;
+    jkk_employer: number;
+    jkm_employer: number;
+  };
+  const map = new Map<string, number>();
+  let total = 0;
+  for (const it of (items as Item[] | null) ?? []) {
+    const cost =
+      it.gross_pay +
+      it.bpjs_kes_employer +
+      it.jht_employer +
+      it.jp_employer +
+      it.jkk_employer +
+      it.jkm_employer;
+    total += cost;
+    const dept = deptById.get(it.employee_id) ?? "Tanpa departemen";
+    map.set(dept, (map.get(dept) ?? 0) + cost);
+  }
+
+  const byDepartment = Array.from(map.entries())
+    .map(([label, value]) => ({ label, value }))
+    .sort((a, b) => b.value - a.value);
+
+  return { periodLabel: formatPeriod(run.period_year, run.period_month), total, byDepartment };
+}
+
 export interface ApprovalStats {
   pendingLeave: number;
   pendingClaims: number;
