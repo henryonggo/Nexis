@@ -229,6 +229,90 @@ export async function getEmployerCostByDept(
   return { periodLabel: formatPeriod(run.period_year, run.period_month), total, byDepartment };
 }
 
+export interface Punctuality {
+  onTime: number;
+  late: number;
+  /** Clock-ins on a scheduled day (onTime + late); unscheduled clock-ins excluded. */
+  judged: number;
+  /** 0–100, or null when nothing was judged. */
+  onTimeRate: number | null;
+}
+
+const WIB_OFFSET_MS = 7 * 60 * 60 * 1000; // Asia/Jakarta, UTC+7, no DST
+
+/** "HH:MM[:SS]" → minutes since midnight. */
+function timeToMinutes(t: string): number {
+  const [h, m] = t.split(":");
+  return Number(h) * 60 + Number(m);
+}
+
+/**
+ * On-time vs late clock-ins over the last `months`, judged against each employee's
+ * scheduled shift for that weekday + the shift grace period. Times compared in WIB
+ * (clock-in `event_at` is UTC; shift `start_time` is local). Clock-ins with no shift
+ * scheduled for that weekday are excluded (can't be judged).
+ */
+export async function getPunctuality(
+  supabase: SupabaseClient<Database>,
+  companyId: string,
+  months: number,
+): Promise<Punctuality> {
+  const now = new Date();
+  const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (months - 1), 1));
+  const cutoffIso = new Date(start.getTime() - WIB_OFFSET_MS).toISOString();
+
+  const [{ data: records }, { data: schedules }, { data: shifts }] = await Promise.all([
+    supabase
+      .from("attendance_records")
+      .select("employee_id, event_at")
+      .eq("company_id", companyId)
+      .eq("kind", "clock_in")
+      .gte("event_at", cutoffIso),
+    supabase
+      .from("work_schedules")
+      .select("employee_id, day_of_week, shift_id")
+      .eq("company_id", companyId),
+    supabase.from("shifts").select("id, start_time, grace_period_minutes").eq("company_id", companyId),
+  ]);
+
+  const shiftById = new Map(
+    ((shifts as { id: string; start_time: string; grace_period_minutes: number }[] | null) ?? []).map(
+      (s) => [s.id, s],
+    ),
+  );
+  // (employee_id, dow) → late-threshold minutes (shift start + grace), WIB.
+  const thresholdByKey = new Map<string, number>();
+  for (const sc of ((schedules as { employee_id: string; day_of_week: number; shift_id: string | null }[] | null) ?? [])) {
+    if (!sc.shift_id) continue;
+    const shift = shiftById.get(sc.shift_id);
+    if (!shift) continue;
+    thresholdByKey.set(
+      `${sc.employee_id}:${sc.day_of_week}`,
+      timeToMinutes(shift.start_time) + (shift.grace_period_minutes ?? 0),
+    );
+  }
+
+  let onTime = 0;
+  let late = 0;
+  for (const r of ((records as { employee_id: string; event_at: string }[] | null) ?? [])) {
+    const wib = new Date(new Date(r.event_at).getTime() + WIB_OFFSET_MS);
+    const dow = wib.getUTCDay();
+    const threshold = thresholdByKey.get(`${r.employee_id}:${dow}`);
+    if (threshold == null) continue; // unscheduled day → not judged
+    const minutes = wib.getUTCHours() * 60 + wib.getUTCMinutes();
+    if (minutes > threshold) late++;
+    else onTime++;
+  }
+
+  const judged = onTime + late;
+  return {
+    onTime,
+    late,
+    judged,
+    onTimeRate: judged > 0 ? Math.round((onTime / judged) * 100) : null,
+  };
+}
+
 export interface ApprovalStats {
   pendingLeave: number;
   pendingClaims: number;

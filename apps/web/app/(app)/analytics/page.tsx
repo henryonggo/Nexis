@@ -7,6 +7,7 @@ import {
   getPayrollTrend,
   getOvertimeTrend,
   getEmployerCostByDept,
+  getPunctuality,
   getApprovalStats,
   getLeaveUsage,
 } from "@/lib/analytics";
@@ -42,11 +43,12 @@ export default async function AnalyticsPage({
   }
 
   const year = new Date().getFullYear();
-  const [headcount, trend, overtimeTrend, employerCost, approvals, leaveUsage] = await Promise.all([
+  const [headcount, trend, overtimeTrend, employerCost, punctuality, approvals, leaveUsage] = await Promise.all([
     getHeadcountStats(supabase, active.id),
     getPayrollTrend(supabase, active.id, months),
     getOvertimeTrend(supabase, active.id, months),
     getEmployerCostByDept(supabase, active.id),
+    getPunctuality(supabase, active.id, months),
     getApprovalStats(supabase, active.id),
     getLeaveUsage(supabase, active.id, year),
   ]);
@@ -61,6 +63,8 @@ export default async function AnalyticsPage({
     ...trend.map((p) => ({ section: t("trendTitle"), label: p.periodLabel, value: p.gross })),
     ...overtimeTrend.map((o) => ({ section: t("overtimeTitle"), label: o.label, value: o.value })),
     ...employerCost.byDepartment.map((d) => ({ section: t("employerCostTitle"), label: d.label, value: d.value })),
+    { section: t("punctualityTitle"), label: t("onTime"), value: punctuality.onTime },
+    { section: t("punctualityTitle"), label: t("late"), value: punctuality.late },
   ];
 
   return (
@@ -132,6 +136,32 @@ export default async function AnalyticsPage({
           items={employerCost.byDepartment}
           emptyText={t("noEmployerCost")}
           format={(v) => formatRupiah(v)}
+        />
+      </Card>
+
+      {/* Punctuality — on-time vs late clock-ins vs scheduled shift */}
+      <Card className="p-6">
+        <div className="mb-4 flex items-baseline justify-between gap-2">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
+            {t("punctualityTitle")}
+          </h2>
+          {punctuality.onTimeRate != null && (
+            <span className="text-sm font-semibold text-ink">
+              {t("onTimeRate", { rate: punctuality.onTimeRate })}
+            </span>
+          )}
+        </div>
+        <BarList
+          items={
+            punctuality.judged > 0
+              ? [
+                  { label: t("onTime"), value: punctuality.onTime },
+                  { label: t("late"), value: punctuality.late },
+                ]
+              : []
+          }
+          unit={t("unitTimes")}
+          emptyText={t("noPunctuality")}
         />
       </Card>
 

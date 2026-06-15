@@ -395,6 +395,12 @@
     "employerCostTitle": "Employer cost by department",
     "employerCostMeta": "{period} · total {total}",
     "noEmployerCost": "No completed payroll run to compute yet.",
+    "punctualityTitle": "Clock-in punctuality",
+    "onTime": "On time",
+    "late": "Late",
+    "onTimeRate": "{rate}% on time",
+    "unitTimes": "times",
+    "noPunctuality": "No clock-ins on scheduled days to judge yet.",
     "export": "Export CSV",
     "period": { "label": "Period", "months": "Last {count} months" }
   },

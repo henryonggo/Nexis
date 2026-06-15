@@ -395,6 +395,12 @@
     "employerCostTitle": "Biaya pemberi kerja per departemen",
     "employerCostMeta": "{period} · total {total}",
     "noEmployerCost": "Belum ada run payroll selesai untuk dihitung.",
+    "punctualityTitle": "Ketepatan waktu masuk",
+    "onTime": "Tepat waktu",
+    "late": "Terlambat",
+    "onTimeRate": "{rate}% tepat waktu",
+    "unitTimes": "kali",
+    "noPunctuality": "Belum ada absen masuk pada hari terjadwal untuk dinilai.",
     "export": "Ekspor CSV",
     "period": { "label": "Periode", "months": "{count} bulan terakhir" }
   },
