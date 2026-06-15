@@ -111,6 +111,49 @@ export async function getPayrollTrend(
     .reverse();
 }
 
+/**
+ * Approved overtime hours per month over the last `months` periods (chronological,
+ * zero-filled). Reads approved `overtime_entries` and sums `duration_minutes` → hours.
+ */
+export async function getOvertimeTrend(
+  supabase: SupabaseClient<Database>,
+  companyId: string,
+  months: number,
+): Promise<NamedCount[]> {
+  const now = new Date();
+  const startY = now.getUTCFullYear();
+  const startM = now.getUTCMonth() - (months - 1); // may be negative → Date normalizes
+  const start = new Date(Date.UTC(startY, startM, 1));
+  const cutoff = `${start.getUTCFullYear()}-${String(start.getUTCMonth() + 1).padStart(2, "0")}-01`;
+
+  const { data } = await supabase
+    .from("overtime_entries")
+    .select("date, duration_minutes")
+    .eq("company_id", companyId)
+    .eq("is_approved", true)
+    .gte("date", cutoff);
+
+  type Row = { date: string; duration_minutes: number };
+  const rows = (data as Row[] | null) ?? [];
+
+  // key = year*12 + (month-1) → minutes
+  const minutesByKey = new Map<number, number>();
+  for (const r of rows) {
+    const d = new Date(r.date);
+    const key = d.getUTCFullYear() * 12 + d.getUTCMonth();
+    minutesByKey.set(key, (minutesByKey.get(key) ?? 0) + (r.duration_minutes ?? 0));
+  }
+
+  const out: NamedCount[] = [];
+  for (let i = 0; i < months; i++) {
+    const d = new Date(Date.UTC(startY, startM + i, 1));
+    const key = d.getUTCFullYear() * 12 + d.getUTCMonth();
+    const hours = Math.round(((minutesByKey.get(key) ?? 0) / 60) * 10) / 10;
+    out.push({ label: formatPeriod(d.getUTCFullYear(), d.getUTCMonth() + 1), value: hours });
+  }
+  return out;
+}
+
 export interface ApprovalStats {
   pendingLeave: number;
   pendingClaims: number;

@@ -388,7 +388,11 @@
     "noTrend": "No completed payroll runs to display yet.",
     "unitPeople": "ppl",
     "unitDays": "days",
-    "grossLabel": "gross"
+    "unitHours": "hrs",
+    "grossLabel": "gross",
+    "overtimeTitle": "Approved overtime per month",
+    "noOvertime": "No approved overtime in this period.",
+    "period": { "label": "Period", "months": "Last {count} months" }
   },
   "audit": {
     "title": "Audit & Compliance",

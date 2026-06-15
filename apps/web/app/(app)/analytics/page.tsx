@@ -5,16 +5,28 @@ import { getActiveCompany } from "@/lib/company";
 import {
   getHeadcountStats,
   getPayrollTrend,
+  getOvertimeTrend,
   getApprovalStats,
   getLeaveUsage,
 } from "@/lib/analytics";
 import { BarList, TrendChart } from "./charts";
+import { PeriodFilter } from "./period-filter";
 import { Card } from "@/components/ui/card";
 
-export default async function AnalyticsPage() {
+const PERIOD_OPTIONS = [3, 6, 12];
+
+export default async function AnalyticsPage({
+  searchParams,
+}: {
+  searchParams: { months?: string };
+}) {
   const supabase = createClient();
   const active = await getActiveCompany();
   if (!active) return null;
+
+  const months = PERIOD_OPTIONS.includes(Number(searchParams.months))
+    ? Number(searchParams.months)
+    : 12;
 
   const t = await getTranslations("analytics");
   const isAdmin = active.role === "owner" || active.role === "admin";
@@ -28,9 +40,10 @@ export default async function AnalyticsPage() {
   }
 
   const year = new Date().getFullYear();
-  const [headcount, trend, approvals, leaveUsage] = await Promise.all([
+  const [headcount, trend, overtimeTrend, approvals, leaveUsage] = await Promise.all([
     getHeadcountStats(supabase, active.id),
-    getPayrollTrend(supabase, active.id),
+    getPayrollTrend(supabase, active.id, months),
+    getOvertimeTrend(supabase, active.id, months),
     getApprovalStats(supabase, active.id),
     getLeaveUsage(supabase, active.id, year),
   ]);
@@ -40,9 +53,12 @@ export default async function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
-        <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
+          <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
+        </div>
+        <PeriodFilter value={months} />
       </div>
 
       {/* KPI strip */}
@@ -75,6 +91,14 @@ export default async function AnalyticsPage() {
           {t("trendTitle")}
         </h2>
         <TrendChart points={trend} emptyText={t("noTrend")} grossLabel={t("grossLabel")} />
+      </Card>
+
+      {/* Approved overtime hours per month */}
+      <Card className="p-6">
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
+          {t("overtimeTitle")}
+        </h2>
+        <BarList items={overtimeTrend} unit={t("unitHours")} emptyText={t("noOvertime")} />
       </Card>
 
       {/* Headcount breakdowns */}
