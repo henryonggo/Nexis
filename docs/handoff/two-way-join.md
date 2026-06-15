@@ -18,18 +18,17 @@ assigns the role.
   invite path applies (email must match the invited email — existing `accept_invitation` check).
   The self-request path has no email constraint; the approver is the gate.
 
-## ⛔ Two decisions needed before build
+## Decisions (resolved)
 
-1. **HR role.** The grant matrix names HR separately from admin, but `company_role` is
-   `owner | admin | manager | employee` (no `hr`). Either:
-   - **(A) HR = admin** — no enum change. Matrix collapses to: admin grants employee; owner grants
-     admin/manager/employee. Ships fastest.
-   - **(B) Add `hr` role** — Antigravity extends the enum + every role-gated RLS policy. Matrix as
-     stated: HR grants employee only; owner/admin grant admin/hr/employee. Faithful but a large,
-     cross-cutting DB change.
-   *Defaulting to nothing until chosen — it changes the enum and the approve RPC.*
-2. **Join key.** Recommended: a short **company join code** (rotatable, no UUID leakage).
-   Alternatives: paste company UUID, or name search. Spec below assumes a join code.
+1. **Role model — Option B: keep the 4 roles, no `hr`.** Authority limits live in the approve RPC,
+   not in a new role (least-privilege without enum churn). The HR persona = `admin`. Grant matrix:
+   | Approver | May approve a request as |
+   |---|---|
+   | **owner** | `admin`, `manager`, `employee` |
+   | **admin** (the "HR/Admin" persona) | `manager`, `employee` — **never `admin`** (no self-escalation) |
+   | manager / employee | — (not approvers) |
+   Only **owner** and **admin** can approve join requests at all.
+2. **Join key — company join code** (short, rotatable; no UUID leakage).
 
 ## TODO(db) — Antigravity
 
@@ -39,21 +38,21 @@ assigns the role.
 2. **`company_join_requests`** — `id, company_id, user_id, email (the registering email),
    status (pending|approved|rejected), created_at, decided_by, decided_at`. Unique partial index
    on `(company_id, user_id) where status = 'pending'` (no dup pending). RLS: requester reads own;
-   owner/admin/(hr) of the company read + decide the company's rows.
+   **owner/admin** of the company read + decide the company's rows.
 3. **`request_company_join(p_join_code text)`** — resolves company by code, inserts a pending
    request for `auth.uid()` with their auth email. Typed errors: `INVALID_CODE`, `ALREADY_MEMBER`,
    `ALREADY_PENDING`. Returns request id.
 4. **`approve_join_request(p_request_id uuid, p_role company_role)`** — enforces, server-side:
-   - caller is owner/admin/(hr) of the company;
-   - **role-grant matrix** (per the HR decision above) — reject `INSUFFICIENT_ROLE` if the caller
-     may not grant `p_role` (e.g. HR may only grant `employee`);
+   - caller is **owner or admin** of the company;
+   - **grant matrix:** owner may set `admin`/`manager`/`employee`; admin may set `manager`/`employee`
+     only. Reject `INSUFFICIENT_ROLE` otherwise (an admin can never mint an `admin`/`owner`);
    - if a pending invitation exists for the requester's email, honor the email-match rule;
    - creates the `company_members` row with `p_role` (+ links `employee_id` if an unclaimed
      employee row matches the email, like `accept_invitation` does), marks the request approved,
      writes an audit log.
-5. **`reject_join_request(p_request_id uuid, p_note text default null)`** — owner/admin/(hr).
-6. Grant execute to `authenticated`; pgTAP for the matrix (HR cannot grant admin; owner can; a
-   non-member cannot approve; dup pending blocked; invited-email mismatch blocked).
+5. **`reject_join_request(p_request_id uuid, p_note text default null)`** — owner/admin.
+6. Grant execute to `authenticated`; pgTAP for the matrix (admin cannot grant admin; owner can; a
+   non-owner/admin cannot approve; dup pending blocked; invited-email mismatch blocked).
 
 ## App follow-up — Claude (after RPCs land)
 
@@ -69,7 +68,7 @@ assigns the role.
 
 - New account joins via code → request appears for owner/admin/HR → approved with a role →
   membership active; the new user lands in the company.
-- HR can only grant `employee`; owner/admin can grant the wider set (per the chosen role model).
+- admin can grant `manager`/`employee` but **never** `admin`; owner can grant `admin`/`manager`/`employee`.
 - An invited user registering with a **different** email than invited cannot use the invite
   (existing check) and must self-request instead.
 - Duplicate pending requests and non-member approvals are rejected.
