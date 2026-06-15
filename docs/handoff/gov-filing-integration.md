@@ -1,4 +1,4 @@
-# Handoff — Government filing integration (DJP Online / SIPP) — 🟡 OPEN (Antigravity)
+# Handoff — Government filing integration (DJP Online / SIPP) — 🟢 DB DONE / 🟡 INFRA OPEN
 
 > **Owner:** Antigravity (Edge fn + secrets + external API) / human (DJP & BPJS credentials).
 > Post-beta, **depends on** `docs/handoff/compliance-exports.md` (file generation first).
@@ -17,9 +17,7 @@ infra + external-API + secrets work, gated to paid plans with a valid company NP
    pattern already used (`billing-webhook`, `dispatch-webhook`).
 2. **Secrets** via the function env / Secret Manager — DJP & BPJS API credentials/certs;
    never in the repo.
-3. **Submission ledger** — a `filing_submissions` table (run_id, kind djp|sipp, status
-   queued/submitted/accepted/rejected, external_ref, response payload, submitted_at) so the
-   app can show filing status and retries are idempotent. `TODO(db)` + regenerate types.
+3. ✅ **DB Done**: Created the `filing_submissions` table (run_id, kind djp|sipp, status queued/submitted/accepted/rejected, external_ref, response_payload, submitted_at) serving as the submission ledger, with RLS select access for owner/admin.
 4. **Gating** — reuse the `plan`/`npwp` checks from `enforce_payroll_run_gating`
    (`20260613111500_handoff_updates.sql`): only paid plan + company NPWP may submit.
    Typed errors (`PLAN_GATE_FREE`, `NPWP_REQUIRED`) the app already maps.

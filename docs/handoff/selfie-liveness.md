@@ -1,4 +1,4 @@
-# Handoff — Selfie liveness / anti-spoof (G8) — 🟡 OPEN (Antigravity + product)
+# Handoff — Selfie liveness / anti-spoof (G8) — 🟢 DB DONE / 🟡 INFRA OPEN
 
 > **Owner:** Antigravity (infra/verification) + product (vendor vs on-device decision) →
 > Claude/mobile (capture flow). Post-beta. Source:
@@ -24,9 +24,7 @@ Pick the verification approach — drives everything else:
 1. If vendor: an **Edge function** `verify-liveness(attendance_id, image)` holding the vendor
    secret (mirror `send-notification`), returning pass/fail + score; never embed the key in the
    app. If on-device: ship the model + a signed attestation the server can trust.
-2. Persist the result: extend `attendance_records` (or a sibling table) with
-   `liveness_passed boolean`, `liveness_score numeric`, `liveness_method text`. `TODO(db)` +
-   regenerate types.
+2. ✅ **DB Done**: Extended `attendance_records` with `liveness_passed boolean`, `liveness_score numeric`, `liveness_method text` columns.
 3. Policy: a failed liveness flags the record (`is_valid = false`) like an out-of-geofence
    punch — flag, don't hard-block (same UX rule as the geofence).
 

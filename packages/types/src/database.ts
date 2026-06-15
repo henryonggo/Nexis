@@ -124,6 +124,9 @@ export type Database = {
           is_valid: boolean
           kind: Database["public"]["Enums"]["attendance_kind"]
           latitude: number | null
+          liveness_method: string | null
+          liveness_passed: boolean | null
+          liveness_score: number | null
           longitude: number | null
           note: string | null
           selfie_url: string | null
@@ -138,6 +141,9 @@ export type Database = {
           is_valid?: boolean
           kind: Database["public"]["Enums"]["attendance_kind"]
           latitude?: number | null
+          liveness_method?: string | null
+          liveness_passed?: boolean | null
+          liveness_score?: number | null
           longitude?: number | null
           note?: string | null
           selfie_url?: string | null
@@ -152,6 +158,9 @@ export type Database = {
           is_valid?: boolean
           kind?: Database["public"]["Enums"]["attendance_kind"]
           latitude?: number | null
+          liveness_method?: string | null
+          liveness_passed?: boolean | null
+          liveness_score?: number | null
           longitude?: number | null
           note?: string | null
           selfie_url?: string | null
@@ -1036,6 +1045,60 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      filing_submissions: {
+        Row: {
+          company_id: string
+          created_at: string
+          external_ref: string | null
+          id: string
+          kind: string
+          response_payload: Json | null
+          run_id: string
+          status: string
+          submitted_at: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          external_ref?: string | null
+          id?: string
+          kind: string
+          response_payload?: Json | null
+          run_id: string
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          external_ref?: string | null
+          id?: string
+          kind?: string
+          response_payload?: Json | null
+          run_id?: string
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "filing_submissions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "filing_submissions_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_runs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       geofences: {
         Row: {
