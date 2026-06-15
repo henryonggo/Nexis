@@ -72,15 +72,21 @@ export function OnboardingForm() {
           <h2 className="mb-1 text-xl font-bold text-ink">{t("joinTitle")}</h2>
           <p className="mb-5 text-sm text-muted">{t("joinSubtitle")}</p>
 
-          {joinState.error && <Alert variant="destructive" className="mb-4">{joinState.error}</Alert>}
+          {joinState.pending ? (
+            <Alert variant="success">{t("joinPending")}</Alert>
+          ) : (
+            <>
+              {joinState.error && <Alert variant="destructive" className="mb-4">{joinState.error}</Alert>}
 
-          <form action={joinAction} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="code">{t("codeLabel")}</Label>
-              <Input id="code" name="code" placeholder={t("codePlaceholder")} required />
-            </div>
-            <SubmitButton>{t("joinSubmit")}</SubmitButton>
-          </form>
+              <form action={joinAction} className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="code">{t("codeLabel")}</Label>
+                  <Input id="code" name="code" placeholder={t("codePlaceholder")} required />
+                </div>
+                <SubmitButton>{t("joinSubmit")}</SubmitButton>
+              </form>
+            </>
+          )}
         </>
       )}
     </Card>

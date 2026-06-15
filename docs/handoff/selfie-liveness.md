@@ -1,4 +1,9 @@
-# Handoff — Selfie liveness / anti-spoof (G8) — 🟢 DB DONE / 🟡 INFRA OPEN
+# Handoff — Selfie liveness / anti-spoof (G8) — 🟢 DB + WEB DONE / 🟡 MOBILE CHECK OPEN
+
+> **Web side complete:** columns + flag trigger (Antigravity) and the live-board "Face check
+> failed" badge (Claude) are landed. **Still open:** the real on-capture check (vendor vs
+> on-device product decision + `verify-liveness` path), then the mobile flow swap. Nothing writes
+> `liveness_passed = false` yet, so the badge stays dormant until the real check ships.
 
 > **Owner:** Antigravity (infra/verification) + product (vendor vs on-device decision) →
 > Claude/mobile (capture flow). Post-beta. Source:
@@ -25,13 +30,20 @@ Pick the verification approach — drives everything else:
    secret (mirror `send-notification`), returning pass/fail + score; never embed the key in the
    app. If on-device: ship the model + a signed attestation the server can trust.
 2. ✅ **DB Done**: Extended `attendance_records` with `liveness_passed boolean`, `liveness_score numeric`, `liveness_method text` columns.
-3. Policy: a failed liveness flags the record (`is_valid = false`) like an out-of-geofence
-   punch — flag, don't hard-block (same UX rule as the geofence).
+3. ✅ **Policy trigger — Antigravity, landed**: `trg_validate_attendance_liveness`
+   (`20260615100700_attendance_liveness_policy.sql` + pgTAP) — `BEFORE INSERT OR UPDATE OF
+   liveness_passed`, sets `is_valid = false` + appends `[Failed liveness check]` to `note` when
+   `liveness_passed = false` (flag, don't hard-block). The web badge keys off the
+   `liveness_passed` column, so it's already aligned.
 
 ## App follow-up — Claude / mobile
 
-- Replace the timed mock in the mobile capture flow with the real check; surface a retry on
-  failure. Show the liveness flag on the web live board next to the geofence flag. i18n.
+- ✅ **Web live board (Claude, done):** the validity column now distinguishes the reason — a
+  record invalid with `liveness_passed = false` shows **"Face check failed"**, otherwise
+  "Out of area". Reads `attendance_records.liveness_passed`; aligns with the planned trigger.
+  i18n id-ID + en. (`live-board.tsx`, `attendance/page.tsx`.)
+- ⏳ **Mobile (blocked):** replace the timed mock with the real check + retry on failure. Needs the
+  vendor-vs-on-device decision and the `verify-liveness` path first.
 
 ## Acceptance
 

@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createCompanySchema } from "@/lib/validation";
 
-export type OnboardingState = { error?: string };
+export type OnboardingState = { error?: string; pending?: boolean };
 
 export async function createFirstCompany(
   _prev: OnboardingState,
@@ -40,9 +40,9 @@ export async function joinCompanyWithCode(
   _prev: OnboardingState,
   formData: FormData,
 ): Promise<OnboardingState> {
-  const token = (formData.get("code") as string)?.trim();
-  if (!token) {
-    return { error: "Kode undangan harus diisi." };
+  const code = (formData.get("code") as string)?.trim();
+  if (!code) {
+    return { error: "Kode perusahaan harus diisi." };
   }
 
   const supabase = createClient();
@@ -51,32 +51,20 @@ export async function joinCompanyWithCode(
   } = await supabase.auth.getUser();
   if (!user) redirect("/sign-in");
 
-  // Call the accept_invitation RPC. It handles linking the user's auth email and employee record.
-  const { data: companyId, error } = await supabase.rpc("accept_invitation", {
-    p_token: token,
-  });
+  // Self-request to join by company join code. Creates a pending request that an
+  // owner/admin approves and assigns a role to (two-way-join handoff). The user is
+  // NOT a member yet — show a pending state, don't redirect.
+  const { error } = await supabase.rpc("request_company_join", { p_join_code: code });
 
   if (error) {
     const MESSAGES: Record<string, string> = {
-      INVITE_INVALID: "Undangan tidak ditemukan atau sudah dipakai.",
-      INVITE_EXPIRED: "Undangan sudah kedaluwarsa.",
-      INVITE_EMAIL_MISMATCH: "Undangan ini ditujukan untuk alamat email lain.",
+      INVALID_CODE: "Kode perusahaan tidak ditemukan.",
+      ALREADY_MEMBER: "Anda sudah menjadi anggota perusahaan ini.",
+      ALREADY_PENDING: "Permintaan Anda sudah dikirim dan menunggu persetujuan.",
     };
     const key = Object.keys(MESSAGES).find((k) => error.message.includes(k));
     return { error: key ? MESSAGES[key]! : error.message };
   }
 
-  // Set the joined company as the active one using cookie
-  if (typeof companyId === "string") {
-    const { cookies } = await import("next/headers");
-    const { ACTIVE_COMPANY_COOKIE } = await import("@/lib/company");
-    cookies().set(ACTIVE_COMPANY_COOKIE, companyId, {
-      httpOnly: true,
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 365,
-    });
-  }
-
-  redirect("/dashboard");
+  return { pending: true };
 }
