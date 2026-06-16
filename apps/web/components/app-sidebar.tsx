@@ -19,6 +19,7 @@ import {
   ScrollText,
   Code2,
   UserCog,
+  ShieldCheck,
   Settings,
   PanelLeftClose,
   PanelLeft,
@@ -44,6 +45,7 @@ const ICONS: Record<string, LucideIcon> = {
   audit: ScrollText,
   developer: Code2,
   members: UserCog,
+  access: ShieldCheck,
   settings: Settings,
 };
 
@@ -62,7 +64,7 @@ export const PILLAR_ITEMS: Record<string, string[]> = {
   people: ["employees", "members"],
   operations: ["attendance", "leave", "performance"],
   finance: ["payroll", "claims", "loans", "billing"],
-  platform: ["developer", "settings"],
+  platform: ["access", "developer", "settings"],
 };
 
 export function getActivePillar(pathname: string): string {

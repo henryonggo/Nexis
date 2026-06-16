@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type LeaveStatus = Database["public"]["Enums"]["leave_status"];
 
+
 /** A leave request joined with its type + the requesting employee, for the admin queue. */
 export interface LeaveRequestView {
   id: string;

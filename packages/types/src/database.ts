@@ -529,6 +529,41 @@ export type Database = {
           },
         ]
       }
+      company_employee_access: {
+        Row: {
+          attendance: boolean
+          claims: boolean
+          company_id: string
+          leave: boolean
+          salary: boolean
+          updated_at: string
+        }
+        Insert: {
+          attendance?: boolean
+          claims?: boolean
+          company_id: string
+          leave?: boolean
+          salary?: boolean
+          updated_at?: string
+        }
+        Update: {
+          attendance?: boolean
+          claims?: boolean
+          company_id?: string
+          leave?: boolean
+          salary?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_employee_access_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_join_requests: {
         Row: {
           company_id: string

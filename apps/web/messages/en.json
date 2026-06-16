@@ -40,6 +40,7 @@
     "audit": "Audit",
     "developer": "API",
     "members": "Members",
+    "access": "Employee access",
     "profile": "My Profile",
     "settings": "Settings"
   },
@@ -119,6 +120,52 @@
       "lastPayroll": "Last payroll",
       "runPayroll": "Run payroll →",
       "planManage": "{plan} · Manage employees →"
+    },
+    "manager": {
+      "pendingApprovals": "Pending approvals",
+      "reviewLeave": "Review leave requests →"
+    },
+    "employee": {
+      "greeting": "Welcome, {name}",
+      "salary": "My salary",
+      "salaryHint": "View full breakdown →",
+      "leave": "Leave",
+      "leaveApproved": "approved",
+      "leavePending": "{count} pending →",
+      "leaveRequest": "Request time off →",
+      "attendance": "Today",
+      "clockedIn": "Clocked in",
+      "notClockedIn": "Not clocked in",
+      "attendanceHint": "Go to attendance →",
+      "noProfile": "Your employee profile isn't set up yet. Contact your admin."
+    }
+  },
+  "access": {
+    "title": "Employee access",
+    "subtitle": "Choose what employees in this company can see and open. Owner and admin accounts are not affected.",
+    "save": "Save changes",
+    "saved": "Saved.",
+    "groups": {
+      "operations": "Operations",
+      "compensation": "Compensation"
+    },
+    "items": {
+      "attendance": {
+        "label": "Attendance",
+        "hint": "Clock in/out and view their own attendance."
+      },
+      "leave": {
+        "label": "Leave",
+        "hint": "Request time off and view their leave history."
+      },
+      "claims": {
+        "label": "Claims",
+        "hint": "Submit expense claims and view their claim history."
+      },
+      "salary": {
+        "label": "Salary visibility",
+        "hint": "Show their salary on the dashboard and the financial & tax details on their profile."
+      }
     }
   },
   "notFound": {

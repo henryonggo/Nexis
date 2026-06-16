@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getMemberships, getActiveCompany } from "@/lib/company";
+import { getEmployeeAccess, ACCESS_NAV_FLAGS } from "@/lib/access";
 import { signOut } from "../(auth)/actions";
 import { CompanySwitcher } from "@/components/company-switcher";
 import { IdleTimeout } from "@/components/idle-timeout";
@@ -33,6 +34,7 @@ const NAV: ReadonlyArray<{ href: string; key: string; roles: readonly Role[] }> 
   { href: "/audit", key: "audit", roles: ["owner", "admin"] },
   { href: "/developer", key: "developer", roles: ["owner", "admin"] },
   { href: "/members", key: "members", roles: ["owner", "admin"] },
+  { href: "/access", key: "access", roles: ["owner", "admin"] },
   { href: "/settings", key: "settings", roles: ["owner", "admin"] },
 ] as const;
 
@@ -50,9 +52,18 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const tc = await getTranslations("common");
 
   const role = (active?.role ?? "employee") as Role;
-  const navItems: NavItem[] = NAV.filter((item) => item.roles.includes(role)).map(
+  let navItems: NavItem[] = NAV.filter((item) => item.roles.includes(role)).map(
     (item) => ({ href: item.href, key: item.key, label: t(item.key) }),
   );
+
+  // Employees only: drop nav entries the company has turned off (owner/admin control panel).
+  if (role === "employee" && active) {
+    const access = await getEmployeeAccess(active.id);
+    navItems = navItems.filter((item) => {
+      const flag = ACCESS_NAV_FLAGS[item.key];
+      return !flag || access[flag];
+    });
+  }
 
   return (
     <div className="min-h-screen">

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Settings2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { guardEmployeeAccess } from "@/lib/access";
 import type { Database } from "@nexis/types";
 import { LiveBoard, type AttendanceRecord } from "./live-board";
 import { OvertimeQueue, type PendingOvertime } from "./overtime-queue";
@@ -28,6 +29,7 @@ export default async function AttendancePage() {
   const supabase = createClient();
   const active = await getActiveCompany();
   if (!active) return null;
+  await guardEmployeeAccess(active.role, active.id, "attendance");
 
   const canCorrect = active.role !== "employee";
   const canConfigure = active.role === "owner" || active.role === "admin";

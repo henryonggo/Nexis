@@ -40,6 +40,7 @@
     "audit": "Audit",
     "developer": "API",
     "members": "Anggota",
+    "access": "Akses karyawan",
     "profile": "Profil Saya",
     "settings": "Pengaturan"
   },
@@ -119,6 +120,52 @@
       "lastPayroll": "Payroll terakhir",
       "runPayroll": "Jalankan payroll →",
       "planManage": "{plan} · Kelola karyawan →"
+    },
+    "manager": {
+      "pendingApprovals": "Persetujuan tertunda",
+      "reviewLeave": "Tinjau pengajuan cuti →"
+    },
+    "employee": {
+      "greeting": "Selamat datang, {name}",
+      "salary": "Gaji saya",
+      "salaryHint": "Lihat rincian lengkap →",
+      "leave": "Cuti",
+      "leaveApproved": "disetujui",
+      "leavePending": "{count} menunggu →",
+      "leaveRequest": "Ajukan cuti →",
+      "attendance": "Hari ini",
+      "clockedIn": "Sudah absen masuk",
+      "notClockedIn": "Belum absen masuk",
+      "attendanceHint": "Ke kehadiran →",
+      "noProfile": "Profil karyawan Anda belum disiapkan. Hubungi admin Anda."
+    }
+  },
+  "access": {
+    "title": "Akses karyawan",
+    "subtitle": "Pilih apa yang dapat dilihat dan dibuka karyawan di perusahaan ini. Akun pemilik dan admin tidak terpengaruh.",
+    "save": "Simpan perubahan",
+    "saved": "Tersimpan.",
+    "groups": {
+      "operations": "Operasional",
+      "compensation": "Kompensasi"
+    },
+    "items": {
+      "attendance": {
+        "label": "Kehadiran",
+        "hint": "Absen masuk/keluar dan lihat kehadiran sendiri."
+      },
+      "leave": {
+        "label": "Cuti",
+        "hint": "Ajukan cuti dan lihat riwayat cuti sendiri."
+      },
+      "claims": {
+        "label": "Klaim",
+        "hint": "Ajukan klaim biaya dan lihat riwayat klaim sendiri."
+      },
+      "salary": {
+        "label": "Visibilitas gaji",
+        "hint": "Tampilkan gaji di dashboard dan rincian finansial & pajak di profil."
+      }
     }
   },
   "notFound": {
