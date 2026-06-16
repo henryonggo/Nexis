@@ -12,9 +12,16 @@ interface MembershipRow {
 /** All companies the signed-in user belongs to (ordered by join time). */
 export async function getMemberships(): Promise<ActiveCompany[]> {
   const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return [];
+
   const { data } = await supabase
     .from("company_members")
     .select("role, companies(id, name, plan)")
+    .eq("user_id", user.id)
     .order("created_at", { ascending: true });
 
   return ((data as unknown as MembershipRow[] | null) ?? [])
