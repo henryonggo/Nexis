@@ -40,6 +40,7 @@
     "audit": "Audit",
     "developer": "API",
     "members": "Anggota",
+    "profile": "Profil Saya",
     "settings": "Pengaturan"
   },
   "plans": {
@@ -632,5 +633,45 @@
     "signedInPrefix": "Anda masuk sebagai",
     "signedInSuffix": "Terima undangan untuk bergabung dengan perusahaan ini.",
     "accept": "Terima & bergabung"
+  },
+  "profile": {
+    "title": "Profil Saya",
+    "subtitle": "Lihat detail akun dan data karyawan Anda.",
+    "noChangesAllowed": "Perubahan data tidak diizinkan saat ini.",
+    "sections": {
+      "account": "Detail Akun",
+      "employment": "Detail Pekerjaan",
+      "financial": "Informasi Gaji & Bank",
+      "tax": "Profil Pajak"
+    },
+    "fields": {
+      "name": "Nama Lengkap",
+      "email": "Email",
+      "phone": "Telepon",
+      "locale": "Bahasa / Wilayah",
+      "employeeNo": "NIP (Nomor Induk Pegawai)",
+      "status": "Status Karyawan",
+      "employmentType": "Jenis Pekerjaan",
+      "joinDate": "Tanggal Bergabung",
+      "department": "Departemen",
+      "position": "Jabatan",
+      "baseSalary": "Gaji Pokok",
+      "bank": "Bank",
+      "accountNo": "Nomor Rekening",
+      "accountName": "Nama Pemilik Rekening",
+      "ptkpStatus": "Status PTKP",
+      "npwp": "Nomor NPWP",
+      "bpjsKes": "BPJS Kesehatan",
+      "bpjsTk": "BPJS Ketenagakerjaan",
+      "jht": "Jaminan Hari Tua (JHT)",
+      "jp": "Jaminan Pensiun (JP)"
+    },
+    "messages": {
+      "noEmployeeProfile": "Anda masuk sebagai administrator/pemilik dan tidak memiliki profil karyawan di perusahaan ini.",
+      "enrolled": "Terdaftar",
+      "notEnrolled": "Tidak Terdaftar",
+      "hasNpwp": "Memiliki NPWP",
+      "noNpwp": "Tidak Memiliki NPWP (Dikenakan tarif pajak +20%)"
+    }
   }
 }

@@ -40,6 +40,7 @@
     "audit": "Audit",
     "developer": "API",
     "members": "Members",
+    "profile": "My Profile",
     "settings": "Settings"
   },
   "plans": {
@@ -632,5 +633,45 @@
     "signedInPrefix": "You're signed in as",
     "signedInSuffix": "Accept the invitation to join this company.",
     "accept": "Accept & join"
+  },
+  "profile": {
+    "title": "My Profile",
+    "subtitle": "View your account details and employee records.",
+    "noChangesAllowed": "Modifying profile information is not allowed at this time.",
+    "sections": {
+      "account": "Account Details",
+      "employment": "Employment Details",
+      "financial": "Compensation & Bank Info",
+      "tax": "Tax Profile"
+    },
+    "fields": {
+      "name": "Full Name",
+      "email": "Email",
+      "phone": "Phone",
+      "locale": "Language / Locale",
+      "employeeNo": "Employee ID (NIP)",
+      "status": "Employee Status",
+      "employmentType": "Employment Type",
+      "joinDate": "Join Date",
+      "department": "Department",
+      "position": "Position",
+      "baseSalary": "Base Salary",
+      "bank": "Bank Name",
+      "accountNo": "Account Number",
+      "accountName": "Account Holder Name",
+      "ptkpStatus": "PTKP Tax Status",
+      "npwp": "NPWP Number",
+      "bpjsKes": "BPJS Kesehatan",
+      "bpjsTk": "BPJS Ketenagakerjaan",
+      "jht": "Jaminan Hari Tua (JHT)",
+      "jp": "Jaminan Pensiun (JP)"
+    },
+    "messages": {
+      "noEmployeeProfile": "You are logged in as an administrator/owner and do not have an employee profile in this company.",
+      "enrolled": "Enrolled",
+      "notEnrolled": "Not Enrolled",
+      "hasNpwp": "Has NPWP",
+      "noNpwp": "No NPWP (+20% tax surcharge applies)"
+    }
   }
 }
