@@ -7,8 +7,6 @@ import { getActiveCompany } from "@/lib/company";
 
 export type AccessState = { error?: string; ok?: boolean };
 
-type AccessClient = { from: (table: string) => any };
-
 /** Owner/admin save of the employee-access config for the active company. */
 export async function updateEmployeeAccess(
   _prev: AccessState,
@@ -30,9 +28,7 @@ export async function updateEmployeeAccess(
   };
 
   const supabase = createClient();
-  // TODO(db): upsert into company_employee_access (shape in lib/access.ts). Until the
-  // table lands this returns a relation-missing error surfaced to the admin. — Antigravity
-  const { error } = await (supabase as unknown as AccessClient)
+  const { error } = await supabase
     .from("company_employee_access")
     .upsert(row, { onConflict: "company_id" });
 

@@ -25,23 +25,10 @@ export const ACCESS_NAV_FLAGS: Record<string, keyof EmployeeAccess> = {
   claims: "claims",
 };
 
-// TODO(db): table company_employee_access(
-//   company_id uuid primary key references companies(id) on delete cascade,
-//   attendance boolean not null default true,
-//   leave      boolean not null default true,
-//   claims     boolean not null default true,
-//   salary     boolean not null default true,
-//   updated_at timestamptz not null default now())
-// RLS: every company member may SELECT their company's row; only owner/admin may
-// INSERT/UPDATE. Until this lands, the select below errors (relation missing) → we
-// fall back to DEFAULT_EMPLOYEE_ACCESS (all-on). Once generated types exist, drop the
-// cast and read the typed row. — Antigravity
-type AccessClient = { from: (table: string) => any };
-
 /** The active company's employee-access config, defaulting to all-on. */
 export async function getEmployeeAccess(companyId: string): Promise<EmployeeAccess> {
   const supabase = createClient();
-  const { data } = await (supabase as unknown as AccessClient)
+  const { data } = await supabase
     .from("company_employee_access")
     .select("attendance, leave, claims, salary")
     .eq("company_id", companyId)
