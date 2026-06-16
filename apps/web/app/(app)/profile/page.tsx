@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { getEmployeeAccess } from "@/lib/access";
 import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { formatRupiah } from "@nexis/money";
@@ -19,6 +20,10 @@ export default async function ProfilePage() {
 
   const t = await getTranslations("profile");
   const tRoles = await getTranslations("roles");
+
+  // Owner/admin set whether employees may see their own pay/tax details.
+  const access = await getEmployeeAccess(active.id);
+  const showSalary = active.role !== "employee" || access.salary;
 
   // 1. Fetch user's profile details
   const { data: profile } = await supabase
@@ -86,7 +91,9 @@ export default async function ProfilePage() {
         <Card className="grid gap-4 p-5 sm:grid-cols-2">
           <div>
             <label className="text-xs text-muted font-medium">{t("fields.name")}</label>
-            <p className="text-sm font-semibold text-ink mt-0.5">{profile?.full_name || "—"}</p>
+            <p className="text-sm font-semibold text-ink mt-0.5">
+              {employee?.full_name || profile?.full_name || "—"}
+            </p>
           </div>
           <div>
             <label className="text-xs text-muted font-medium">{t("fields.email")}</label>
@@ -145,7 +152,7 @@ export default async function ProfilePage() {
       </section>
 
       {/* Financial Section */}
-      {employee && (
+      {employee && showSalary && (
         <section className="space-y-3">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
             {t("sections.financial")}
@@ -174,7 +181,7 @@ export default async function ProfilePage() {
       )}
 
       {/* Tax Section */}
-      {employee && (
+      {employee && showSalary && (
         <section className="space-y-3">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
             {t("sections.tax")}

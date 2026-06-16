@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { formatRupiah } from "@nexis/money";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { guardEmployeeAccess } from "@/lib/access";
 import { getCompanyClaims, getReceiptUrl, type ClaimView } from "@/lib/claims";
 import { ClaimStatusBadge } from "./status-badge";
 import { PendingClaimsList } from "./pending-claims-list";
@@ -19,6 +20,7 @@ export default async function ClaimsPage() {
   const supabase = createClient();
   const active = await getActiveCompany();
   if (!active) return null;
+  await guardEmployeeAccess(active.role, active.id, "claims");
 
   const t = await getTranslations("claims");
   const canApprove =

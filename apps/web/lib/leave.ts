@@ -4,6 +4,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type LeaveStatus = Database["public"]["Enums"]["leave_status"];
 
+// TODO(db): need a per-employee leave balance source (annual quota + accrued/used)
+// so the employee dashboard can show remaining days, not just approved/pending counts.
+// Options: a leave_balances table (employee_id, leave_type_id, year, entitled, used)
+// or quota columns on leave_types + a used-days view. — Antigravity
+
 /** A leave request joined with its type + the requesting employee, for the admin queue. */
 export interface LeaveRequestView {
   id: string;

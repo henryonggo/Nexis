@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { guardEmployeeAccess } from "@/lib/access";
 import {
   getCompanyLeaveRequests,
   getLeaveAttachmentUrl,
@@ -23,6 +24,7 @@ export default async function LeavePage() {
   const supabase = createClient();
   const active = await getActiveCompany();
   if (!active) return null;
+  await guardEmployeeAccess(active.role, active.id, "leave");
 
   const t = await getTranslations("leave");
   const canApprove =
