@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getMemberships, getActiveCompany } from "@/lib/company";
@@ -18,6 +19,7 @@ type Role = "owner" | "admin" | "manager" | "employee";
 // data is further limited to their own rows by RLS).
 const NAV: ReadonlyArray<{ href: string; key: string; roles: readonly Role[] }> = [
   { href: "/dashboard", key: "dashboard", roles: ["owner", "admin", "manager", "employee"] },
+  { href: "/profile", key: "profile", roles: ["owner", "admin", "manager", "employee"] },
   { href: "/employees", key: "employees", roles: ["owner", "admin", "manager"] },
   { href: "/attendance", key: "attendance", roles: ["owner", "admin", "manager", "employee"] },
   { href: "/leave", key: "leave", roles: ["owner", "admin", "manager", "employee"] },
@@ -65,7 +67,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <TopNav />
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <span className="hidden text-sm text-muted sm:inline">{user.email}</span>
+          <Link href="/profile" className="hidden text-sm text-muted hover:text-brand sm:inline transition-colors font-medium">
+            {user.email}
+          </Link>
           <LocaleSwitcher />
           <form action={signOut}>
             <Button type="submit" variant="outline" size="sm">

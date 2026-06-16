@@ -2116,6 +2116,7 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           deactivated_at: string | null
+          email: string | null
           full_name: string | null
           id: string
           locale: string
@@ -2127,6 +2128,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           deactivated_at?: string | null
+          email?: string | null
           full_name?: string | null
           id: string
           locale?: string
@@ -2138,6 +2140,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           deactivated_at?: string | null
+          email?: string | null
           full_name?: string | null
           id?: string
           locale?: string
@@ -2851,6 +2854,10 @@ export type Database = {
       user_role_in_company: {
         Args: { target: string }
         Returns: Database["public"]["Enums"]["company_role"]
+      }
+      users_share_company: {
+        Args: { user_a: string; user_b: string }
+        Returns: boolean
       }
     }
     Enums: {

@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getActiveCompany } from "@/lib/company";
 import { sendInviteEmail } from "@/lib/email";
+import type { CompanyRole } from "@nexis/types";
 
 const inviteSchema = z.object({
   email: z.string().email("Email tidak valid"),
@@ -187,4 +188,140 @@ export async function rejectJoinRequest(
 
   revalidatePath("/members");
   return { success: "Permintaan ditolak." };
+}
+
+export async function removeMember(
+  companyId: string,
+  userId: string,
+): Promise<{ error?: string; success?: string }> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Sesi berakhir." };
+
+  if (userId === user.id) {
+    return { error: "cannotRemoveSelf" };
+  }
+
+  // Check current user's role in the company
+  const { data: currentUserMember } = await supabase
+    .from("company_members")
+    .select("role")
+    .eq("company_id", companyId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!currentUserMember || (currentUserMember.role !== "owner" && currentUserMember.role !== "admin")) {
+    return { error: "Akses ditolak." };
+  }
+
+  // Check target user's role
+  const { data: targetMember } = await supabase
+    .from("company_members")
+    .select("role")
+    .eq("company_id", companyId)
+    .eq("user_id", userId)
+    .single();
+
+  if (!targetMember) {
+    return { error: "Anggota tidak ditemukan." };
+  }
+
+  // Role hierarchy restrictions
+  if (currentUserMember.role === "admin" && (targetMember.role === "owner" || targetMember.role === "admin")) {
+    return { error: "Akses ditolak." };
+  }
+
+  // Owner check: cannot remove the last owner
+  if (targetMember.role === "owner") {
+    const { count } = await supabase
+      .from("company_members")
+      .select("*", { count: "exact", head: true })
+      .eq("company_id", companyId)
+      .eq("role", "owner");
+
+    if (count && count <= 1) {
+      return { error: "lastOwnerError" };
+    }
+  }
+
+  const { error } = await supabase
+    .from("company_members")
+    .delete()
+    .eq("company_id", companyId)
+    .eq("user_id", userId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/members");
+  return { success: "memberRemoved" };
+}
+
+export async function updateMemberRole(
+  companyId: string,
+  userId: string,
+  role: CompanyRole,
+): Promise<{ error?: string; success?: string }> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Sesi berakhir." };
+
+  // Check current user's role in the company
+  const { data: currentUserMember } = await supabase
+    .from("company_members")
+    .select("role")
+    .eq("company_id", companyId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!currentUserMember || (currentUserMember.role !== "owner" && currentUserMember.role !== "admin")) {
+    return { error: "Akses ditolak." };
+  }
+
+  // Check target user's role
+  const { data: targetMember } = await supabase
+    .from("company_members")
+    .select("role")
+    .eq("company_id", companyId)
+    .eq("user_id", userId)
+    .single();
+
+  if (!targetMember) {
+    return { error: "Anggota tidak ditemukan." };
+  }
+
+  // Role hierarchy restrictions
+  if (currentUserMember.role === "admin") {
+    // Admins cannot edit owners or other admins, nor promote anyone to owner/admin
+    if (targetMember.role === "owner" || targetMember.role === "admin" || role === "owner" || role === "admin") {
+      return { error: "Akses ditolak." };
+    }
+  }
+
+  // Owner check: cannot demote the last owner
+  if (targetMember.role === "owner" && role !== "owner") {
+    const { count } = await supabase
+      .from("company_members")
+      .select("*", { count: "exact", head: true })
+      .eq("company_id", companyId)
+      .eq("role", "owner");
+
+    if (count && count <= 1) {
+      return { error: "lastOwnerError" };
+    }
+  }
+
+  const { error } = await supabase
+    .from("company_members")
+    .update({ role })
+    .eq("company_id", companyId)
+    .eq("user_id", userId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/members");
+  return { success: "roleChanged" };
 }

@@ -4,6 +4,7 @@ import { getActiveCompany } from "@/lib/company";
 import { revokeInvite, rotateJoinCode } from "./actions";
 import { InviteForm } from "./invite-form";
 import { JoinRequestsQueue, type JoinRequest } from "./join-requests";
+import { MemberRowActions } from "./member-row-actions";
 import type { CompanyRole, InviteStatus } from "@nexis/types";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,7 @@ import {
 interface MemberJoin {
   role: CompanyRole;
   user_id: string;
-  profiles: { full_name: string | null } | null;
+  profiles: { full_name: string | null; email: string | null } | null;
 }
 
 const INVITE_ROLES = ["admin", "manager", "employee"] as const;
@@ -37,9 +38,14 @@ export default async function MembersPage({
   const t = await getTranslations("members");
   const tRoles = await getTranslations("roles");
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const currentUserId = user?.id ?? "";
+
   const { data: members } = await supabase
     .from("company_members")
-    .select("role, user_id, profiles(full_name)")
+    .select("role, user_id, profiles(full_name, email)")
     .eq("company_id", active.id)
     .order("created_at", { ascending: true });
 
@@ -86,13 +92,33 @@ export default async function MembersPage({
             <TableRow>
               <TableHead>{t("columns.name")}</TableHead>
               <TableHead>{t("columns.role")}</TableHead>
+              {isAdmin && <TableHead className="w-12 text-right">{t("columns.actions")}</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {memberRows.map((m) => (
               <TableRow key={m.user_id}>
-                <TableCell className="text-ink">{m.profiles?.full_name || t("noName")}</TableCell>
+                <TableCell className="text-ink">
+                  <div className="font-medium">
+                    {m.profiles?.full_name || m.profiles?.email || t("noName")}
+                  </div>
+                  {m.profiles?.full_name && m.profiles?.email && (
+                    <div className="text-xs text-muted mt-0.5">{m.profiles.email}</div>
+                  )}
+                </TableCell>
                 <TableCell className="text-muted">{tRoles(m.role)}</TableCell>
+                {isAdmin && (
+                  <TableCell className="text-right">
+                    <MemberRowActions
+                      userId={m.user_id}
+                      companyId={active.id}
+                      currentRole={m.role}
+                      memberName={m.profiles?.full_name || m.profiles?.email || t("noName")}
+                      currentUserRole={active.role}
+                      currentUserId={currentUserId}
+                    />
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>
