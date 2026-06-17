@@ -37,7 +37,9 @@ serve(async (req) => {
 
     const supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
 
+    const payload = await req.json();
     const {
+      event,
       userId,
       title,
       body,
@@ -46,8 +48,169 @@ serve(async (req) => {
       emailTo,
       whatsappTemplate,
       whatsappComponents,
-    } = await req.json();
+      
+      // leave_submitted specific fields
+      leaveRequestId,
+      recipientUserIds,
+    } = payload;
 
+    // Handle Leave Submitted Event (Batch Notification)
+    if (event === "leave_submitted") {
+      if (!leaveRequestId || !Array.isArray(recipientUserIds) || recipientUserIds.length === 0) {
+        return new Response(JSON.stringify({ error: "leaveRequestId and non-empty recipientUserIds are required for leave_submitted event" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      console.log(`[Notification] Triggering batch leave_submitted notification for leaveRequestId: ${leaveRequestId}`);
+
+      // Query leave details and applicant's full name
+      const { data: leaveRequest, error: leaveErr } = await supabaseClient
+        .from("leave_requests")
+        .select(`
+          start_date,
+          end_date,
+          days,
+          reason,
+          employees (
+            full_name
+          )
+        `)
+        .eq("id", leaveRequestId)
+        .single();
+
+      if (leaveErr || !leaveRequest) {
+        throw new Error(`Failed to fetch leave request: ${leaveErr?.message || "Not found"}`);
+      }
+
+      const empObj = leaveRequest.employees as any;
+      const employeeName = (Array.isArray(empObj) ? empObj[0]?.full_name : empObj?.full_name) || "Karyawan";
+      const startDate = leaveRequest.start_date;
+      const endDate = leaveRequest.end_date;
+      const days = leaveRequest.days;
+      const reason = leaveRequest.reason;
+
+      const notificationTitle = "Pengajuan Cuti Baru";
+      const notificationBody = `${employeeName} mengajukan cuti (${startDate} s/d ${endDate})`;
+      const resolvedEmailSubject = `Pengajuan Cuti Baru - ${employeeName}`;
+      const resolvedEmailBody = `
+        <p>Halo,</p>
+        <p>Karyawan <strong>${employeeName}</strong> telah mengajukan cuti baru di Nexis.</p>
+        <p><strong>Detail Pengajuan:</strong></p>
+        <ul>
+          <li>Tanggal: ${startDate} s/d ${endDate} (${days} hari)</li>
+          <li>Alasan: ${reason || "-"}</li>
+        </ul>
+        <p>Silakan masuk ke dashboard Nexis untuk memproses pengajuan ini.</p>
+      `;
+
+      // 1. Fetch Expo Push Tokens for all recipients
+      const { data: tokens, error: tokensErr } = await supabaseClient
+        .from("expo_push_tokens")
+        .select("token")
+        .in("user_id", recipientUserIds);
+
+      if (tokensErr) {
+        console.error("Error fetching push tokens:", tokensErr.message);
+      }
+
+      const pushTokens = tokens?.map((t: any) => t.token) || [];
+      console.log(`[Notification] Found ${pushTokens.length} push tokens for recipients.`);
+
+      let pushResult = null;
+      if (pushTokens.length > 0) {
+        const pushMessages = pushTokens.map((token) => ({
+          to: token,
+          sound: "default",
+          title: notificationTitle,
+          body: notificationBody,
+          data: { leaveRequestId },
+        }));
+
+        // Batch send in chunks of 100
+        const batches = [];
+        for (let i = 0; i < pushMessages.length; i += 100) {
+          batches.push(pushMessages.slice(i, i + 100));
+        }
+
+        pushResult = [];
+        for (const batch of batches) {
+          const pushResponse = await fetch("https://exp.host/--/api/v2/push/send", {
+            method: "POST",
+            headers: {
+              "Accept": "application/json",
+              "Accept-encoding": "gzip, deflate",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(batch),
+          });
+          const res = await pushResponse.json();
+          pushResult.push(res);
+          console.log(`[Notification] Expo push batch sent. Status: ${pushResponse.status}`);
+        }
+      }
+
+      // 2. Send emails to each recipient via Resend API
+      let emailResults = [];
+      const resendApiKey = Deno.env.get("RESEND_API_KEY");
+      const emailFrom = Deno.env.get("EMAIL_FROM") || "Nexis <onboarding@resend.dev>";
+
+      if (resendApiKey) {
+        const emailPromises = recipientUserIds.map(async (uid: string) => {
+          try {
+            const { data: userData, error: userErr } = await supabaseClient.auth.admin.getUserById(uid);
+            if (userErr || !userData?.user?.email) {
+              console.warn(`[Notification] Could not resolve email for user ${uid}: ${userErr?.message || "No email"}`);
+              return null;
+            }
+            return { userId: uid, email: userData.user.email };
+          } catch (err: any) {
+            console.error(`[Notification] Error resolving email for user ${uid}:`, err.message);
+            return null;
+          }
+        });
+
+        const resolvedUsers = (await Promise.all(emailPromises)).filter(Boolean) as { userId: string; email: string }[];
+        console.log(`[Notification] Resolved ${resolvedUsers.length} emails from ${recipientUserIds.length} user IDs.`);
+
+        const emailSends = resolvedUsers.map(async ({ email, userId }) => {
+          try {
+            console.log(`[Notification] Sending email to ${email} via Resend...`);
+            const emailResponse = await fetch("https://api.resend.com/emails", {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${resendApiKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                from: emailFrom,
+                to: email,
+                subject: resolvedEmailSubject,
+                html: resolvedEmailBody,
+              }),
+            });
+            const res = await emailResponse.json();
+            console.log(`[Notification] Email sent to ${email}. Status: ${emailResponse.status}`);
+            return { userId, email, success: true, res };
+          } catch (err: any) {
+            console.error(`[Notification] Failed to send email to ${email}:`, err.message);
+            return { userId, email, success: false, error: err.message };
+          }
+        });
+
+        emailResults = await Promise.all(emailSends);
+      } else {
+        console.log("[Notification] Email sending skipped (missing RESEND_API_KEY configuration).");
+      }
+
+      return new Response(JSON.stringify({ success: true, pushResult, emailResults }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Default Single User Notification Path
     if (!userId) {
       return new Response(JSON.stringify({ error: "userId parameter is required" }), {
         status: 400,
