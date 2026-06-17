@@ -121,6 +121,14 @@
       "runPayroll": "Jalankan payroll →",
       "planManage": "{plan} · Kelola karyawan →"
     },
+    "checklist": {
+      "title": "Selesaikan pengaturan",
+      "progress": "{done} dari {total} selesai",
+      "company": "Perusahaan dibuat",
+      "employees": "Tambah karyawan pertama",
+      "shifts": "Atur jadwal kerja",
+      "payroll": "Jalankan payroll pertama"
+    },
     "manager": {
       "pendingApprovals": "Persetujuan tertunda",
       "reviewLeave": "Tinjau pengajuan cuti →"
@@ -373,7 +381,9 @@
       "payTaxSection": "Penggajian & pajak",
       "ptkpStatus": "Status PTKP",
       "npwp": "NPWP karyawan (opsional)",
-      "npwpHint": "Tanpa NPWP, PPh 21 dikenakan +20% (Stage 4)."
+      "npwpHint": "Tanpa NPWP, PPh 21 dikenakan +20% (Stage 4).",
+      "ptkpExplainerTitle": "Apa itu status PTKP?",
+      "ptkpExplainerBody": "TK = Tidak Kawin, K = Kawin; angkanya adalah jumlah tanggungan, 0–3. Contoh: K/2 = kawin dengan 2 tanggungan. PTKP menentukan batas penghasilan tidak kena pajak untuk menghitung PPh 21 — salah memilih kode mengubah besaran pajak."
     },
     "import": {
       "title": "Impor karyawan (CSV)",
@@ -416,6 +426,14 @@
       "jkkEmployer": "JKK (perusahaan)",
       "jkmEmployer": "JKM (perusahaan 0.30%)",
       "pph21": "PPh 21"
+    },
+    "explain": {
+      "pph21": "Pajak penghasilan karyawan (PPh 21), dihitung otomatis dengan metode TER sesuai PMK 168/2023.",
+      "bpjsKes": "Jaminan kesehatan (BPJS Kesehatan) — 1% dari karyawan + 4% dari perusahaan, maks. gaji Rp 12 juta.",
+      "jht": "Jaminan Hari Tua (JHT) — tabungan pensiun wajib, bisa dicairkan saat berhenti kerja.",
+      "jp": "Jaminan Pensiun (JP) — iuran pensiun bulanan, ditanggung bersama karyawan dan perusahaan.",
+      "jkk": "Jaminan Kecelakaan Kerja (JKK) — ditanggung perusahaan, tarif sesuai kelas risiko pekerjaan.",
+      "jkm": "Jaminan Kematian (JKM) — ditanggung perusahaan, 0,30% dari gaji."
     }
   },
   "analytics": {

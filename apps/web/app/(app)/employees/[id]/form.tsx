@@ -130,6 +130,11 @@ export function EditEmployeeForm({
             </select>
           </div>
         </div>
+        <details className="rounded-md border border-border bg-bg/40 px-3 py-2 text-xs text-muted">
+          <summary className="cursor-pointer font-medium text-ink">{t("form.ptkpExplainerTitle")}</summary>
+          <p className="mt-2">{t("form.ptkpExplainerBody")}</p>
+        </details>
+
         <div className="space-y-1.5">
           <Label htmlFor="npwp">{t("form.npwp")}</Label>
           <Input id="npwp" name="npwp" defaultValue={npwp} disabled={disabled} />

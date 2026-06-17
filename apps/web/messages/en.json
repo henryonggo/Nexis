@@ -121,6 +121,14 @@
       "runPayroll": "Run payroll →",
       "planManage": "{plan} · Manage employees →"
     },
+    "checklist": {
+      "title": "Finish setting up",
+      "progress": "{done} of {total} done",
+      "company": "Company created",
+      "employees": "Add your first employee",
+      "shifts": "Set up a work schedule",
+      "payroll": "Run your first payroll"
+    },
     "manager": {
       "pendingApprovals": "Pending approvals",
       "reviewLeave": "Review leave requests →"
@@ -373,7 +381,9 @@
       "payTaxSection": "Payroll & tax",
       "ptkpStatus": "PTKP status",
       "npwp": "Employee NPWP (optional)",
-      "npwpHint": "Without an NPWP, PPh 21 is charged +20% (Stage 4)."
+      "npwpHint": "Without an NPWP, PPh 21 is charged +20% (Stage 4).",
+      "ptkpExplainerTitle": "What is PTKP status?",
+      "ptkpExplainerBody": "TK = single (Tidak Kawin), K = married (Kawin); the number is dependents, 0–3. Example: K/2 = married with 2 dependents. PTKP sets the tax-free income threshold used to calculate PPh 21 — picking the wrong code changes the tax."
     },
     "import": {
       "title": "Import employees (CSV)",
@@ -416,6 +426,14 @@
       "jkkEmployer": "JKK (employer)",
       "jkmEmployer": "JKM (employer 0.30%)",
       "pph21": "PPh 21"
+    },
+    "explain": {
+      "pph21": "Employee income tax (PPh 21), calculated automatically with the TER method per PMK 168/2023.",
+      "bpjsKes": "Health insurance (BPJS Kesehatan) — 1% from the employee + 4% from the company, capped at a Rp 12 million salary.",
+      "jht": "Old-age savings (JHT) — mandatory retirement savings, withdrawable when employment ends.",
+      "jp": "Pension (Jaminan Pensiun) — a monthly pension contribution shared by the employee and the company.",
+      "jkk": "Work-accident insurance (JKK) — paid by the company, rate set by the job's risk class.",
+      "jkm": "Death insurance (JKM) — paid by the company, 0.30% of salary."
     }
   },
   "analytics": {
