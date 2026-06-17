@@ -410,8 +410,25 @@ export async function computeRunPreview(
 // a bank account with an account number.
 // ───────────────────────────────────────────────────────────────────────────
 
-/** Stable issue codes; the UI maps these to localized labels. */
+/** Stable blocking issue codes; the UI maps these to localized labels. */
 export type ReadinessIssue = "compensation" | "tax" | "bank";
+
+/** Per-employee master-data readiness. `issues` block payroll; `npwpMissing` only warns. */
+export interface EmployeeReadiness {
+  employeeId: string;
+  name: string;
+  issues: ReadinessIssue[];
+  npwpMissing: boolean;
+}
+
+/** 🟢 ready · 🟡 attention (no NPWP, +20% PPh 21) · 🔴 incomplete (blocking gap). */
+export type ReadinessStatus = "ready" | "attention" | "incomplete";
+
+export function readinessStatus(r: EmployeeReadiness): ReadinessStatus {
+  if (r.issues.length > 0) return "incomplete";
+  if (r.npwpMissing) return "attention";
+  return "ready";
+}
 
 export interface EmployeeBlocker {
   employeeId: string;
@@ -419,18 +436,27 @@ export interface EmployeeBlocker {
   issues: ReadinessIssue[];
 }
 
+export interface EmployeeWarning {
+  employeeId: string;
+  name: string;
+}
+
 export interface RunReadiness {
   ready: boolean;
   blockers: EmployeeBlocker[];
+  warnings: EmployeeWarning[];
 }
 
-export async function computeRunReadiness(
+/**
+ * Per-employee readiness for every active employee, as of `effectiveDate`. Each
+ * needs compensation in force, a tax profile, and a bank account with a number;
+ * a tax profile without an NPWP is a non-blocking warning (+20% PPh 21).
+ */
+async function loadEmployeeReadiness(
   supabase: SupabaseClient<Database>,
   companyId: string,
-  args: { year: number; month: number },
-): Promise<RunReadiness> {
-  const effectiveDate = periodEffectiveDate(args.year, args.month);
-
+  effectiveDate: string,
+): Promise<EmployeeReadiness[]> {
   const [{ data: employees }, { data: comps }, { data: taxes }, { data: banks }] = await Promise.all([
     supabase
       .from("employees")
@@ -439,7 +465,7 @@ export async function computeRunReadiness(
       .eq("status", "active")
       .order("full_name", { ascending: true }),
     supabase.from("compensation").select("employee_id, effective_from").eq("company_id", companyId),
-    supabase.from("tax_profile").select("employee_id").eq("company_id", companyId),
+    supabase.from("tax_profile").select("employee_id, has_npwp").eq("company_id", companyId),
     supabase.from("bank_accounts").select("employee_id, account_no").eq("company_id", companyId),
   ]);
 
@@ -448,23 +474,48 @@ export async function computeRunReadiness(
       .filter((c) => c.effective_from <= effectiveDate)
       .map((c) => c.employee_id),
   );
-  const hasTax = new Set(((taxes as { employee_id: string }[] | null) ?? []).map((t) => t.employee_id));
+  const taxRows = (taxes as { employee_id: string; has_npwp: boolean | null }[] | null) ?? [];
+  const hasTax = new Set(taxRows.map((t) => t.employee_id));
+  const npwpByEmp = new Map(taxRows.map((t) => [t.employee_id, t.has_npwp === true]));
   const hasBank = new Set(
     ((banks as { employee_id: string; account_no: string | null }[] | null) ?? [])
       .filter((b) => (b.account_no ?? "").trim() !== "")
       .map((b) => b.employee_id),
   );
 
-  const blockers: EmployeeBlocker[] = [];
-  for (const emp of (employees as { id: string; full_name: string }[] | null) ?? []) {
+  return ((employees as { id: string; full_name: string }[] | null) ?? []).map((emp) => {
     const issues: ReadinessIssue[] = [];
     if (!hasComp.has(emp.id)) issues.push("compensation");
     if (!hasTax.has(emp.id)) issues.push("tax");
     if (!hasBank.has(emp.id)) issues.push("bank");
-    if (issues.length > 0) blockers.push({ employeeId: emp.id, name: emp.full_name, issues });
-  }
+    // NPWP warning is only meaningful when a tax profile exists (no profile is already a blocker).
+    const npwpMissing = hasTax.has(emp.id) && !npwpByEmp.get(emp.id);
+    return { employeeId: emp.id, name: emp.full_name, issues, npwpMissing };
+  });
+}
 
-  return { ready: blockers.length === 0, blockers };
+/** Pre-run gate (Case-02 G7) for a specific period. */
+export async function computeRunReadiness(
+  supabase: SupabaseClient<Database>,
+  companyId: string,
+  args: { year: number; month: number },
+): Promise<RunReadiness> {
+  const rows = await loadEmployeeReadiness(supabase, companyId, periodEffectiveDate(args.year, args.month));
+  const blockers = rows
+    .filter((r) => r.issues.length > 0)
+    .map(({ employeeId, name, issues }) => ({ employeeId, name, issues }));
+  const warnings = rows
+    .filter((r) => r.npwpMissing)
+    .map(({ employeeId, name }) => ({ employeeId, name }));
+  return { ready: blockers.length === 0, blockers, warnings };
+}
+
+/** Readiness for the employee-list badge (P1-2), evaluated as of today. */
+export async function computeEmployeeReadiness(
+  supabase: SupabaseClient<Database>,
+  companyId: string,
+): Promise<EmployeeReadiness[]> {
+  return loadEmployeeReadiness(supabase, companyId, new Date().toISOString().slice(0, 10));
 }
 
 // Re-export client-safe formatters so server components can keep importing them

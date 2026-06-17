@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 import { getCompanyLeaveRequests } from "@/lib/leave";
 import { getEmployeeAccess } from "@/lib/access";
+import { SetupChecklist } from "./setup-checklist";
 import { formatPeriod, formatRupiah } from "@/lib/payroll-format";
 import { planMeta } from "@/lib/billing-plans";
 import type { CompanyBillingRow } from "@nexis/types";
@@ -150,34 +151,42 @@ export default async function DashboardPage() {
 
   const isAdmin = active.role === "owner" || active.role === "admin";
 
-  const [{ count: employeeCount }, { data: billing }, { data: latestRun }, { data: todayRecords }] =
-    await Promise.all([
-      supabase
-        .from("employees")
-        .select("id", { count: "exact", head: true })
-        .eq("company_id", active.id),
-      supabase
-        .from("company_billing")
-        .select("plan, free_seat_limit, active_seats")
-        .eq("company_id", active.id)
-        .maybeSingle<Pick<CompanyBillingRow, "plan" | "free_seat_limit" | "active_seats">>(),
-      isAdmin
-        ? supabase
-            .from("payroll_runs")
-            .select("id, period_year, period_month, status, total_net")
-            .eq("company_id", active.id)
-            .order("period_year", { ascending: false })
-            .order("period_month", { ascending: false })
-            .limit(1)
-            .maybeSingle()
-        : Promise.resolve({ data: null }),
-      supabase
-        .from("attendance_records")
-        .select("employee_id, kind")
-        .eq("company_id", active.id)
-        .gte("event_at", startOfTodayJakartaIso())
-        .order("event_at", { ascending: false }),
-    ]);
+  const [
+    { count: employeeCount },
+    { data: billing },
+    { data: latestRun },
+    { data: todayRecords },
+    { count: shiftCount },
+  ] = await Promise.all([
+    supabase
+      .from("employees")
+      .select("id", { count: "exact", head: true })
+      .eq("company_id", active.id),
+    supabase
+      .from("company_billing")
+      .select("plan, free_seat_limit, active_seats")
+      .eq("company_id", active.id)
+      .maybeSingle<Pick<CompanyBillingRow, "plan" | "free_seat_limit" | "active_seats">>(),
+    isAdmin
+      ? supabase
+          .from("payroll_runs")
+          .select("id, period_year, period_month, status, total_net")
+          .eq("company_id", active.id)
+          .order("period_year", { ascending: false })
+          .order("period_month", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    supabase
+      .from("attendance_records")
+      .select("employee_id, kind")
+      .eq("company_id", active.id)
+      .gte("event_at", startOfTodayJakartaIso())
+      .order("event_at", { ascending: false }),
+    isAdmin
+      ? supabase.from("shifts").select("id", { count: "exact", head: true }).eq("company_id", active.id)
+      : Promise.resolve({ count: 0 }),
+  ]);
 
   const presentToday = countPresent(
     (todayRecords as { employee_id: string; kind: string }[] | null) ?? [],
@@ -206,6 +215,14 @@ export default async function DashboardPage() {
         <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
         <p className="text-sm text-muted">{t("company", { name: active.name })}</p>
       </div>
+
+      {isAdmin && (
+        <SetupChecklist
+          hasEmployees={used > 0}
+          hasShifts={(shiftCount ?? 0) > 0}
+          hasPayroll={Boolean(latestRun)}
+        />
+      )}
 
       {isFree && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-brand/30 bg-brand-light px-4 py-3 text-sm text-brand-dark">

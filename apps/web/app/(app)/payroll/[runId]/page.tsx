@@ -276,15 +276,15 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
                       <details className="mt-2">
                         <summary className="cursor-pointer text-xs text-brand hover:underline">{t("breakdown")}</summary>
                         <dl className="mt-2 space-y-1 text-xs text-muted">
-                          <BreakdownRow label={t("breakdownRows.bpjsKesEmployee")} value={line.bpjsKesEmployee} />
-                          <BreakdownRow label={t("breakdownRows.bpjsKesEmployer")} value={line.bpjsKesEmployer} />
-                          <BreakdownRow label={t("breakdownRows.jhtEmployee")} value={line.jhtEmployee} />
-                          <BreakdownRow label={t("breakdownRows.jhtEmployer")} value={line.jhtEmployer} />
-                          <BreakdownRow label={t("breakdownRows.jpEmployee")} value={line.jpEmployee} />
-                          <BreakdownRow label={t("breakdownRows.jpEmployer")} value={line.jpEmployer} />
-                          <BreakdownRow label={t("breakdownRows.jkkEmployer")} value={line.jkkEmployer} />
-                          <BreakdownRow label={t("breakdownRows.jkmEmployer")} value={line.jkmEmployer} />
-                          <BreakdownRow label={t("breakdownRows.pph21")} value={line.pph21} />
+                          <BreakdownRow label={t("breakdownRows.bpjsKesEmployee")} value={line.bpjsKesEmployee} hint={t("explain.bpjsKes")} />
+                          <BreakdownRow label={t("breakdownRows.bpjsKesEmployer")} value={line.bpjsKesEmployer} hint={t("explain.bpjsKes")} />
+                          <BreakdownRow label={t("breakdownRows.jhtEmployee")} value={line.jhtEmployee} hint={t("explain.jht")} />
+                          <BreakdownRow label={t("breakdownRows.jhtEmployer")} value={line.jhtEmployer} hint={t("explain.jht")} />
+                          <BreakdownRow label={t("breakdownRows.jpEmployee")} value={line.jpEmployee} hint={t("explain.jp")} />
+                          <BreakdownRow label={t("breakdownRows.jpEmployer")} value={line.jpEmployer} hint={t("explain.jp")} />
+                          <BreakdownRow label={t("breakdownRows.jkkEmployer")} value={line.jkkEmployer} hint={t("explain.jkk")} />
+                          <BreakdownRow label={t("breakdownRows.jkmEmployer")} value={line.jkmEmployer} hint={t("explain.jkm")} />
+                          <BreakdownRow label={t("breakdownRows.pph21")} value={line.pph21} hint={t("explain.pph21")} />
                         </dl>
                       </details>
                       {line.payslipId && (
@@ -369,10 +369,21 @@ function SummaryCard({
   );
 }
 
-function BreakdownRow({ label, value }: { label: string; value: number }) {
+function BreakdownRow({ label, value, hint }: { label: string; value: number; hint?: string }) {
   return (
     <div className="flex justify-between gap-4">
-      <dt>{label}</dt>
+      <dt className="flex items-center gap-1">
+        {label}
+        {hint && (
+          <span
+            title={hint}
+            aria-label={hint}
+            className="inline-flex h-3.5 w-3.5 cursor-help items-center justify-center rounded-full border border-border text-[9px] leading-none text-muted"
+          >
+            ?
+          </span>
+        )}
+      </dt>
       <dd className="tabular-nums">{formatRupiah(value)}</dd>
     </div>
   );

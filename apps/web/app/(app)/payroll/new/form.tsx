@@ -4,7 +4,7 @@ import { useFormState } from "react-dom";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { createDraftRun, type RunActionState } from "../actions";
-import type { EmployeeBlocker } from "@/lib/payroll";
+import type { EmployeeBlocker, EmployeeWarning } from "@/lib/payroll";
 import { SubmitButton } from "@/components/submit-button";
 import { Card } from "@/components/ui/card";
 import { fieldClasses } from "@/components/ui/input";
@@ -17,10 +17,12 @@ export function NewRunForm({
   defaultYear,
   defaultMonth,
   blockers,
+  warnings,
 }: {
   defaultYear: number;
   defaultMonth: number;
   blockers: EmployeeBlocker[];
+  warnings: EmployeeWarning[];
 }) {
   const t = useTranslations("payroll.newRun");
   const months = t.raw("months") as string[];
@@ -33,7 +35,7 @@ export function NewRunForm({
       <p className="mb-5 text-sm text-muted">{t("subtitle")}</p>
 
       {blockers.length > 0 && (
-        <Alert variant="warning" className="mb-4">
+        <Alert variant="destructive" className="mb-4">
           <p className="font-semibold">{t("readiness.heading", { count: blockers.length })}</p>
           <p className="mt-0.5 text-xs">{t("readiness.hint")}</p>
           <ul className="mt-2 space-y-1">
@@ -43,6 +45,22 @@ export function NewRunForm({
                   {b.name}
                 </Link>{" "}
                 — {b.issues.map((i) => t(`readiness.issue.${i}`)).join(", ")}
+              </li>
+            ))}
+          </ul>
+        </Alert>
+      )}
+
+      {warnings.length > 0 && (
+        <Alert variant="warning" className="mb-4">
+          <p className="font-semibold">{t("readiness.warning.heading", { count: warnings.length })}</p>
+          <p className="mt-0.5 text-xs">{t("readiness.warning.hint")}</p>
+          <ul className="mt-2 space-y-1">
+            {warnings.map((w) => (
+              <li key={w.employeeId} className="text-xs">
+                <Link href={`/employees/${w.employeeId}`} className="font-medium underline">
+                  {w.name}
+                </Link>
               </li>
             ))}
           </ul>
@@ -80,7 +98,7 @@ export function NewRunForm({
         </div>
 
         <div className="flex items-center gap-3 pt-2">
-          <SubmitButton>{t("submit")}</SubmitButton>
+          <SubmitButton disabled={blockers.length > 0}>{t("submit")}</SubmitButton>
           <Link href="/payroll" className="text-sm text-muted hover:underline">{t("cancel")}</Link>
         </div>
       </form>

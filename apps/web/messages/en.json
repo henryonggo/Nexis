@@ -121,6 +121,14 @@
       "runPayroll": "Run payroll →",
       "planManage": "{plan} · Manage employees →"
     },
+    "checklist": {
+      "title": "Finish setting up",
+      "progress": "{done} of {total} done",
+      "company": "Company created",
+      "employees": "Add your first employee",
+      "shifts": "Set up a work schedule",
+      "payroll": "Run your first payroll"
+    },
     "manager": {
       "pendingApprovals": "Pending approvals",
       "reviewLeave": "Review leave requests →"
@@ -342,6 +350,7 @@
     "upgradeCta": "Upgrade plan",
     "toAdd": "to add more employees.",
     "columns": { "name": "Name", "no": "No.", "position": "Position", "department": "Department", "type": "Type", "status": "Status" },
+    "readiness": { "ready": "Ready for payroll", "attention": "No NPWP (+20% PPh 21)", "incomplete": "Incomplete data", "issue": { "compensation": "compensation", "tax": "tax profile", "bank": "bank account" } },
     "empty": "No employees yet.",
     "emptyAdmin": "Add your first employee.",
     "newTitle": "Add employee",
@@ -372,7 +381,9 @@
       "payTaxSection": "Payroll & tax",
       "ptkpStatus": "PTKP status",
       "npwp": "Employee NPWP (optional)",
-      "npwpHint": "Without an NPWP, PPh 21 is charged +20% (Stage 4)."
+      "npwpHint": "Without an NPWP, PPh 21 is charged +20% (Stage 4).",
+      "ptkpExplainerTitle": "What is PTKP status?",
+      "ptkpExplainerBody": "TK = single (Tidak Kawin), K = married (Kawin); the number is dependents, 0–3. Example: K/2 = married with 2 dependents. PTKP sets the tax-free income threshold used to calculate PPh 21 — picking the wrong code changes the tax."
     },
     "import": {
       "title": "Import employees (CSV)",
@@ -391,7 +402,7 @@
     "subtitle": "Run and review monthly payroll for {name}.",
     "runPayroll": "Run payroll",
     "runFirst": "Run your first one",
-    "newRun": { "title": "Run payroll", "subtitle": "Pick a period and run type. You'll review the per-employee breakdown before approving.", "month": "Month", "year": "Year", "runType": "Run type", "monthly": "Monthly salary", "thr": "THR (religious holiday allowance)", "submit": "Create draft run", "cancel": "Cancel", "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"], "readiness": { "heading": "{count} employees not ready for payroll", "hint": "Complete the data below first. A draft can't be created while any are missing.", "issue": { "compensation": "compensation", "tax": "tax profile", "bank": "bank account" } } },
+    "newRun": { "title": "Run payroll", "subtitle": "Pick a period and run type. You'll review the per-employee breakdown before approving.", "month": "Month", "year": "Year", "runType": "Run type", "monthly": "Monthly salary", "thr": "THR (religious holiday allowance)", "submit": "Create draft run", "cancel": "Cancel", "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"], "readiness": { "heading": "{count} employees not ready for payroll", "hint": "Complete the data below first. A draft can't be created while any are missing.", "issue": { "compensation": "compensation", "tax": "tax profile", "bank": "bank account" }, "warning": { "heading": "{count} employees without an NPWP", "hint": "A draft can still be created, but PPh 21 is charged +20% for these employees." } } },
     "columns": { "period": "Period", "status": "Status", "gross": "Gross", "net": "Net (take-home)", "employee": "Employee", "pph21": "PPh 21 (TER)", "deductions": "Employee deductions" },
     "status": { "draft": "Draft", "queued": "Queued", "processing": "Processing", "completed": "Completed", "paid": "Paid", "failed": "Failed", "cancelled": "Cancelled" },
     "empty": "No payroll runs yet.",
@@ -415,6 +426,14 @@
       "jkkEmployer": "JKK (employer)",
       "jkmEmployer": "JKM (employer 0.30%)",
       "pph21": "PPh 21"
+    },
+    "explain": {
+      "pph21": "Employee income tax (PPh 21), calculated automatically with the TER method per PMK 168/2023.",
+      "bpjsKes": "Health insurance (BPJS Kesehatan) — 1% from the employee + 4% from the company, capped at a Rp 12 million salary.",
+      "jht": "Old-age savings (JHT) — mandatory retirement savings, withdrawable when employment ends.",
+      "jp": "Pension (Jaminan Pensiun) — a monthly pension contribution shared by the employee and the company.",
+      "jkk": "Work-accident insurance (JKK) — paid by the company, rate set by the job's risk class.",
+      "jkm": "Death insurance (JKM) — paid by the company, 0.30% of salary."
     }
   },
   "analytics": {
