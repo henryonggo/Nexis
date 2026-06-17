@@ -2876,6 +2876,15 @@ export type Database = {
       }
       seed_indonesian_holidays: { Args: { p_year: number }; Returns: undefined }
       submit_review: { Args: { p_review_id: string }; Returns: undefined }
+      update_own_contact: {
+        Args: {
+          p_account_name: string
+          p_account_no: string
+          p_bank_name: string
+          p_phone: string
+        }
+        Returns: undefined
+      }
       user_can_manage_employee: {
         Args: { p_employee_id: string }
         Returns: boolean

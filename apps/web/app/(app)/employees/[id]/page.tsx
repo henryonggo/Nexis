@@ -33,6 +33,13 @@ export default async function EmployeeDetailPage({ params }: { params: { id: str
     .eq("employee_id", params.id)
     .maybeSingle();
 
+  const { data: bank } = await supabase
+    .from("bank_accounts")
+    .select("bank_name, account_no, account_name")
+    .eq("employee_id", params.id)
+    .eq("is_primary", true)
+    .maybeSingle();
+
   // Candidate managers: other active employees in the company (drives team scoping).
   const { data: coworkers } = await supabase
     .from("employees")
@@ -78,6 +85,9 @@ export default async function EmployeeDetailPage({ params }: { params: { id: str
         baseSalary={comp?.base_salary ?? 0}
         ptkpStatus={tax?.ptkp_status ?? "TK/0"}
         npwp={tax?.npwp ?? ""}
+        bankName={bank?.bank_name ?? ""}
+        accountNo={bank?.account_no ?? ""}
+        accountName={bank?.account_name ?? ""}
         coworkers={coworkers ?? []}
       />
     </div>

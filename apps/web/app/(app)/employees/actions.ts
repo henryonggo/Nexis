@@ -13,6 +13,10 @@ const employeeSchema = z.object({
   department: z.string().max(80).optional().or(z.literal("")),
   baseSalary: z.coerce.number().int().min(0).default(0),
   employmentType: z.enum(["permanent", "contract", "intern", "daily"]).default("permanent"),
+  phone: z.string().max(30).optional().or(z.literal("")),
+  bankName: z.string().max(80).optional().or(z.literal("")),
+  accountNo: z.string().max(40).optional().or(z.literal("")),
+  accountName: z.string().max(120).optional().or(z.literal("")),
 });
 
 export type EmployeeState = { error?: string; success?: string; upgrade?: boolean };
@@ -29,6 +33,10 @@ export async function createEmployee(
     department: formData.get("department") ?? "",
     baseSalary: formData.get("baseSalary") ?? 0,
     employmentType: formData.get("employmentType") ?? "permanent",
+    phone: formData.get("phone") ?? "",
+    bankName: formData.get("bankName") ?? "",
+    accountNo: formData.get("accountNo") ?? "",
+    accountName: formData.get("accountName") ?? "",
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Data tidak valid" };
@@ -51,6 +59,7 @@ export async function createEmployee(
       position: parsed.data.position || null,
       department: parsed.data.department || null,
       employment_type: parsed.data.employmentType,
+      phone: parsed.data.phone || null,
     })
     .select("id")
     .single();
@@ -76,6 +85,18 @@ export async function createEmployee(
       employee_id: employee.id,
       base_salary: parsed.data.baseSalary,
     });
+
+    // Seed the primary bank account when any bank field was provided at registration.
+    if (parsed.data.bankName || parsed.data.accountNo || parsed.data.accountName) {
+      await supabase.from("bank_accounts").insert({
+        company_id: active.id,
+        employee_id: employee.id,
+        bank_name: parsed.data.bankName || null,
+        account_no: parsed.data.accountNo || null,
+        account_name: parsed.data.accountName || null,
+        is_primary: true,
+      });
+    }
   }
 
   revalidatePath("/employees");

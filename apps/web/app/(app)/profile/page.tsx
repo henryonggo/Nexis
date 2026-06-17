@@ -6,6 +6,7 @@ import { getEmployeeAccess } from "@/lib/access";
 import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { formatRupiah } from "@nexis/money";
+import { PersonalInfoForm } from "./personal-info-form";
 
 export default async function ProfilePage() {
   const supabase = createClient();
@@ -77,11 +78,29 @@ export default async function ProfilePage() {
         <p className="text-sm text-muted">{t("subtitle")}</p>
       </div>
 
-      <Alert variant="warning">
-        <AlertDescription className="text-sm font-medium">
-          {t("noChangesAllowed")}
-        </AlertDescription>
-      </Alert>
+      {/* Self-service: edit own contact phone + bank details (any role). */}
+      {employee ? (
+        <section className="space-y-3">
+          <div>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
+              {t("sections.editable")}
+            </h2>
+            <p className="mt-0.5 text-xs text-muted">{t("editableHint")}</p>
+          </div>
+          <PersonalInfoForm
+            phone={employee.phone ?? ""}
+            bankName={bankAccount?.bank_name ?? ""}
+            accountNo={bankAccount?.account_no ?? ""}
+            accountName={bankAccount?.account_name ?? ""}
+          />
+        </section>
+      ) : (
+        <Alert variant="warning">
+          <AlertDescription className="text-sm font-medium">
+            {t("noChangesAllowed")}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Account Section */}
       <section className="space-y-3">
@@ -101,7 +120,7 @@ export default async function ProfilePage() {
           </div>
           <div>
             <label className="text-xs text-muted font-medium">{t("fields.phone")}</label>
-            <p className="text-sm font-semibold text-ink mt-0.5">{profile?.phone || "—"}</p>
+            <p className="text-sm font-semibold text-ink mt-0.5">{employee?.phone || profile?.phone || "—"}</p>
           </div>
           <div>
             <label className="text-xs text-muted font-medium">{t("fields.locale")}</label>
@@ -163,18 +182,6 @@ export default async function ProfilePage() {
               <p className="text-sm font-semibold text-ink mt-0.5">
                 {compensation ? formatRupiah(compensation.base_salary) : "—"}
               </p>
-            </div>
-            <div>
-              <label className="text-xs text-muted font-medium">{t("fields.bank")}</label>
-              <p className="text-sm font-semibold text-ink mt-0.5">{bankAccount?.bank_name || "—"}</p>
-            </div>
-            <div>
-              <label className="text-xs text-muted font-medium">{t("fields.accountNo")}</label>
-              <p className="text-sm font-semibold text-ink mt-0.5">{bankAccount?.account_no || "—"}</p>
-            </div>
-            <div>
-              <label className="text-xs text-muted font-medium">{t("fields.accountName")}</label>
-              <p className="text-sm font-semibold text-ink mt-0.5">{bankAccount?.account_name || "—"}</p>
             </div>
           </Card>
         </section>

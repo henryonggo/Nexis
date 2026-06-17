@@ -21,6 +21,9 @@ export function EditEmployeeForm({
   baseSalary,
   ptkpStatus,
   npwp,
+  bankName,
+  accountNo,
+  accountName,
   coworkers,
 }: {
   canEdit: boolean;
@@ -28,6 +31,9 @@ export function EditEmployeeForm({
   baseSalary: number;
   ptkpStatus: string;
   npwp: string;
+  bankName: string;
+  accountNo: string;
+  accountName: string;
   coworkers: { id: string; full_name: string }[];
 }) {
   const t = useTranslations("employees");
@@ -97,6 +103,11 @@ export function EditEmployeeForm({
         </div>
 
         <div className="space-y-1.5">
+          <Label htmlFor="phone">{t("form.phone")}</Label>
+          <Input id="phone" name="phone" type="tel" inputMode="tel" defaultValue={employee.phone ?? ""} disabled={disabled} placeholder="08xxxxxxxxxx" />
+        </div>
+
+        <div className="space-y-1.5">
           <Label htmlFor="managerId">{t("form.manager")}</Label>
           <select
             id="managerId"
@@ -139,6 +150,23 @@ export function EditEmployeeForm({
           <Label htmlFor="npwp">{t("form.npwp")}</Label>
           <Input id="npwp" name="npwp" defaultValue={npwp} disabled={disabled} />
           <p className="text-xs text-muted">{t("form.npwpHint")}</p>
+        </div>
+
+        <Separator />
+        <p className="text-sm font-semibold text-ink">{t("form.bankSection")}</p>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="bankName">{t("form.bankName")}</Label>
+            <Input id="bankName" name="bankName" defaultValue={bankName} disabled={disabled} placeholder="BCA" />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="accountNo">{t("form.accountNo")}</Label>
+            <Input id="accountNo" name="accountNo" inputMode="numeric" defaultValue={accountNo} disabled={disabled} />
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="accountName">{t("form.accountName")}</Label>
+          <Input id="accountName" name="accountName" defaultValue={accountName} disabled={disabled} />
         </div>
 
         {canEdit && <SubmitButton>{t("form.saveChanges")}</SubmitButton>}
