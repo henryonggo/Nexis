@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   ScrollView,
   Linking,
+  Alert,
 } from "react-native";
 import { getMyEmployee } from "../../lib/attendance";
 import {
@@ -89,16 +90,25 @@ function BreakdownRow({
   amount,
   isDeduction = false,
   isBold = false,
+  hint,
 }: {
   label: string;
   amount: number;
   isDeduction?: boolean;
   isBold?: boolean;
+  hint?: string;
 }) {
   if (amount === 0) return null;
   return (
     <View style={styles.breakdownRow}>
-      <Text style={[styles.breakdownLabel, isBold && styles.breakdownLabelBold]}>{label}</Text>
+      <View style={styles.breakdownLabelWrap}>
+        <Text style={[styles.breakdownLabel, isBold && styles.breakdownLabelBold]}>{label}</Text>
+        {hint ? (
+          <Pressable onPress={() => Alert.alert(label, hint)} hitSlop={8} style={styles.infoBadge}>
+            <Text style={styles.infoBadgeText}>?</Text>
+          </Pressable>
+        ) : null}
+      </View>
       <Text
         style={[
           styles.breakdownAmount,
@@ -279,10 +289,30 @@ export default function Home() {
                 <BreakdownRow label="Tunjangan" amount={latest.allowances} />
                 <BreakdownRow label="Lembur" amount={latest.overtimePay} />
                 <View style={styles.divider} />
-                <BreakdownRow label="BPJS Kesehatan" amount={latest.bpjsKesEmployee} isDeduction />
-                <BreakdownRow label="BPJS JHT" amount={latest.jhtEmployee} isDeduction />
-                <BreakdownRow label="BPJS JP" amount={latest.jpEmployee} isDeduction />
-                <BreakdownRow label="PPh 21" amount={latest.pph21} isDeduction />
+                <BreakdownRow
+                  label="BPJS Kesehatan"
+                  amount={latest.bpjsKesEmployee}
+                  isDeduction
+                  hint="Jaminan kesehatan — 1% dari gaji Anda, sisanya ditanggung perusahaan."
+                />
+                <BreakdownRow
+                  label="BPJS JHT"
+                  amount={latest.jhtEmployee}
+                  isDeduction
+                  hint="Jaminan Hari Tua — tabungan pensiun wajib, bisa dicairkan saat berhenti kerja."
+                />
+                <BreakdownRow
+                  label="BPJS JP"
+                  amount={latest.jpEmployee}
+                  isDeduction
+                  hint="Jaminan Pensiun — iuran pensiun bulanan, ditanggung bersama perusahaan."
+                />
+                <BreakdownRow
+                  label="PPh 21"
+                  amount={latest.pph21}
+                  isDeduction
+                  hint="Pajak penghasilan, dihitung otomatis dengan metode TER sesuai PMK 168/2023."
+                />
                 <BreakdownRow label="Potongan Pinjaman" amount={latest.loanDeduction} isDeduction />
                 <View style={styles.divider} />
                 <BreakdownRow label="Gaji Bersih" amount={latest.netPay} isBold />
@@ -537,8 +567,19 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
+  breakdownLabelWrap: { flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 1 },
   breakdownLabel: { fontSize: 13, color: C.muted },
   breakdownLabelBold: { color: C.ink, fontWeight: "700" },
+  infoBadge: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: C.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  infoBadgeText: { fontSize: 10, fontWeight: "700", color: C.muted },
   breakdownAmount: { fontSize: 13, color: C.ink },
   breakdownAmountBold: { fontWeight: "700" },
   breakdownDeduction: { color: "#DC2626" },
