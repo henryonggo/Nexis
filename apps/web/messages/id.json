@@ -412,7 +412,7 @@
     "actions": { "approve": "Setujui & proses", "markPaid": "Tandai sudah dibayar", "cancel": "Batalkan run" },
     "breakdown": "Rincian",
     "noNpwp": "(+20% tanpa NPWP)",
-    "detail": { "back": "← Penggajian", "heading": "Payroll {period}", "noEmployees": "Tidak ada karyawan untuk dihitung.", "terCategory": "Kategori {category} · {rate}", "newBadge": "Baru", "updateProfile": "Perbarui Profil", "downloadPayslip": "Unduh slip gaji" },
+    "detail": { "back": "← Penggajian", "heading": "Payroll {period}", "noEmployees": "Tidak ada karyawan untuk dihitung.", "terCategory": "Kategori {category} · {rate}", "newBadge": "Baru", "updateProfile": "Perbarui Profil", "downloadPayslip": "Unduh slip gaji", "absence": "{days} hari cuti tanpa bayar periode ini", "absenceDaysUnit": "hari" },
     "monitoring": "memantau…",
     "connecting": "menyambung…",
     "summary": { "gross": "Bruto", "bpjsEmployee": "BPJS (karyawan)", "pph21": "PPh 21", "net": "Neto (take-home)" },

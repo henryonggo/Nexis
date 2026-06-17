@@ -6,6 +6,7 @@ import type { Database } from "@nexis/types";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 import { computeRunPreview, formatPeriod, formatRupiah } from "@/lib/payroll";
+import { formatDateRange } from "@/lib/date";
 import { ActionBar } from "./actions-bar";
 import { RunStatusStream } from "./status-stream";
 import { Card } from "@/components/ui/card";
@@ -96,6 +97,38 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
   }
 
   const isPersisted = PERSISTED_STATUSES.includes(run.status);
+
+  // P1-4: approved *unpaid* leave overlapping this period, per employee — shown as
+  // an informational note so HR can sanity-check absence deductions before approving.
+  const periodStart = `${run.period_year}-${String(run.period_month).padStart(2, "0")}-01`;
+  const periodEnd = new Date(Date.UTC(run.period_year, run.period_month, 0))
+    .toISOString()
+    .slice(0, 10);
+  const { data: unpaidLeave } = await supabase
+    .from("leave_requests")
+    .select("employee_id, start_date, end_date, days, leave_types!inner(name, paid)")
+    .eq("company_id", active.id)
+    .eq("status", "approved")
+    .eq("leave_types.paid", false)
+    .lte("start_date", periodEnd)
+    .gte("end_date", periodStart);
+
+  const absenceByEmployee = new Map<
+    string,
+    { leaveTypeName: string; startDate: string; endDate: string; days: number }[]
+  >();
+  for (const r of (unpaidLeave as
+    | { employee_id: string; start_date: string; end_date: string; days: number; leave_types: { name: string } | null }[]
+    | null) ?? []) {
+    const list = absenceByEmployee.get(r.employee_id) ?? [];
+    list.push({
+      leaveTypeName: r.leave_types?.name ?? "—",
+      startDate: r.start_date,
+      endDate: r.end_date,
+      days: Number(r.days),
+    });
+    absenceByEmployee.set(r.employee_id, list);
+  }
 
   let lines: DisplayLine[] = [];
   let notices: string[] = [];
@@ -287,6 +320,25 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
                           <BreakdownRow label={t("breakdownRows.pph21")} value={line.pph21} hint={t("explain.pph21")} />
                         </dl>
                       </details>
+                      {(() => {
+                        const absences = absenceByEmployee.get(line.employeeId);
+                        if (!absences?.length) return null;
+                        const totalDays = absences.reduce((s, a) => s + a.days, 0);
+                        return (
+                          <details className="mt-1">
+                            <summary className="cursor-pointer text-xs font-medium text-amber-700 hover:underline dark:text-amber-400">
+                              {t("detail.absence", { days: totalDays })}
+                            </summary>
+                            <ul className="mt-1 space-y-0.5 text-xs text-muted">
+                              {absences.map((a, i) => (
+                                <li key={i}>
+                                  {a.leaveTypeName}: {formatDateRange(a.startDate, a.endDate)} · {a.days} {t("detail.absenceDaysUnit")}
+                                </li>
+                              ))}
+                            </ul>
+                          </details>
+                        );
+                      })()}
                       {line.payslipId && (
                         <a
                           href={`/payroll/${run.id}/payslip/${line.payslipId}`}

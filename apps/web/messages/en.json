@@ -412,7 +412,7 @@
     "actions": { "approve": "Approve & process", "markPaid": "Mark as paid", "cancel": "Cancel run" },
     "breakdown": "Breakdown",
     "noNpwp": "(+20% without NPWP)",
-    "detail": { "back": "← Payroll", "heading": "Payroll {period}", "noEmployees": "No employees to calculate.", "terCategory": "Category {category} · {rate}", "newBadge": "New", "updateProfile": "Update Profile", "downloadPayslip": "Download payslip" },
+    "detail": { "back": "← Payroll", "heading": "Payroll {period}", "noEmployees": "No employees to calculate.", "terCategory": "Category {category} · {rate}", "newBadge": "New", "updateProfile": "Update Profile", "downloadPayslip": "Download payslip", "absence": "{days} unpaid leave day(s) this period", "absenceDaysUnit": "day(s)" },
     "monitoring": "monitoring…",
     "connecting": "connecting…",
     "summary": { "gross": "Gross", "bpjsEmployee": "BPJS (employee)", "pph21": "PPh 21", "net": "Net (take-home)" },
