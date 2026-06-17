@@ -85,6 +85,28 @@ export function NewEmployeeForm() {
           <Input id="baseSalary" name="baseSalary" type="number" min={0} step={1000} defaultValue={0} />
           <p className="text-xs text-muted">{t("form.baseSalaryHint")}</p>
         </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="phone">{t("form.phone")}</Label>
+          <Input id="phone" name="phone" type="tel" inputMode="tel" placeholder="08xxxxxxxxxx" />
+        </div>
+
+        <p className="pt-1 text-sm font-semibold text-ink">{t("form.bankSection")}</p>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="bankName">{t("form.bankName")}</Label>
+            <Input id="bankName" name="bankName" placeholder="BCA" />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="accountNo">{t("form.accountNo")}</Label>
+            <Input id="accountNo" name="accountNo" inputMode="numeric" />
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="accountName">{t("form.accountName")}</Label>
+          <Input id="accountName" name="accountName" />
+        </div>
+
         <SubmitButton>{t("form.save")}</SubmitButton>
       </form>
     </Card>

@@ -384,6 +384,11 @@
       "ptkpStatus": "PTKP status",
       "npwp": "Employee NPWP (optional)",
       "npwpHint": "Without an NPWP, PPh 21 is charged +20% (Stage 4).",
+      "phone": "Phone",
+      "bankSection": "Bank account",
+      "bankName": "Bank name",
+      "accountNo": "Account number",
+      "accountName": "Account holder name",
       "ptkpExplainerTitle": "What is PTKP status?",
       "ptkpExplainerBody": "TK = single (Tidak Kawin), K = married (Kawin); the number is dependents, 0–3. Example: K/2 = married with 2 dependents. PTKP sets the tax-free income threshold used to calculate PPh 21 — picking the wrong code changes the tax."
     },
@@ -716,8 +721,18 @@
     "title": "My Profile",
     "subtitle": "View your account details and employee records.",
     "noChangesAllowed": "Modifying profile information is not allowed at this time.",
+    "editableHint": "Update your contact and bank details below. Other fields are managed by your HR admin.",
+    "edit": {
+      "phone": "Phone",
+      "bankName": "Bank name",
+      "accountNo": "Account number",
+      "accountName": "Account holder name",
+      "save": "Save changes",
+      "saved": "Saved."
+    },
     "sections": {
       "account": "Account Details",
+      "editable": "Contact & Bank (editable)",
       "employment": "Employment Details",
       "financial": "Compensation & Bank Info",
       "tax": "Tax Profile"

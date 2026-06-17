@@ -18,6 +18,10 @@ const updateSchema = z.object({
   ptkpStatus: z.enum(["TK/0", "TK/1", "TK/2", "TK/3", "K/0", "K/1", "K/2", "K/3"]),
   npwp: z.string().max(30).optional().or(z.literal("")),
   managerId: z.string().uuid().optional().or(z.literal("")),
+  phone: z.string().max(30).optional().or(z.literal("")),
+  bankName: z.string().max(80).optional().or(z.literal("")),
+  accountNo: z.string().max(40).optional().or(z.literal("")),
+  accountName: z.string().max(120).optional().or(z.literal("")),
 });
 
 export type EditState = { error?: string; success?: string };
@@ -46,6 +50,7 @@ export async function updateEmployee(_prev: EditState, formData: FormData): Prom
       department: d.department || null,
       status: d.status,
       employment_type: d.employmentType,
+      phone: d.phone || null,
       // Self can't be its own manager; empty → no manager (unscopes from any team).
       manager_id: d.managerId && d.managerId !== d.id ? d.managerId : null,
       updated_at: new Date().toISOString(),
@@ -56,6 +61,27 @@ export async function updateEmployee(_prev: EditState, formData: FormData): Prom
   if (empErr) {
     if (empErr.code === "23505") return { error: "Nomor karyawan sudah digunakan." };
     return { error: empErr.message };
+  }
+
+  // Upsert the primary bank account (admin write policy covers this).
+  const { data: bank } = await supabase
+    .from("bank_accounts")
+    .select("id")
+    .eq("employee_id", d.id)
+    .eq("is_primary", true)
+    .maybeSingle();
+
+  const bankRow = {
+    bank_name: d.bankName || null,
+    account_no: d.accountNo || null,
+    account_name: d.accountName || null,
+  };
+  if (bank) {
+    await supabase.from("bank_accounts").update(bankRow).eq("id", bank.id);
+  } else if (d.bankName || d.accountNo || d.accountName) {
+    await supabase
+      .from("bank_accounts")
+      .insert({ ...bankRow, company_id: active.id, employee_id: d.id, is_primary: true });
   }
 
   // Upsert compensation (latest base salary).
