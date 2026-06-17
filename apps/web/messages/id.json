@@ -251,7 +251,9 @@
         "longitude": "Bujur",
         "coords": "Koordinat",
         "radius": "Radius (meter)",
-        "add": "Tambah lokasi"
+        "add": "Tambah lokasi",
+        "mapPick": "Pilih di peta",
+        "mapHint": "Klik peta untuk menaruh pin — lintang dan bujur terisi otomatis. Lingkaran menunjukkan radius."
       },
       "shifts": {
         "addTitle": "Tambah shift",

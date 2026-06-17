@@ -251,7 +251,9 @@
         "longitude": "Longitude",
         "coords": "Coordinates",
         "radius": "Radius (meters)",
-        "add": "Add location"
+        "add": "Add location",
+        "mapPick": "Pick on map",
+        "mapHint": "Click the map to drop a pin — latitude and longitude fill in automatically. The circle shows the radius."
       },
       "shifts": {
         "addTitle": "Add shift",

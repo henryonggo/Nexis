@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { useFormState, useFormStatus } from "react-dom";
 import { useTranslations } from "next-intl";
 import { Trash2 } from "lucide-react";
@@ -29,6 +31,12 @@ import {
 } from "@/components/ui/table";
 
 const initial: ConfigState = {};
+
+// Leaflet touches `window`, so load the map only on the client.
+const GeofenceMap = dynamic(() => import("./geofence-map"), {
+  ssr: false,
+  loading: () => <div className="h-[240px] rounded-md border border-border bg-muted/10" />,
+});
 
 type Geofence = { id: string; name: string; latitude: number; longitude: number; radius_meters: number };
 type Shift = { id: string; name: string; start_time: string; end_time: string; grace_period_minutes: number };
@@ -121,6 +129,22 @@ function GeofencesTab({ geofences }: { geofences: Geofence[] }) {
   const t = useTranslations("attendance.config");
   const [state, action] = useFormState(createGeofence, initial);
 
+  // Controlled so the map can fill lat/lng on click and preview the radius circle.
+  const [lat, setLat] = useState("");
+  const [lng, setLng] = useState("");
+  const [radius, setRadius] = useState("100");
+
+  // Clear the form once a geofence is saved.
+  useEffect(() => {
+    if (state.success) {
+      setLat("");
+      setLng("");
+      setRadius("100");
+    }
+  }, [state.success]);
+
+  const radiusNum = Number(radius);
+
   return (
     <div className="grid gap-6 md:grid-cols-2">
       <Card className="p-6">
@@ -132,19 +156,34 @@ function GeofencesTab({ geofences }: { geofences: Geofence[] }) {
             <Label htmlFor="gf-name">{t("geofences.name")} *</Label>
             <Input id="gf-name" name="name" required placeholder={t("geofences.namePlaceholder")} />
           </div>
+
+          <div className="space-y-1.5">
+            <Label>{t("geofences.mapPick")}</Label>
+            <GeofenceMap
+              lat={lat === "" ? null : Number(lat)}
+              lng={lng === "" ? null : Number(lng)}
+              radius={Number.isFinite(radiusNum) && radiusNum > 0 ? radiusNum : 100}
+              onPick={(la, ln) => {
+                setLat(la.toFixed(6));
+                setLng(ln.toFixed(6));
+              }}
+            />
+            <p className="text-xs text-muted">{t("geofences.mapHint")}</p>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="gf-lat">{t("geofences.latitude")} *</Label>
-              <Input id="gf-lat" name="latitude" type="number" step="any" required placeholder="-6.2088" />
+              <Input id="gf-lat" name="latitude" type="number" step="any" required placeholder="-6.2088" value={lat} onChange={(e) => setLat(e.target.value)} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="gf-lng">{t("geofences.longitude")} *</Label>
-              <Input id="gf-lng" name="longitude" type="number" step="any" required placeholder="106.8456" />
+              <Input id="gf-lng" name="longitude" type="number" step="any" required placeholder="106.8456" value={lng} onChange={(e) => setLng(e.target.value)} />
             </div>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="gf-radius">{t("geofences.radius")} *</Label>
-            <Input id="gf-radius" name="radiusMeters" type="number" min={10} max={10000} step={10} defaultValue={100} required />
+            <Input id="gf-radius" name="radiusMeters" type="number" min={10} max={10000} step={10} required value={radius} onChange={(e) => setRadius(e.target.value)} />
           </div>
           <SubmitButton>{t("geofences.add")}</SubmitButton>
         </form>
