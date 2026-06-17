@@ -22,23 +22,14 @@ notification stack (`supabase/functions/send-notification` already does Expo pus
 
 ## TODO(db) — Antigravity
 
-1. **Table** `push_tokens`:
-   ```sql
-   create table push_tokens (
-     user_id    uuid not null references auth.users(id) on delete cascade,
-     token      text not null,
-     platform   text not null check (platform in ('ios','android','web')),
-     updated_at timestamptz not null default now(),
-     primary key (user_id, token)
-   );
-   ```
-   RLS: a user may upsert/delete **their own** tokens; the `send-notification` function reads
-   via service role.
+1. ✅ **Token table already exists:** `public.expo_push_tokens (id uuid, user_id uuid, token
+   text, created_at timestamptz)`, RLS enabled. Reuse it — do **not** create a new
+   `push_tokens` table. (No `platform` column; add one only if per-platform routing is needed.)
 2. **Trigger** on `leave_requests` `AFTER INSERT`: resolve the company's
    manager/admin/owner `user_id`s (via `company_members`), and invoke `send-notification`
    (pg_net / supabase function call) with `{ event: 'leave_submitted', companyId, leaveRequestId,
    recipientUserIds }`. Keep the resolve logic in SQL/RPC so the app never fans out manually.
-3. Regenerate `packages/types` so Claude can type the token-registration upsert.
+   *(Verified 2026-06-17: no trigger on `leave_requests` and no push/notify function yet.)*
 
 ## TODO(infra) — `send-notification` extension
 
@@ -51,8 +42,8 @@ existing logging + email fallback. Secrets via function env, never in repo.
 
 Mobile only; lives on `feat/mobile-employee-dashboard` (where the employee app shell is):
 - Add `expo-notifications`; on app start request permission and get the Expo push token.
-- Upsert it into `push_tokens` (`user_id`, `token`, `platform`) on login / token change; delete
-  on sign-out.
+- Upsert it into the existing `expo_push_tokens` (`user_id`, `token`) on login / token change;
+  delete on sign-out. `expo_push_tokens` has 0 rows today — nothing registers tokens yet.
 - No web app work — the trigger + edge function do the fan-out.
 
 ## Acceptance
