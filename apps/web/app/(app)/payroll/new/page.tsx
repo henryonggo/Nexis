@@ -27,6 +27,7 @@ export default async function NewPayrollRunPage() {
       defaultYear={year}
       defaultMonth={month}
       blockers={readiness.blockers}
+      warnings={readiness.warnings}
     />
   );
 }

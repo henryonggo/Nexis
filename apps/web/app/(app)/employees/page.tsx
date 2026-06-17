@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { computeEmployeeReadiness, readinessStatus, type ReadinessStatus } from "@/lib/payroll";
 import { ExportCsvButton } from "@/components/export-csv-button";
 import type { EmployeeRow, CompanyBillingRow } from "@nexis/types";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,12 @@ const STATUS_VARIANT: Record<string, "success" | "warning" | "secondary" | "dest
   terminated: "destructive",
 };
 
+const READINESS_DOT: Record<ReadinessStatus, string> = {
+  ready: "bg-success",
+  attention: "bg-warning",
+  incomplete: "bg-destructive",
+};
+
 export default async function EmployeesPage() {
   const supabase = createClient();
   const active = await getActiveCompany();
@@ -41,6 +48,10 @@ export default async function EmployeesPage() {
     .select("plan, free_seat_limit, active_seats")
     .eq("company_id", active.id)
     .maybeSingle<Pick<CompanyBillingRow, "plan" | "free_seat_limit" | "active_seats">>();
+
+  // Payroll-readiness per employee (P1-2): same source as the pre-run gate.
+  const readiness = await computeEmployeeReadiness(supabase, active.id);
+  const readinessById = new Map(readiness.map((r) => [r.employeeId, r]));
 
   const rows = (employees as Partial<EmployeeRow>[] | null) ?? [];
   const isAdmin = active.role === "owner" || active.role === "admin";
@@ -116,9 +127,29 @@ export default async function EmployeesPage() {
               rows.map((e) => (
                 <TableRow key={e.id}>
                   <TableCell className="text-ink">
-                    <Link href={`/employees/${e.id}`} className="font-medium text-brand hover:underline">
-                      {e.full_name}
-                    </Link>
+                    <span className="flex items-center gap-2">
+                      {(() => {
+                        const r = e.id ? readinessById.get(e.id) : undefined;
+                        if (!r) return null;
+                        const status = readinessStatus(r);
+                        const title =
+                          status === "incomplete"
+                            ? `${t("readiness.incomplete")}: ${r.issues.map((i) => t(`readiness.issue.${i}`)).join(", ")}`
+                            : status === "attention"
+                              ? t("readiness.attention")
+                              : t("readiness.ready");
+                        return (
+                          <span
+                            className={`inline-block h-2.5 w-2.5 shrink-0 rounded-full ${READINESS_DOT[status]}`}
+                            title={title}
+                            aria-label={title}
+                          />
+                        );
+                      })()}
+                      <Link href={`/employees/${e.id}`} className="font-medium text-brand hover:underline">
+                        {e.full_name}
+                      </Link>
+                    </span>
                   </TableCell>
                   <TableCell className="text-muted">{e.employee_no ?? "—"}</TableCell>
                   <TableCell className="text-muted">{e.position ?? "—"}</TableCell>
