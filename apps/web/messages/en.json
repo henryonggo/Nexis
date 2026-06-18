@@ -145,7 +145,24 @@
       "clockedIn": "Clocked in",
       "notClockedIn": "Not clocked in",
       "attendanceHint": "Go to attendance →",
-      "noProfile": "Your employee profile isn't set up yet. Contact your admin."
+      "noProfile": "Your employee profile isn't set up yet. Contact your admin.",
+      "payTrend": "Net pay — last 6 months",
+      "payTrendEmpty": "No payslips yet",
+      "payAverage": "Avg {amount}",
+      "breakdown": "Latest payslip",
+      "takeHome": "take-home",
+      "dedTax": "Tax (PPh 21)",
+      "dedBpjs": "BPJS",
+      "dedLoan": "Loan",
+      "leaveYear": "Leave this year",
+      "daysWord": "days used",
+      "leaveUpcoming": "Next: {range}",
+      "leaveNone": "No upcoming leave",
+      "statusApproved": "Approved",
+      "statusPending": "Pending",
+      "statusRejected": "Rejected",
+      "attendance14": "Attendance · 14 days",
+      "presentCount": "{count}/14 days present"
     }
   },
   "access": {

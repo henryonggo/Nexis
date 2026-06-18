@@ -145,7 +145,24 @@
       "clockedIn": "Sudah absen masuk",
       "notClockedIn": "Belum absen masuk",
       "attendanceHint": "Ke kehadiran →",
-      "noProfile": "Profil karyawan Anda belum disiapkan. Hubungi admin Anda."
+      "noProfile": "Profil karyawan Anda belum disiapkan. Hubungi admin Anda.",
+      "payTrend": "Gaji bersih — 6 bulan terakhir",
+      "payTrendEmpty": "Belum ada slip gaji",
+      "payAverage": "Rata-rata {amount}",
+      "breakdown": "Slip gaji terbaru",
+      "takeHome": "diterima",
+      "dedTax": "Pajak (PPh 21)",
+      "dedBpjs": "BPJS",
+      "dedLoan": "Pinjaman",
+      "leaveYear": "Cuti tahun ini",
+      "daysWord": "hari dipakai",
+      "leaveUpcoming": "Berikutnya: {range}",
+      "leaveNone": "Tidak ada cuti mendatang",
+      "statusApproved": "Disetujui",
+      "statusPending": "Menunggu",
+      "statusRejected": "Ditolak",
+      "attendance14": "Kehadiran · 14 hari",
+      "presentCount": "{count}/14 hari hadir"
     }
   },
   "access": {

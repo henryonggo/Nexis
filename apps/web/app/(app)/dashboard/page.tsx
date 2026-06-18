@@ -5,7 +5,17 @@ import { getActiveCompany } from "@/lib/company";
 import { getCompanyLeaveRequests } from "@/lib/leave";
 import { getEmployeeAccess } from "@/lib/access";
 import { SetupChecklist } from "./setup-checklist";
-import { formatPeriod, formatRupiah } from "@/lib/payroll-format";
+import {
+  StatCard,
+  PayTrendChart,
+  PayBreakdownCard,
+  LeaveCard,
+  AttendanceStrip,
+  type PayPoint,
+} from "./employee-widgets";
+import { Wallet, CalendarDays, Clock } from "lucide-react";
+import { formatPeriod, formatRupiah, MONTH_NAMES_ID } from "@/lib/payroll-format";
+import { formatDateRange } from "@/lib/date";
 import { planMeta } from "@/lib/billing-plans";
 import type { CompanyBillingRow } from "@nexis/types";
 import { Card } from "@/components/ui/card";
@@ -16,6 +26,24 @@ function startOfTodayJakartaIso(): string {
   const WIB_OFFSET_MS = 7 * 60 * 60 * 1000;
   const nowWib = new Date(Date.now() + WIB_OFFSET_MS);
   const startWibUtcMs = Date.UTC(nowWib.getUTCFullYear(), nowWib.getUTCMonth(), nowWib.getUTCDate());
+  return new Date(startWibUtcMs - WIB_OFFSET_MS).toISOString();
+}
+
+const WIB_OFFSET_MS = 7 * 60 * 60 * 1000;
+
+/** yyyy-mm-dd of a UTC instant in Asia/Jakarta (WIB). */
+function jakartaDateKey(iso: string): string {
+  return new Date(new Date(iso).getTime() + WIB_OFFSET_MS).toISOString().slice(0, 10);
+}
+
+/** UTC ISO for the start (Jakarta midnight) of `daysBack` days ago. */
+function startOfDaysAgoJakartaIso(daysBack: number): string {
+  const nowWib = new Date(Date.now() + WIB_OFFSET_MS);
+  const startWibUtcMs = Date.UTC(
+    nowWib.getUTCFullYear(),
+    nowWib.getUTCMonth(),
+    nowWib.getUTCDate() - daysBack,
+  );
   return new Date(startWibUtcMs - WIB_OFFSET_MS).toISOString();
 }
 
@@ -58,35 +86,93 @@ async function EmployeeDashboard({ companyId }: { companyId: string }) {
     );
   }
 
-  const [{ data: comp }, leaveReqs, { data: todayRecords }] = await Promise.all([
-    supabase
-      .from("compensation")
-      .select("base_salary")
-      .eq("employee_id", employee.id)
-      .order("effective_from", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-    getCompanyLeaveRequests(supabase, companyId),
-    supabase
-      .from("attendance_records")
-      .select("kind")
-      .eq("company_id", companyId)
-      .eq("employee_id", employee.id)
-      .gte("event_at", startOfTodayJakartaIso())
-      .order("event_at", { ascending: false })
-      .limit(1),
-  ]);
+  // Same config that drives nav + route guards: hide widgets for surfaces turned off.
+  const access = await getEmployeeAccess(companyId);
 
+  const [{ data: comp }, leaveReqs, { data: attRecords }, { data: payslipRows }] =
+    await Promise.all([
+      supabase
+        .from("compensation")
+        .select("base_salary")
+        .eq("employee_id", employee.id)
+        .order("effective_from", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      getCompanyLeaveRequests(supabase, companyId),
+      supabase
+        .from("attendance_records")
+        .select("event_at, kind")
+        .eq("company_id", companyId)
+        .eq("employee_id", employee.id)
+        .gte("event_at", startOfDaysAgoJakartaIso(13))
+        .order("event_at", { ascending: true }),
+      access.salary
+        ? supabase
+            .from("payslips")
+            .select(
+              "payroll_items(net_pay, gross_pay, pph21, bpjs_kes_employee, jht_employee, jp_employee, loan_deduction, payroll_runs(period_year, period_month))",
+            )
+            .eq("employee_id", employee.id)
+            .order("issued_at", { ascending: false })
+            .limit(12)
+        : Promise.resolve({ data: null }),
+    ]);
+
+  // --- Leave (this calendar year), with the next upcoming approved booking. ---
   // RLS already scopes leave reads, but filter to this user's own rows defensively.
   const myLeaves = leaveReqs.filter((r) => r.employeeUserId === user.id);
-  const pendingLeave = myLeaves.filter((r) => r.status === "pending").length;
-  const approvedLeave = myLeaves.filter((r) => r.status === "approved").length;
+  const yearNow = new Date().getFullYear();
+  const myYear = myLeaves.filter((r) => new Date(r.startDate).getFullYear() === yearNow);
+  const approvedLeave = myYear.filter((r) => r.status === "approved").length;
+  const pendingLeave = myYear.filter((r) => r.status === "pending").length;
+  const rejectedLeave = myYear.filter((r) => r.status === "rejected").length;
+  const daysUsed = myYear
+    .filter((r) => r.status === "approved")
+    .reduce((s, r) => s + r.days, 0);
 
-  const latestKind = (todayRecords as { kind: string }[] | null)?.[0]?.kind;
-  const clockedIn = latestKind === "clock_in" || latestKind === "break_end";
+  // --- Attendance: last 14 days strip + today's clocked-in state. ---
+  const todayKey = jakartaDateKey(new Date().toISOString());
+  const presentKeys = new Set<string>();
+  let todayLatestKind: string | undefined;
+  for (const r of (attRecords as { event_at: string; kind: string }[] | null) ?? []) {
+    const key = jakartaDateKey(r.event_at);
+    if (r.kind === "clock_in") presentKeys.add(key);
+    if (key === todayKey) todayLatestKind = r.kind; // asc order → last wins
+  }
+  const clockedIn = todayLatestKind === "clock_in" || todayLatestKind === "break_end";
+  const attDays = Array.from({ length: 14 }, (_, i) => {
+    const d = new Date(Date.now() + WIB_OFFSET_MS);
+    d.setUTCDate(d.getUTCDate() - (13 - i));
+    const key = d.toISOString().slice(0, 10);
+    const dow = d.getUTCDay();
+    return { key, present: presentKeys.has(key), weekend: dow === 0 || dow === 6 };
+  });
+  const presentCount = attDays.filter((d) => d.present).length;
 
-  // Same config that drives nav + route guards: hide cards for surfaces turned off.
-  const access = await getEmployeeAccess(companyId);
+  // --- Pay history: net-pay trend (oldest→newest) + latest payslip breakdown. ---
+  type PayItem = {
+    net_pay: number;
+    gross_pay: number;
+    pph21: number;
+    bpjs_kes_employee: number;
+    jht_employee: number;
+    jp_employee: number;
+    loan_deduction: number;
+    payroll_runs: { period_year: number; period_month: number } | null;
+  };
+  const payItems = ((payslipRows as unknown as { payroll_items: PayItem | null }[] | null) ?? [])
+    .map((r) => r.payroll_items)
+    .filter((it): it is PayItem => Boolean(it?.payroll_runs))
+    .sort((a, b) => {
+      const ra = a.payroll_runs!.period_year * 12 + a.payroll_runs!.period_month;
+      const rb = b.payroll_runs!.period_year * 12 + b.payroll_runs!.period_month;
+      return ra - rb;
+    });
+  const payPoints: PayPoint[] = payItems.slice(-6).map((it) => ({
+    label: (MONTH_NAMES_ID[it.payroll_runs!.period_month - 1] ?? "").slice(0, 3),
+    net: it.net_pay,
+  }));
+  const latestPay = payItems[payItems.length - 1];
 
   return (
     <div className="space-y-6">
@@ -97,44 +183,111 @@ async function EmployeeDashboard({ companyId }: { companyId: string }) {
 
       <div className="grid gap-4 sm:grid-cols-3">
         {access.salary && (
-          <Card asChild className="p-5 transition-colors hover:border-brand">
-            <Link href="/profile">
-              <div className="text-sm text-muted">{t("employee.salary")}</div>
-              <div className="mt-1 text-2xl font-bold text-ink">
-                {comp ? formatRupiah(comp.base_salary) : "—"}
-              </div>
-              <div className="mt-1 text-xs text-muted">{t("employee.salaryHint")}</div>
-            </Link>
-          </Card>
+          <StatCard
+            href="/profile"
+            tone="brand"
+            icon={<Wallet className="h-5 w-5" />}
+            label={t("employee.salary")}
+            value={comp ? formatRupiah(comp.base_salary) : "—"}
+            hint={t("employee.salaryHint")}
+          />
+        )}
+        {access.leave && (
+          <StatCard
+            href="/leave"
+            tone="warning"
+            icon={<CalendarDays className="h-5 w-5" />}
+            label={t("employee.leave")}
+            value={
+              <>
+                {approvedLeave}
+                <span className="text-base text-muted"> {t("employee.leaveApproved")}</span>
+              </>
+            }
+            hint={
+              pendingLeave > 0
+                ? t("employee.leavePending", { count: pendingLeave })
+                : t("employee.leaveRequest")
+            }
+          />
+        )}
+        {access.attendance && (
+          <StatCard
+            href="/attendance"
+            tone={clockedIn ? "success" : "brand"}
+            icon={<Clock className="h-5 w-5" />}
+            label={t("employee.attendance")}
+            value={clockedIn ? t("employee.clockedIn") : t("employee.notClockedIn")}
+            hint={t("employee.attendanceHint")}
+          />
+        )}
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        {access.salary && (
+          <div className="lg:col-span-2">
+            <PayTrendChart
+              points={payPoints}
+              title={t("employee.payTrend")}
+              averageLabel={t("employee.payAverage")}
+              emptyLabel={t("employee.payTrendEmpty")}
+            />
+          </div>
+        )}
+
+        {access.salary && latestPay && (
+          <PayBreakdownCard
+            title={t("employee.breakdown")}
+            takeHomeLabel={t("employee.takeHome")}
+            gross={latestPay.gross_pay}
+            net={latestPay.net_pay}
+            parts={[
+              { label: t("employee.dedTax"), value: latestPay.pph21, color: "#DC2626" },
+              {
+                label: t("employee.dedBpjs"),
+                value:
+                  latestPay.bpjs_kes_employee + latestPay.jht_employee + latestPay.jp_employee,
+                color: "#F59E0B",
+              },
+              { label: t("employee.dedLoan"), value: latestPay.loan_deduction, color: "#5B6675" },
+            ]}
+          />
         )}
 
         {access.leave && (
-          <Card asChild className="p-5 transition-colors hover:border-brand">
-            <Link href="/leave">
-              <div className="text-sm text-muted">{t("employee.leave")}</div>
-              <div className="mt-1 text-2xl font-bold text-ink">
-                {approvedLeave}
-                <span className="text-base text-muted"> {t("employee.leaveApproved")}</span>
-              </div>
-              <div className="mt-1 text-xs text-muted">
-                {pendingLeave > 0
-                  ? t("employee.leavePending", { count: pendingLeave })
-                  : t("employee.leaveRequest")}
-              </div>
-            </Link>
-          </Card>
+          <LeaveCard
+            title={t("employee.leaveYear")}
+            approved={approvedLeave}
+            pending={pendingLeave}
+            rejected={rejectedLeave}
+            daysUsed={daysUsed}
+            daysWord={t("employee.daysWord")}
+            upcomingLabel={
+              (() => {
+                const next = myLeaves
+                  .filter((r) => r.status === "approved" && r.startDate >= todayKey)
+                  .sort((a, b) => a.startDate.localeCompare(b.startDate))[0];
+                return next
+                  ? t("employee.leaveUpcoming", {
+                      range: formatDateRange(next.startDate, next.endDate),
+                    })
+                  : t("employee.leaveNone");
+              })()
+            }
+            legend={{
+              approved: t("employee.statusApproved"),
+              pending: t("employee.statusPending"),
+              rejected: t("employee.statusRejected"),
+            }}
+          />
         )}
 
         {access.attendance && (
-          <Card asChild className="p-5 transition-colors hover:border-brand">
-            <Link href="/attendance">
-              <div className="text-sm text-muted">{t("employee.attendance")}</div>
-              <div className="mt-1 text-2xl font-bold text-ink">
-                {clockedIn ? t("employee.clockedIn") : t("employee.notClockedIn")}
-              </div>
-              <div className="mt-1 text-xs text-muted">{t("employee.attendanceHint")}</div>
-            </Link>
-          </Card>
+          <AttendanceStrip
+            days={attDays}
+            title={t("employee.attendance14")}
+            presentLabel={t("employee.presentCount", { count: presentCount })}
+          />
         )}
       </div>
     </div>
