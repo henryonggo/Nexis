@@ -366,7 +366,7 @@ app.post("/process", async (req, res) => {
 
     const compByEmployee = new Map<string, any>();
     for (const comp of comps || []) {
-      if (comp.effective_from > startDateStr) continue;
+      if (comp.effective_from > endDateStr) continue;
       const existing = compByEmployee.get(comp.employee_id);
       if (!existing || comp.effective_from > existing.effective_from) {
         compByEmployee.set(comp.employee_id, comp);
