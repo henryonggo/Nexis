@@ -80,12 +80,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <IdleTimeout />
       <header className="sticky top-0 z-40 flex h-14 items-center justify-between glass-panel border-t-0 border-x-0 rounded-none px-4 sm:px-6">
         <div className="flex items-center gap-3">
-          <MobileNav items={navItems} pillarKeys={pillarKeys} />
+          <MobileNav items={navItems} pillarKeys={pillarKeys} flat={role === "employee"} />
           <span className="text-lg font-bold text-brand">Nexis</span>
           <CompanySwitcher companies={memberships} activeId={active!.id} />
         </div>
 
-        <TopNav pillarKeys={pillarKeys} />
+        <TopNav items={navItems} pillarKeys={pillarKeys} flat={role === "employee"} />
 
         <div className="flex items-center gap-2 sm:gap-3">
           <Link href="/profile" className="hidden text-sm text-muted hover:text-brand sm:inline transition-colors font-medium">
@@ -101,7 +101,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </header>
 
       <div className="flex">
-        <DesktopSidebar items={navItems} />
+        {/* Employees use the flat top nav; the pillar sidebar is for richer roles. */}
+        {role !== "employee" && <DesktopSidebar items={navItems} />}
         <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-7xl">{children}</div>
         </main>

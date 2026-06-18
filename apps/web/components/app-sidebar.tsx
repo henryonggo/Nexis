@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const ICONS: Record<string, LucideIcon> = {
+export const ICONS: Record<string, LucideIcon> = {
   dashboard: LayoutDashboard,
   employees: Users,
   attendance: Clock,
@@ -143,7 +143,15 @@ export function DesktopSidebar({ items }: { items: NavItem[] }) {
   );
 }
 
-export function MobileNav({ items, pillarKeys }: { items: NavItem[]; pillarKeys: string[] }) {
+export function MobileNav({
+  items,
+  pillarKeys,
+  flat,
+}: {
+  items: NavItem[];
+  pillarKeys: string[];
+  flat: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const pillars = PILLARS.filter((p) => pillarKeys.includes(p.key));
@@ -159,8 +167,9 @@ export function MobileNav({ items, pillarKeys }: { items: NavItem[]; pillarKeys:
     setActiveTab(pillarKeys.includes(next) ? next : (pillarKeys[0] ?? "overview"));
   }, [pathname, pillarKeys]);
 
+  // Employees get a flat list; everyone else navigates within the active pillar.
   const allowedKeys = PILLAR_ITEMS[activeTab] ?? [];
-  const filteredItems = items.filter((item) => allowedKeys.includes(item.key));
+  const filteredItems = flat ? items : items.filter((item) => allowedKeys.includes(item.key));
 
   return (
     <>
@@ -188,7 +197,8 @@ export function MobileNav({ items, pillarKeys }: { items: NavItem[]; pillarKeys:
               </button>
             </div>
 
-            {/* Mobile Navigation Pillars Grid */}
+            {/* Mobile Navigation Pillars Grid (hidden for employees' flat nav) */}
+            {!flat && (
             <div
               className="grid border-b border-white/10 p-2 gap-1 bg-white/5"
               style={{ gridTemplateColumns: `repeat(${pillars.length}, minmax(0, 1fr))` }}
@@ -212,6 +222,7 @@ export function MobileNav({ items, pillarKeys }: { items: NavItem[]; pillarKeys:
                 );
               })}
             </div>
+            )}
 
             <div className="flex-1 overflow-y-auto">
               <NavList items={filteredItems} onNavigate={() => setOpen(false)} />
