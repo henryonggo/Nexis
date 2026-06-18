@@ -534,7 +534,11 @@ export type Database = {
           attendance: boolean
           claims: boolean
           company_id: string
+          dash_attendance: boolean
+          dash_leave: boolean
+          dash_pay: boolean
           leave: boolean
+          nav_style: string
           salary: boolean
           updated_at: string
         }
@@ -542,7 +546,11 @@ export type Database = {
           attendance?: boolean
           claims?: boolean
           company_id: string
+          dash_attendance?: boolean
+          dash_leave?: boolean
+          dash_pay?: boolean
           leave?: boolean
+          nav_style?: string
           salary?: boolean
           updated_at?: string
         }
@@ -550,7 +558,11 @@ export type Database = {
           attendance?: boolean
           claims?: boolean
           company_id?: string
+          dash_attendance?: boolean
+          dash_leave?: boolean
+          dash_pay?: boolean
           leave?: boolean
+          nav_style?: string
           salary?: boolean
           updated_at?: string
         }

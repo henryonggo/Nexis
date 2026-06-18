@@ -43,28 +43,22 @@ export const ACCESS_NAV_FLAGS: Record<string, keyof EmployeeAccess> = {
 /** The active company's employee-access config, defaulting to all-on. */
 export async function getEmployeeAccess(companyId: string): Promise<EmployeeAccess> {
   const supabase = createClient();
-  // select("*") tolerates the new columns being absent before the migration
-  // lands — missing fields simply fall back to the defaults below.
   const { data } = await supabase
     .from("company_employee_access")
-    .select("*")
+    .select("attendance, leave, claims, salary, dash_pay, dash_leave, dash_attendance, nav_style")
     .eq("company_id", companyId)
     .maybeSingle();
 
   if (!data) return DEFAULT_EMPLOYEE_ACCESS;
-  // TODO(db): columns dash_pay, dash_leave, dash_attendance (bool, default true)
-  // and nav_style (text 'flat'|'pillars', default 'flat') on
-  // company_employee_access — Antigravity. Cast until types are regenerated.
-  const d = data as Record<string, unknown>;
   return {
-    attendance: (d.attendance as boolean) ?? true,
-    leave: (d.leave as boolean) ?? true,
-    claims: (d.claims as boolean) ?? true,
-    salary: (d.salary as boolean) ?? true,
-    dashPay: (d.dash_pay as boolean) ?? true,
-    dashLeave: (d.dash_leave as boolean) ?? true,
-    dashAttendance: (d.dash_attendance as boolean) ?? true,
-    navStyle: d.nav_style === "pillars" ? "pillars" : "flat",
+    attendance: data.attendance ?? true,
+    leave: data.leave ?? true,
+    claims: data.claims ?? true,
+    salary: data.salary ?? true,
+    dashPay: data.dash_pay ?? true,
+    dashLeave: data.dash_leave ?? true,
+    dashAttendance: data.dash_attendance ?? true,
+    navStyle: data.nav_style === "pillars" ? "pillars" : "flat",
   };
 }
 
