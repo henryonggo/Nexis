@@ -56,36 +56,38 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     (item) => ({ href: item.href, key: item.key, label: t(item.key) }),
   );
 
-  // Employees only: drop nav entries the company has turned off (owner/admin control panel).
+  // Employees only: drop nav entries the company has turned off, and read the
+  // owner/admin-chosen nav layout (flat list vs. grouped pillars).
+  let navStyle: "flat" | "pillars" = "flat";
   if (role === "employee" && active) {
     const access = await getEmployeeAccess(active.id);
+    navStyle = access.navStyle;
     navItems = navItems.filter((item) => {
       const flag = ACCESS_NAV_FLAGS[item.key];
       return !flag || access[flag];
     });
   }
 
-  // Top pillars: show a pillar only if the role can reach at least one of its
-  // items. Employees get a stripped nav (Overview only) — they reach their
-  // self-service pages from the dashboard cards, not the corporate pillars.
+  // Flat employees use the top item list; everyone else uses pillar groups.
+  const flat = role === "employee" && navStyle === "flat";
+
+  // Top pillars: show a pillar only if the role can reach at least one of its items.
   const navKeys = new Set(navItems.map((n) => n.key));
-  const pillarKeys = PILLARS.filter((p) => {
-    const hasItem = (PILLAR_ITEMS[p.key] ?? []).some((k) => navKeys.has(k));
-    if (!hasItem) return false;
-    return role !== "employee" || p.key === "overview";
-  }).map((p) => p.key);
+  const pillarKeys = PILLARS.filter((p) =>
+    (PILLAR_ITEMS[p.key] ?? []).some((k) => navKeys.has(k)),
+  ).map((p) => p.key);
 
   return (
     <div className="min-h-screen">
       <IdleTimeout />
       <header className="sticky top-0 z-40 flex h-14 items-center justify-between glass-panel border-t-0 border-x-0 rounded-none px-4 sm:px-6">
         <div className="flex items-center gap-3">
-          <MobileNav items={navItems} pillarKeys={pillarKeys} flat={role === "employee"} />
+          <MobileNav items={navItems} pillarKeys={pillarKeys} flat={flat} />
           <span className="text-lg font-bold text-brand">Nexis</span>
           <CompanySwitcher companies={memberships} activeId={active!.id} />
         </div>
 
-        <TopNav items={navItems} pillarKeys={pillarKeys} flat={role === "employee"} />
+        <TopNav items={navItems} pillarKeys={pillarKeys} flat={flat} />
 
         <div className="flex items-center gap-2 sm:gap-3">
           <Link href="/profile" className="hidden text-sm text-muted hover:text-brand sm:inline transition-colors font-medium">
@@ -101,8 +103,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </header>
 
       <div className="flex">
-        {/* Employees use the flat top nav; the pillar sidebar is for richer roles. */}
-        {role !== "employee" && <DesktopSidebar items={navItems} />}
+        {/* Flat nav has no sidebar; pillar roles (and pillar-mode employees) do. */}
+        {!flat && <DesktopSidebar items={navItems} />}
         <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-7xl">{children}</div>
         </main>

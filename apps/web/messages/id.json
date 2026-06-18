@@ -189,7 +189,9 @@
     "saved": "Tersimpan.",
     "groups": {
       "operations": "Operasional",
-      "compensation": "Kompensasi"
+      "compensation": "Kompensasi",
+      "dashboard": "Widget dashboard",
+      "navigation": "Navigasi"
     },
     "items": {
       "attendance": {
@@ -207,6 +209,28 @@
       "salary": {
         "label": "Visibilitas gaji",
         "hint": "Tampilkan gaji di dashboard dan rincian finansial & pajak di profil."
+      },
+      "dash_pay": {
+        "label": "Grafik gaji",
+        "hint": "Tren gaji bersih dan rincian slip terbaru. Perlu visibilitas gaji."
+      },
+      "dash_leave": {
+        "label": "Ringkasan cuti",
+        "hint": "Donut cuti tahun ini di dashboard. Perlu akses cuti."
+      },
+      "dash_attendance": {
+        "label": "Ringkasan kehadiran",
+        "hint": "Strip kehadiran 14 hari di dashboard. Perlu akses kehadiran."
+      }
+    },
+    "navStyle": {
+      "flat": {
+        "label": "Menu datar",
+        "hint": "Karyawan melihat daftar sederhana halaman mereka."
+      },
+      "pillars": {
+        "label": "Menu berkelompok",
+        "hint": "Karyawan melihat pilar berkelompok seperti manajer."
       }
     }
   },

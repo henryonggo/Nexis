@@ -8,10 +8,19 @@ import { SubmitButton } from "@/components/submit-button";
 import { Card } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
 
+type PageFlag = "attendance" | "leave" | "claims" | "salary";
+
 /** Surfaces grouped so owner/admin can reason about access by area, not flag-by-flag. */
-const GROUPS: { key: string; items: (keyof EmployeeAccess)[] }[] = [
+const GROUPS: { key: string; items: PageFlag[] }[] = [
   { key: "operations", items: ["attendance", "leave", "claims"] },
   { key: "compensation", items: ["salary"] },
+];
+
+/** Dashboard widget switches. `field` is the form field; `flag` the default source. */
+const DASH_ITEMS: { field: string; flag: "dashPay" | "dashLeave" | "dashAttendance" }[] = [
+  { field: "dash_pay", flag: "dashPay" },
+  { field: "dash_leave", flag: "dashLeave" },
+  { field: "dash_attendance", flag: "dashAttendance" },
 ];
 
 const initial: AccessState = {};
@@ -50,6 +59,57 @@ export function AccessForm({ defaults }: { defaults: EmployeeAccess }) {
           </Card>
         </section>
       ))}
+
+      {/* Dashboard widgets — each still requires its area access above. */}
+      <section className="space-y-2">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
+          {t("groups.dashboard")}
+        </h2>
+        <Card className="divide-y divide-white/10 p-0">
+          {DASH_ITEMS.map((item) => (
+            <label key={item.field} className="flex items-start justify-between gap-3 p-4">
+              <span className="text-sm text-ink">
+                {t(`items.${item.field}.label`)}
+                <span className="mt-0.5 block text-xs text-muted">
+                  {t(`items.${item.field}.hint`)}
+                </span>
+              </span>
+              <input
+                type="checkbox"
+                name={item.field}
+                defaultChecked={defaults[item.flag]}
+                className="mt-0.5 h-4 w-4 shrink-0 accent-brand"
+              />
+            </label>
+          ))}
+        </Card>
+      </section>
+
+      {/* Employee navigation layout. */}
+      <section className="space-y-2">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
+          {t("groups.navigation")}
+        </h2>
+        <Card className="divide-y divide-white/10 p-0">
+          {(["flat", "pillars"] as const).map((style) => (
+            <label key={style} className="flex items-start justify-between gap-3 p-4">
+              <span className="text-sm text-ink">
+                {t(`navStyle.${style}.label`)}
+                <span className="mt-0.5 block text-xs text-muted">
+                  {t(`navStyle.${style}.hint`)}
+                </span>
+              </span>
+              <input
+                type="radio"
+                name="nav_style"
+                value={style}
+                defaultChecked={defaults.navStyle === style}
+                className="mt-0.5 h-4 w-4 shrink-0 accent-brand"
+              />
+            </label>
+          ))}
+        </Card>
+      </section>
 
       <SubmitButton>{t("save")}</SubmitButton>
     </form>

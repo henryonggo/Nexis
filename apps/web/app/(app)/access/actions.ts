@@ -34,6 +34,21 @@ export async function updateEmployeeAccess(
 
   if (error) return { error: error.message };
 
+  // TODO(db): fold these into the row above once the columns exist — Antigravity.
+  // dash_pay, dash_leave, dash_attendance (bool), nav_style (text). Written as a
+  // separate best-effort upsert so a missing-column error pre-migration can't
+  // fail the core save above; the catch is removed when types are regenerated.
+  const extra = {
+    company_id: active.id,
+    dash_pay: formData.get("dash_pay") === "on",
+    dash_leave: formData.get("dash_leave") === "on",
+    dash_attendance: formData.get("dash_attendance") === "on",
+    nav_style: formData.get("nav_style") === "pillars" ? "pillars" : "flat",
+  };
+  await supabase
+    .from("company_employee_access")
+    .upsert(extra as never, { onConflict: "company_id" });
+
   revalidatePath("/access");
   revalidatePath("/", "layout"); // refresh the employee nav for affected sessions
   return { ok: true };

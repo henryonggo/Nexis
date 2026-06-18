@@ -107,7 +107,7 @@ async function EmployeeDashboard({ companyId }: { companyId: string }) {
         .eq("employee_id", employee.id)
         .gte("event_at", startOfDaysAgoJakartaIso(13))
         .order("event_at", { ascending: true }),
-      access.salary
+      access.salary && access.dashPay
         ? supabase
             .from("payslips")
             .select(
@@ -225,7 +225,7 @@ async function EmployeeDashboard({ companyId }: { companyId: string }) {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        {access.salary && (
+        {access.salary && access.dashPay && (
           <div className="lg:col-span-2">
             <PayTrendChart
               points={payPoints}
@@ -236,7 +236,7 @@ async function EmployeeDashboard({ companyId }: { companyId: string }) {
           </div>
         )}
 
-        {access.salary && latestPay && (
+        {access.salary && access.dashPay && latestPay && (
           <PayBreakdownCard
             title={t("employee.breakdown")}
             takeHomeLabel={t("employee.takeHome")}
@@ -255,7 +255,7 @@ async function EmployeeDashboard({ companyId }: { companyId: string }) {
           />
         )}
 
-        {access.leave && (
+        {access.leave && access.dashLeave && (
           <LeaveCard
             title={t("employee.leaveYear")}
             approved={approvedLeave}
@@ -283,7 +283,7 @@ async function EmployeeDashboard({ companyId }: { companyId: string }) {
           />
         )}
 
-        {access.attendance && (
+        {access.attendance && access.dashAttendance && (
           <AttendanceStrip
             days={attDays}
             title={t("employee.attendance14")}

@@ -2,12 +2,23 @@ import "server-only";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
+/** Employee top-nav layout: a flat list of their pages, or the pillar groups. */
+export type NavStyle = "flat" | "pillars";
+
 /** What an `employee`-role member is allowed to see/open, configured per company. */
 export type EmployeeAccess = {
+  // Page/surface access (also gates the matching nav item).
   attendance: boolean;
   leave: boolean;
   claims: boolean;
   salary: boolean;
+  // Dashboard widget switches. Each also requires its master flag above
+  // (e.g. the pay charts need `salary` AND `dashPay`).
+  dashPay: boolean;
+  dashLeave: boolean;
+  dashAttendance: boolean;
+  // Employee top-nav layout.
+  navStyle: NavStyle;
 };
 
 /** All-on: preserves today's behavior when no settings row exists yet. */
@@ -16,6 +27,10 @@ export const DEFAULT_EMPLOYEE_ACCESS: EmployeeAccess = {
   leave: true,
   claims: true,
   salary: true,
+  dashPay: true,
+  dashLeave: true,
+  dashAttendance: true,
+  navStyle: "flat",
 };
 
 /** Employee-gated nav keys → the access flag that controls them. */
@@ -28,18 +43,28 @@ export const ACCESS_NAV_FLAGS: Record<string, keyof EmployeeAccess> = {
 /** The active company's employee-access config, defaulting to all-on. */
 export async function getEmployeeAccess(companyId: string): Promise<EmployeeAccess> {
   const supabase = createClient();
+  // select("*") tolerates the new columns being absent before the migration
+  // lands — missing fields simply fall back to the defaults below.
   const { data } = await supabase
     .from("company_employee_access")
-    .select("attendance, leave, claims, salary")
+    .select("*")
     .eq("company_id", companyId)
     .maybeSingle();
 
   if (!data) return DEFAULT_EMPLOYEE_ACCESS;
+  // TODO(db): columns dash_pay, dash_leave, dash_attendance (bool, default true)
+  // and nav_style (text 'flat'|'pillars', default 'flat') on
+  // company_employee_access — Antigravity. Cast until types are regenerated.
+  const d = data as Record<string, unknown>;
   return {
-    attendance: data.attendance ?? true,
-    leave: data.leave ?? true,
-    claims: data.claims ?? true,
-    salary: data.salary ?? true,
+    attendance: (d.attendance as boolean) ?? true,
+    leave: (d.leave as boolean) ?? true,
+    claims: (d.claims as boolean) ?? true,
+    salary: (d.salary as boolean) ?? true,
+    dashPay: (d.dash_pay as boolean) ?? true,
+    dashLeave: (d.dash_leave as boolean) ?? true,
+    dashAttendance: (d.dash_attendance as boolean) ?? true,
+    navStyle: d.nav_style === "pillars" ? "pillars" : "flat",
   };
 }
 

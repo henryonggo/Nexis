@@ -189,7 +189,9 @@
     "saved": "Saved.",
     "groups": {
       "operations": "Operations",
-      "compensation": "Compensation"
+      "compensation": "Compensation",
+      "dashboard": "Dashboard widgets",
+      "navigation": "Navigation"
     },
     "items": {
       "attendance": {
@@ -207,6 +209,28 @@
       "salary": {
         "label": "Salary visibility",
         "hint": "Show their salary on the dashboard and the financial & tax details on their profile."
+      },
+      "dash_pay": {
+        "label": "Pay charts",
+        "hint": "Net-pay trend and latest-payslip breakdown. Requires salary visibility."
+      },
+      "dash_leave": {
+        "label": "Leave summary",
+        "hint": "Leave-this-year donut on the dashboard. Requires leave access."
+      },
+      "dash_attendance": {
+        "label": "Attendance summary",
+        "hint": "14-day attendance strip on the dashboard. Requires attendance access."
+      }
+    },
+    "navStyle": {
+      "flat": {
+        "label": "Flat menu",
+        "hint": "Employees see a simple list of their own pages."
+      },
+      "pillars": {
+        "label": "Grouped menu",
+        "hint": "Employees see the same grouped pillars as managers."
       }
     }
   },
