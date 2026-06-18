@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PILLARS, ICONS, getActivePillar, type NavItem } from "./app-sidebar";
+import { PILLARS, ICONS, getActivePillar, type NavItem } from "@/lib/nav";
 
 const linkClass = (active: boolean) =>
   cn(
