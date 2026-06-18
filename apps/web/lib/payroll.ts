@@ -228,13 +228,33 @@ export async function computeRunPreview(
     otByEmployee.set(row.employee_id, list);
   }
 
-  // Latest-effective compensation per employee (≤ the run period).
+  // Latest-effective compensation per employee (≤ the run period), with fallback
+  // to earliest if none is effective yet. Mirrors the payroll worker.
   const compByEmployee = new Map<string, CompensationRow>();
+  const compsByEmpId = new Map<string, CompensationRow[]>();
   for (const row of (comps as CompensationRow[] | null) ?? []) {
-    if (row.effective_from > effectiveDate) continue;
-    const current = compByEmployee.get(row.employee_id);
-    if (!current || row.effective_from > current.effective_from) {
-      compByEmployee.set(row.employee_id, row);
+    const list = compsByEmpId.get(row.employee_id) ?? [];
+    list.push(row);
+    compsByEmpId.set(row.employee_id, list);
+  }
+  for (const [empId, empComps] of compsByEmpId.entries()) {
+    let bestComp: CompensationRow | null = null;
+    for (const row of empComps) {
+      if (row.effective_from <= periodEnd) {
+        if (!bestComp || row.effective_from > bestComp.effective_from) {
+          bestComp = row;
+        }
+      }
+    }
+    if (!bestComp && empComps.length > 0) {
+      for (const row of empComps) {
+        if (!bestComp || row.effective_from < bestComp.effective_from) {
+          bestComp = row;
+        }
+      }
+    }
+    if (bestComp) {
+      compByEmployee.set(empId, bestComp);
     }
   }
 
@@ -448,14 +468,13 @@ export interface RunReadiness {
 }
 
 /**
- * Per-employee readiness for every active employee, as of `effectiveDate`. Each
- * needs compensation in force, a tax profile, and a bank account with a number;
- * a tax profile without an NPWP is a non-blocking warning (+20% PPh 21).
+ * Per-employee readiness for every active employee. Each needs compensation, a
+ * tax profile, and a bank account with a number; a tax profile without an NPWP
+ * is a non-blocking warning (+20% PPh 21).
  */
 async function loadEmployeeReadiness(
   supabase: SupabaseClient<Database>,
   companyId: string,
-  effectiveDate: string,
 ): Promise<EmployeeReadiness[]> {
   const [{ data: employees }, { data: comps }, { data: taxes }, { data: banks }] = await Promise.all([
     supabase
@@ -469,9 +488,11 @@ async function loadEmployeeReadiness(
     supabase.from("bank_accounts").select("employee_id, account_no").eq("company_id", companyId),
   ]);
 
+  // Any compensation row makes an employee ready: the run engine selects the
+  // latest row ≤ the period, falling back to the earliest if none is effective
+  // yet, so a row that exists will always produce a salary in the run.
   const hasComp = new Set(
     ((comps as { employee_id: string; effective_from: string }[] | null) ?? [])
-      .filter((c) => c.effective_from <= effectiveDate)
       .map((c) => c.employee_id),
   );
   const taxRows = (taxes as { employee_id: string; has_npwp: boolean | null }[] | null) ?? [];
@@ -500,7 +521,7 @@ export async function computeRunReadiness(
   companyId: string,
   args: { year: number; month: number },
 ): Promise<RunReadiness> {
-  const rows = await loadEmployeeReadiness(supabase, companyId, periodEffectiveDate(args.year, args.month));
+  const rows = await loadEmployeeReadiness(supabase, companyId);
   const blockers = rows
     .filter((r) => r.issues.length > 0)
     .map(({ employeeId, name, issues }) => ({ employeeId, name, issues }));
@@ -510,12 +531,12 @@ export async function computeRunReadiness(
   return { ready: blockers.length === 0, blockers, warnings };
 }
 
-/** Readiness for the employee-list badge (P1-2), evaluated as of today. */
+/** Readiness for the employee-list badge (P1-2). */
 export async function computeEmployeeReadiness(
   supabase: SupabaseClient<Database>,
   companyId: string,
 ): Promise<EmployeeReadiness[]> {
-  return loadEmployeeReadiness(supabase, companyId, new Date().toISOString().slice(0, 10));
+  return loadEmployeeReadiness(supabase, companyId);
 }
 
 // Re-export client-safe formatters so server components can keep importing them
