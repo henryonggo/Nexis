@@ -119,7 +119,24 @@
       "liveLink": "View live status →",
       "lastPayroll": "Last payroll",
       "runPayroll": "Run payroll →",
-      "planManage": "{plan} · Manage employees →"
+      "planManage": "{plan} · Manage employees →",
+      "payrollTrend": "Payroll cost — last 6 months",
+      "payrollEmpty": "No payroll runs yet",
+      "avgCost": "Avg {amount}"
+    },
+    "workforce": {
+      "title": "Workforce",
+      "active": "Active",
+      "probation": "Probation",
+      "inactive": "Inactive",
+      "terminated": "Terminated",
+      "totalWord": "total"
+    },
+    "attendanceMix": {
+      "title": "Attendance today",
+      "present": "Present",
+      "absent": "Absent",
+      "presentWord": "present"
     },
     "checklist": {
       "title": "Finish setting up",
@@ -145,7 +162,24 @@
       "clockedIn": "Clocked in",
       "notClockedIn": "Not clocked in",
       "attendanceHint": "Go to attendance →",
-      "noProfile": "Your employee profile isn't set up yet. Contact your admin."
+      "noProfile": "Your employee profile isn't set up yet. Contact your admin.",
+      "payTrend": "Net pay — last 6 months",
+      "payTrendEmpty": "No payslips yet",
+      "payAverage": "Avg {amount}",
+      "breakdown": "Latest payslip",
+      "takeHome": "take-home",
+      "dedTax": "Tax (PPh 21)",
+      "dedBpjs": "BPJS",
+      "dedLoan": "Loan",
+      "leaveYear": "Leave this year",
+      "daysWord": "days used",
+      "leaveUpcoming": "Next: {range}",
+      "leaveNone": "No upcoming leave",
+      "statusApproved": "Approved",
+      "statusPending": "Pending",
+      "statusRejected": "Rejected",
+      "attendance14": "Attendance · 14 days",
+      "presentCount": "{count}/14 days present"
     }
   },
   "access": {
@@ -155,7 +189,9 @@
     "saved": "Saved.",
     "groups": {
       "operations": "Operations",
-      "compensation": "Compensation"
+      "compensation": "Compensation",
+      "dashboard": "Dashboard widgets",
+      "navigation": "Navigation"
     },
     "items": {
       "attendance": {
@@ -173,6 +209,28 @@
       "salary": {
         "label": "Salary visibility",
         "hint": "Show their salary on the dashboard and the financial & tax details on their profile."
+      },
+      "dash_pay": {
+        "label": "Pay charts",
+        "hint": "Net-pay trend and latest-payslip breakdown. Requires salary visibility."
+      },
+      "dash_leave": {
+        "label": "Leave summary",
+        "hint": "Leave-this-year donut on the dashboard. Requires leave access."
+      },
+      "dash_attendance": {
+        "label": "Attendance summary",
+        "hint": "14-day attendance strip on the dashboard. Requires attendance access."
+      }
+    },
+    "navStyle": {
+      "flat": {
+        "label": "Flat menu",
+        "hint": "Employees see a simple list of their own pages."
+      },
+      "pillars": {
+        "label": "Grouped menu",
+        "hint": "Employees see the same grouped pillars as managers."
       }
     }
   },

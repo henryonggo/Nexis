@@ -1,5 +1,5 @@
 begin;
-select plan(5);
+select plan(7);
 
 create extension if not exists pgtap;
 
@@ -25,7 +25,7 @@ begin
     json_build_object('sub', p_uid::text, 'role', 'authenticated')::text, true);
 end; $$;
 
--- 1. Owner can insert config
+-- 1. Owner can insert config (verifying new column defaults)
 select tests_authenticate_as('11111111-1111-1111-1111-111111111111');
 select lives_ok(
   $$ insert into company_employee_access (company_id, attendance, leave, claims, salary)
@@ -33,13 +33,38 @@ select lives_ok(
   'Owner can insert company employee access'
 );
 
--- 2. Owner can update config
+-- 2. Verify new columns default correctly
+select is(
+  (select json_build_object(
+     'dash_pay', dash_pay,
+     'dash_leave', dash_leave,
+     'dash_attendance', dash_attendance,
+     'nav_style', nav_style
+   )::text from company_employee_access where company_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+  json_build_object(
+     'dash_pay', true,
+     'dash_leave', true,
+     'dash_attendance', true,
+     'nav_style', 'flat'
+  )::text,
+  'New columns default correctly'
+);
+
+-- 3. Owner can update config (including new columns)
 select lives_ok(
-  $$ update company_employee_access set salary = true where company_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' $$,
+  $$ update company_employee_access set salary = true, dash_pay = false, nav_style = 'pillars' where company_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' $$,
   'Owner can update company employee access'
 );
 
--- 3. Employee can read config
+-- 4. Verify invalid nav_style throws check constraint error
+select throws_ok(
+  $$ update company_employee_access set nav_style = 'invalid' where company_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' $$,
+  '23514',
+  null,
+  'Invalid nav_style violates check constraint'
+);
+
+-- 5. Employee can read config
 select tests_authenticate_as('22222222-2222-2222-2222-222222222222');
 select is(
   (select salary from company_employee_access where company_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
@@ -47,7 +72,7 @@ select is(
   'Employee can read company employee access'
 );
 
--- 4. Employee cannot write config
+-- 6. Employee cannot write config
 update company_employee_access set salary = false where company_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
 select is(
   (select salary from company_employee_access where company_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
@@ -55,7 +80,7 @@ select is(
   'Employee cannot write company employee access (remains true)'
 );
 
--- 5. Stranger cannot read config
+-- 7. Stranger cannot read config
 select tests_authenticate_as('33333333-3333-3333-3333-333333333333');
 select is(
   (select count(*)::int from company_employee_access where company_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
