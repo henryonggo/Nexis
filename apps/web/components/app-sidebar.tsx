@@ -143,17 +143,21 @@ export function DesktopSidebar({ items }: { items: NavItem[] }) {
   );
 }
 
-export function MobileNav({ items }: { items: NavItem[] }) {
+export function MobileNav({ items, pillarKeys }: { items: NavItem[]; pillarKeys: string[] }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  const currentPillar = getActivePillar(pathname);
-  const [activeTab, setActiveTab] = useState(currentPillar);
+  const pillars = PILLARS.filter((p) => pillarKeys.includes(p.key));
+  // Default to the URL's pillar, but only if it's one the role can see.
+  const urlPillar = getActivePillar(pathname);
+  const initialTab = pillarKeys.includes(urlPillar) ? urlPillar : (pillarKeys[0] ?? "overview");
+  const [activeTab, setActiveTab] = useState(initialTab);
   const t = useTranslations("nav");
 
   // Keep active tab in sync with user URL navigations
   useEffect(() => {
-    setActiveTab(getActivePillar(pathname));
-  }, [pathname]);
+    const next = getActivePillar(pathname);
+    setActiveTab(pillarKeys.includes(next) ? next : (pillarKeys[0] ?? "overview"));
+  }, [pathname, pillarKeys]);
 
   const allowedKeys = PILLAR_ITEMS[activeTab] ?? [];
   const filteredItems = items.filter((item) => allowedKeys.includes(item.key));
@@ -185,8 +189,11 @@ export function MobileNav({ items }: { items: NavItem[] }) {
             </div>
 
             {/* Mobile Navigation Pillars Grid */}
-            <div className="grid grid-cols-5 border-b border-white/10 p-2 gap-1 bg-white/5">
-              {PILLARS.map((p) => {
+            <div
+              className="grid border-b border-white/10 p-2 gap-1 bg-white/5"
+              style={{ gridTemplateColumns: `repeat(${pillars.length}, minmax(0, 1fr))` }}
+            >
+              {pillars.map((p) => {
                 const Icon = p.icon;
                 const active = activeTab === p.key;
                 return (

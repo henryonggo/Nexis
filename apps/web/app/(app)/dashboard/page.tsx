@@ -11,8 +11,9 @@ import {
   PayBreakdownCard,
   LeaveCard,
   AttendanceStrip,
+  SegmentDonutCard,
   type PayPoint,
-} from "./employee-widgets";
+} from "./dashboard-widgets";
 import { Wallet, CalendarDays, Clock } from "lucide-react";
 import { formatPeriod, formatRupiah, MONTH_NAMES_ID } from "@/lib/payroll-format";
 import { formatDateRange } from "@/lib/date";
@@ -305,16 +306,13 @@ export default async function DashboardPage() {
   const isAdmin = active.role === "owner" || active.role === "admin";
 
   const [
-    { count: employeeCount },
+    { data: statusRows },
     { data: billing },
-    { data: latestRun },
+    { data: payrollRuns },
     { data: todayRecords },
     { count: shiftCount },
   ] = await Promise.all([
-    supabase
-      .from("employees")
-      .select("id", { count: "exact", head: true })
-      .eq("company_id", active.id),
+    supabase.from("employees").select("status").eq("company_id", active.id),
     supabase
       .from("company_billing")
       .select("plan, free_seat_limit, active_seats")
@@ -327,8 +325,7 @@ export default async function DashboardPage() {
           .eq("company_id", active.id)
           .order("period_year", { ascending: false })
           .order("period_month", { ascending: false })
-          .limit(1)
-          .maybeSingle()
+          .limit(6)
       : Promise.resolve({ data: null }),
     supabase
       .from("attendance_records")
@@ -340,6 +337,25 @@ export default async function DashboardPage() {
       ? supabase.from("shifts").select("id", { count: "exact", head: true }).eq("company_id", active.id)
       : Promise.resolve({ count: 0 }),
   ]);
+
+  // Workforce headcount + status mix for the overview tiles/donut.
+  const statuses = (statusRows as { status: string }[] | null) ?? [];
+  const employeeCount = statuses.length;
+  const statusCounts = {
+    active: statuses.filter((s) => s.status === "active").length,
+    probation: statuses.filter((s) => s.status === "probation").length,
+    inactive: statuses.filter((s) => s.status === "inactive").length,
+    terminated: statuses.filter((s) => s.status === "terminated").length,
+  };
+
+  // Payroll cost trend: oldest → newest net total across the last few runs.
+  const runs = (payrollRuns as
+    | { period_year: number; period_month: number; status: string; total_net: number }[]
+    | null) ?? [];
+  const latestRun = runs[0] ?? null;
+  const payrollPoints: PayPoint[] = [...runs]
+    .reverse()
+    .map((r) => ({ label: (MONTH_NAMES_ID[r.period_month - 1] ?? "").slice(0, 3), net: r.total_net }));
 
   const presentToday = countPresent(
     (todayRecords as { employee_id: string; kind: string }[] | null) ?? [],
@@ -445,6 +461,45 @@ export default async function DashboardPage() {
             </Link>
           </Card>
         )}
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        {isAdmin && (
+          <div className="lg:col-span-2">
+            <PayTrendChart
+              points={payrollPoints}
+              title={t("cards.payrollTrend")}
+              averageLabel={t("cards.avgCost")}
+              emptyLabel={t("cards.payrollEmpty")}
+            />
+          </div>
+        )}
+
+        <SegmentDonutCard
+          title={t("workforce.title")}
+          centerTop={String(employeeCount)}
+          centerBottom={t("workforce.totalWord")}
+          segments={[
+            { value: statusCounts.active, color: "#16A34A", label: t("workforce.active") },
+            { value: statusCounts.probation, color: "#F59E0B", label: t("workforce.probation") },
+            { value: statusCounts.inactive, color: "#5B6675", label: t("workforce.inactive") },
+            { value: statusCounts.terminated, color: "#DC2626", label: t("workforce.terminated") },
+          ]}
+        />
+
+        <SegmentDonutCard
+          title={t("attendanceMix.title")}
+          centerTop={String(presentToday)}
+          centerBottom={t("attendanceMix.presentWord")}
+          segments={[
+            { value: presentToday, color: "#16A34A", label: t("attendanceMix.present") },
+            {
+              value: Math.max(0, employeeCount - presentToday),
+              color: "#5B6675",
+              label: t("attendanceMix.absent"),
+            },
+          ]}
+        />
       </div>
     </div>
   );

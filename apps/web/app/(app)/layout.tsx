@@ -8,7 +8,7 @@ import { signOut } from "../(auth)/actions";
 import { CompanySwitcher } from "@/components/company-switcher";
 import { IdleTimeout } from "@/components/idle-timeout";
 import { LocaleSwitcher } from "@/components/locale-switcher";
-import { DesktopSidebar, MobileNav, type NavItem } from "@/components/app-sidebar";
+import { DesktopSidebar, MobileNav, PILLARS, PILLAR_ITEMS, type NavItem } from "@/components/app-sidebar";
 import { TopNav } from "@/components/top-nav";
 import { CommandCenter } from "@/components/command-center";
 import { Button } from "@/components/ui/button";
@@ -65,17 +65,27 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     });
   }
 
+  // Top pillars: show a pillar only if the role can reach at least one of its
+  // items. Employees get a stripped nav (Overview only) — they reach their
+  // self-service pages from the dashboard cards, not the corporate pillars.
+  const navKeys = new Set(navItems.map((n) => n.key));
+  const pillarKeys = PILLARS.filter((p) => {
+    const hasItem = (PILLAR_ITEMS[p.key] ?? []).some((k) => navKeys.has(k));
+    if (!hasItem) return false;
+    return role !== "employee" || p.key === "overview";
+  }).map((p) => p.key);
+
   return (
     <div className="min-h-screen">
       <IdleTimeout />
       <header className="sticky top-0 z-40 flex h-14 items-center justify-between glass-panel border-t-0 border-x-0 rounded-none px-4 sm:px-6">
         <div className="flex items-center gap-3">
-          <MobileNav items={navItems} />
+          <MobileNav items={navItems} pillarKeys={pillarKeys} />
           <span className="text-lg font-bold text-brand">Nexis</span>
           <CompanySwitcher companies={memberships} activeId={active!.id} />
         </div>
 
-        <TopNav />
+        <TopNav pillarKeys={pillarKeys} />
 
         <div className="flex items-center gap-2 sm:gap-3">
           <Link href="/profile" className="hidden text-sm text-muted hover:text-brand sm:inline transition-colors font-medium">

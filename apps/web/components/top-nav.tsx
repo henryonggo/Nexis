@@ -6,14 +6,15 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { PILLARS, getActivePillar } from "./app-sidebar";
 
-export function TopNav() {
+export function TopNav({ pillarKeys }: { pillarKeys: string[] }) {
   const pathname = usePathname();
   const activePillar = getActivePillar(pathname);
   const t = useTranslations("nav");
+  const pillars = PILLARS.filter((p) => pillarKeys.includes(p.key));
 
   return (
     <nav className="hidden md:flex items-center gap-1.5">
-      {PILLARS.map((p) => {
+      {pillars.map((p) => {
         const Icon = p.icon;
         const active = activePillar === p.key;
         return (

@@ -203,6 +203,42 @@ export function LeaveCard({
   );
 }
 
+/** Generic status-breakdown donut + legend card (workforce, attendance, …). */
+export function SegmentDonutCard({
+  title,
+  centerTop,
+  centerBottom,
+  segments,
+  footer,
+}: {
+  title: string;
+  centerTop: string;
+  centerBottom: string;
+  segments: { value: number; color: string; label: string }[];
+  footer?: string;
+}) {
+  return (
+    <Card className="p-5">
+      <h2 className="text-sm font-semibold text-ink">{title}</h2>
+      <div className="mt-4 flex items-center gap-4">
+        <SegmentDonut segments={segments} centerTop={centerTop} centerBottom={centerBottom} />
+        <div className="min-w-0 flex-1 space-y-1.5">
+          {segments.map((s) => (
+            <div key={s.label} className="flex items-center justify-between gap-2 text-xs">
+              <span className="flex items-center gap-1.5 text-muted">
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: s.color }} />
+                {s.label}
+              </span>
+              <span className="font-medium text-ink">{s.value}</span>
+            </div>
+          ))}
+          {footer && <div className="pt-1 text-xs text-muted">{footer}</div>}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 /** Last 14 days of attendance as a colored strip. */
 export function AttendanceStrip({
   days,
