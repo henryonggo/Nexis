@@ -117,21 +117,30 @@ function PayBars({ points }: { points: PayPoint[] }) {
   );
 }
 
-/** Latest payslip: take-home donut + earnings/deduction legend. */
-export function PayBreakdownCard({
+/** Full salary breakdown: take-home donut + earnings → gross → deductions → net. */
+export function SalaryBreakdownCard({
   gross,
   net,
-  parts,
+  earnings,
+  deductions,
   title,
   takeHomeLabel,
+  grossLabel,
+  netLabel,
+  estimateNote,
 }: {
   gross: number;
   net: number;
-  parts: { label: string; value: number; color: string }[];
+  earnings: { label: string; value: number }[];
+  deductions: { label: string; value: number; color: string }[];
   title: string;
   takeHomeLabel: string;
+  grossLabel: string;
+  netLabel: string;
+  estimateNote?: string;
 }) {
   const pct = gross > 0 ? Math.round((net / gross) * 100) : 0;
+  const hasDeductions = deductions.some((d) => d.value > 0);
 
   return (
     <Card className="p-5">
@@ -139,18 +148,38 @@ export function PayBreakdownCard({
       <div className="mt-4 flex items-center gap-4">
         <Donut percent={pct} centerTop={`${pct}%`} centerBottom={takeHomeLabel} color="#2452E6" />
         <div className="min-w-0 flex-1 space-y-1.5">
-          <div className="text-lg font-bold text-ink">{formatRupiah(net)}</div>
-          {parts.map((p) => (
-            <div key={p.label} className="flex items-center justify-between gap-2 text-xs">
+          {earnings.map((e) => (
+            <div key={e.label} className="flex items-center justify-between gap-2 text-xs">
               <span className="flex items-center gap-1.5 text-muted">
-                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: p.color }} />
-                {p.label}
+                <span className="h-2 w-2 rounded-full bg-success" />
+                {e.label}
               </span>
-              <span className="font-medium text-ink">{formatRupiah(p.value)}</span>
+              <span className="font-medium text-ink">{formatRupiah(e.value)}</span>
             </div>
           ))}
+          <div className="flex items-center justify-between gap-2 border-t border-border pt-1.5 text-xs">
+            <span className="font-medium text-muted">{grossLabel}</span>
+            <span className="font-semibold text-ink">{formatRupiah(gross)}</span>
+          </div>
+          {hasDeductions &&
+            deductions
+              .filter((d) => d.value > 0)
+              .map((d) => (
+                <div key={d.label} className="flex items-center justify-between gap-2 text-xs">
+                  <span className="flex items-center gap-1.5 text-muted">
+                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: d.color }} />
+                    {d.label}
+                  </span>
+                  <span className="font-medium text-ink">−{formatRupiah(d.value)}</span>
+                </div>
+              ))}
+          <div className="flex items-center justify-between gap-2 border-t border-border pt-1.5 text-sm">
+            <span className="font-semibold text-ink">{netLabel}</span>
+            <span className="font-bold text-brand">{formatRupiah(net)}</span>
+          </div>
         </div>
       </div>
+      {estimateNote && <p className="mt-3 text-xs text-muted">{estimateNote}</p>}
     </Card>
   );
 }

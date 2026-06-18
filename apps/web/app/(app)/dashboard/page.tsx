@@ -8,7 +8,7 @@ import { SetupChecklist } from "./setup-checklist";
 import {
   StatCard,
   PayTrendChart,
-  PayBreakdownCard,
+  SalaryBreakdownCard,
   LeaveCard,
   AttendanceStrip,
   SegmentDonutCard,
@@ -16,6 +16,7 @@ import {
 } from "./dashboard-widgets";
 import { Wallet, CalendarDays, Clock } from "lucide-react";
 import { formatPeriod, formatRupiah, MONTH_NAMES_ID } from "@/lib/payroll-format";
+import { sumFixedAllowances } from "@/lib/payroll";
 import { formatDateRange } from "@/lib/date";
 import { planMeta } from "@/lib/billing-plans";
 import type { CompanyBillingRow } from "@nexis/types";
@@ -94,7 +95,7 @@ async function EmployeeDashboard({ companyId }: { companyId: string }) {
     await Promise.all([
       supabase
         .from("compensation")
-        .select("base_salary")
+        .select("base_salary, fixed_allowances")
         .eq("employee_id", employee.id)
         .order("effective_from", { ascending: false })
         .limit(1)
@@ -111,7 +112,7 @@ async function EmployeeDashboard({ companyId }: { companyId: string }) {
         ? supabase
             .from("payslips")
             .select(
-              "payroll_items(net_pay, gross_pay, pph21, bpjs_kes_employee, jht_employee, jp_employee, loan_deduction, payroll_runs(period_year, period_month))",
+              "payroll_items(net_pay, gross_pay, base_salary, allowances, overtime_pay, pph21, bpjs_kes_employee, jht_employee, jp_employee, loan_deduction, payroll_runs(period_year, period_month))",
             )
             .eq("employee_id", employee.id)
             .order("issued_at", { ascending: false })
@@ -154,6 +155,9 @@ async function EmployeeDashboard({ companyId }: { companyId: string }) {
   type PayItem = {
     net_pay: number;
     gross_pay: number;
+    base_salary: number;
+    allowances: number;
+    overtime_pay: number;
     pph21: number;
     bpjs_kes_employee: number;
     jht_employee: number;
@@ -174,6 +178,37 @@ async function EmployeeDashboard({ companyId }: { companyId: string }) {
     net: it.net_pay,
   }));
   const latestPay = payItems[payItems.length - 1];
+
+  // Full salary breakdown, always shown. Prefer the latest payslip; with no payslip
+  // yet, estimate earnings from current compensation (deductions unknown → net = gross).
+  const breakdown = latestPay
+    ? {
+        fromPayslip: true,
+        base: latestPay.base_salary,
+        allowances: latestPay.allowances,
+        overtime: latestPay.overtime_pay,
+        gross: latestPay.gross_pay,
+        net: latestPay.net_pay,
+        tax: latestPay.pph21,
+        bpjs: latestPay.bpjs_kes_employee + latestPay.jht_employee + latestPay.jp_employee,
+        loan: latestPay.loan_deduction,
+      }
+    : (() => {
+        const base = comp?.base_salary ?? 0;
+        const allowances = sumFixedAllowances(comp?.fixed_allowances);
+        const gross = base + allowances;
+        return {
+          fromPayslip: false,
+          base,
+          allowances,
+          overtime: 0,
+          gross,
+          net: gross,
+          tax: 0,
+          bpjs: 0,
+          loan: 0,
+        };
+      })();
 
   return (
     <div className="space-y-6">
@@ -236,22 +271,25 @@ async function EmployeeDashboard({ companyId }: { companyId: string }) {
           </div>
         )}
 
-        {access.salary && access.dashPay && latestPay && (
-          <PayBreakdownCard
+        {access.salary && (
+          <SalaryBreakdownCard
             title={t("employee.breakdown")}
             takeHomeLabel={t("employee.takeHome")}
-            gross={latestPay.gross_pay}
-            net={latestPay.net_pay}
-            parts={[
-              { label: t("employee.dedTax"), value: latestPay.pph21, color: "#DC2626" },
-              {
-                label: t("employee.dedBpjs"),
-                value:
-                  latestPay.bpjs_kes_employee + latestPay.jht_employee + latestPay.jp_employee,
-                color: "#F59E0B",
-              },
-              { label: t("employee.dedLoan"), value: latestPay.loan_deduction, color: "#5B6675" },
+            grossLabel={t("employee.gross")}
+            netLabel={t("employee.net")}
+            gross={breakdown.gross}
+            net={breakdown.net}
+            earnings={[
+              { label: t("employee.earnBase"), value: breakdown.base },
+              { label: t("employee.earnAllowances"), value: breakdown.allowances },
+              { label: t("employee.earnOvertime"), value: breakdown.overtime },
+            ].filter((e) => e.value > 0)}
+            deductions={[
+              { label: t("employee.dedTax"), value: breakdown.tax, color: "#DC2626" },
+              { label: t("employee.dedBpjs"), value: breakdown.bpjs, color: "#F59E0B" },
+              { label: t("employee.dedLoan"), value: breakdown.loan, color: "#5B6675" },
             ]}
+            estimateNote={breakdown.fromPayslip ? undefined : t("employee.breakdownEstimate")}
           />
         )}
 
