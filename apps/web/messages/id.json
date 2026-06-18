@@ -119,7 +119,24 @@
       "liveLink": "Lihat status langsung →",
       "lastPayroll": "Payroll terakhir",
       "runPayroll": "Jalankan payroll →",
-      "planManage": "{plan} · Kelola karyawan →"
+      "planManage": "{plan} · Kelola karyawan →",
+      "payrollTrend": "Biaya payroll — 6 bulan terakhir",
+      "payrollEmpty": "Belum ada payroll",
+      "avgCost": "Rata-rata {amount}"
+    },
+    "workforce": {
+      "title": "Tenaga kerja",
+      "active": "Aktif",
+      "probation": "Percobaan",
+      "inactive": "Nonaktif",
+      "terminated": "Diberhentikan",
+      "totalWord": "total"
+    },
+    "attendanceMix": {
+      "title": "Kehadiran hari ini",
+      "present": "Hadir",
+      "absent": "Tidak hadir",
+      "presentWord": "hadir"
     },
     "checklist": {
       "title": "Selesaikan pengaturan",
@@ -145,7 +162,24 @@
       "clockedIn": "Sudah absen masuk",
       "notClockedIn": "Belum absen masuk",
       "attendanceHint": "Ke kehadiran →",
-      "noProfile": "Profil karyawan Anda belum disiapkan. Hubungi admin Anda."
+      "noProfile": "Profil karyawan Anda belum disiapkan. Hubungi admin Anda.",
+      "payTrend": "Gaji bersih — 6 bulan terakhir",
+      "payTrendEmpty": "Belum ada slip gaji",
+      "payAverage": "Rata-rata {amount}",
+      "breakdown": "Slip gaji terbaru",
+      "takeHome": "diterima",
+      "dedTax": "Pajak (PPh 21)",
+      "dedBpjs": "BPJS",
+      "dedLoan": "Pinjaman",
+      "leaveYear": "Cuti tahun ini",
+      "daysWord": "hari dipakai",
+      "leaveUpcoming": "Berikutnya: {range}",
+      "leaveNone": "Tidak ada cuti mendatang",
+      "statusApproved": "Disetujui",
+      "statusPending": "Menunggu",
+      "statusRejected": "Ditolak",
+      "attendance14": "Kehadiran · 14 hari",
+      "presentCount": "{count}/14 hari hadir"
     }
   },
   "access": {
@@ -155,7 +189,9 @@
     "saved": "Tersimpan.",
     "groups": {
       "operations": "Operasional",
-      "compensation": "Kompensasi"
+      "compensation": "Kompensasi",
+      "dashboard": "Widget dashboard",
+      "navigation": "Navigasi"
     },
     "items": {
       "attendance": {
@@ -173,6 +209,28 @@
       "salary": {
         "label": "Visibilitas gaji",
         "hint": "Tampilkan gaji di dashboard dan rincian finansial & pajak di profil."
+      },
+      "dash_pay": {
+        "label": "Grafik gaji",
+        "hint": "Tren gaji bersih dan rincian slip terbaru. Perlu visibilitas gaji."
+      },
+      "dash_leave": {
+        "label": "Ringkasan cuti",
+        "hint": "Donut cuti tahun ini di dashboard. Perlu akses cuti."
+      },
+      "dash_attendance": {
+        "label": "Ringkasan kehadiran",
+        "hint": "Strip kehadiran 14 hari di dashboard. Perlu akses kehadiran."
+      }
+    },
+    "navStyle": {
+      "flat": {
+        "label": "Menu datar",
+        "hint": "Karyawan melihat daftar sederhana halaman mereka."
+      },
+      "pillars": {
+        "label": "Menu berkelompok",
+        "hint": "Karyawan melihat pilar berkelompok seperti manajer."
       }
     }
   },
