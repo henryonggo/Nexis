@@ -365,11 +365,32 @@ app.post("/process", async (req, res) => {
     const holidayDates = new Set(holidays?.map((h) => h.date) || []);
 
     const compByEmployee = new Map<string, any>();
+    const compsByEmpId = new Map<string, any[]>();
     for (const comp of comps || []) {
-      if (comp.effective_from > endDateStr) continue;
-      const existing = compByEmployee.get(comp.employee_id);
-      if (!existing || comp.effective_from > existing.effective_from) {
-        compByEmployee.set(comp.employee_id, comp);
+      const list = compsByEmpId.get(comp.employee_id) || [];
+      list.push(comp);
+      compsByEmpId.set(comp.employee_id, list);
+    }
+
+    for (const [empId, empComps] of compsByEmpId.entries()) {
+      let bestComp = null;
+      for (const comp of empComps) {
+        if (comp.effective_from <= endDateStr) {
+          if (!bestComp || comp.effective_from > bestComp.effective_from) {
+            bestComp = comp;
+          }
+        }
+      }
+      // Fallback: use earliest compensation if none are active before endDateStr
+      if (!bestComp && empComps.length > 0) {
+        for (const comp of empComps) {
+          if (!bestComp || comp.effective_from < bestComp.effective_from) {
+            bestComp = comp;
+          }
+        }
+      }
+      if (bestComp) {
+        compByEmployee.set(empId, bestComp);
       }
     }
 
