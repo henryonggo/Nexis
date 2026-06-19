@@ -8,6 +8,7 @@ import { getActiveCompany } from "@/lib/company";
 import { computeRunPreview, formatPeriod, formatRupiah } from "@/lib/payroll";
 import { formatDateRange } from "@/lib/date";
 import { ActionBar } from "./actions-bar";
+import { CashPaymentPanel, type CashLine } from "./cash-payment-panel";
 import { RunStatusStream } from "./status-stream";
 import { Card } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
@@ -25,6 +26,9 @@ type Status = Database["public"]["Enums"]["pay_period_status"];
 interface DisplayLine {
   employeeId: string;
   name: string;
+  itemId: string | null;
+  paidAt: string | null;
+  paidMethod: string | null;
   terCategory: string | null;
   terRateBps: number | null;
   hasNpwp: boolean | null;
@@ -55,6 +59,7 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
   const supabase = createClient();
   const active = await getActiveCompany();
   if (!active) return null;
+  const isAdmin = active.role === "owner" || active.role === "admin";
   const t = await getTranslations("payroll");
 
   const { data: run } = await supabase
@@ -144,7 +149,7 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
     const { data: items } = await supabase
       .from("payroll_items")
       .select(
-        "employee_id, gross_pay, bpjs_kes_employee, bpjs_kes_employer, jht_employee, jht_employer, jp_employee, jp_employer, jkk_employer, jkm_employer, pph21, net_pay, ter_category, ter_rate_bps",
+        "id, paid_at, paid_method, employee_id, gross_pay, bpjs_kes_employee, bpjs_kes_employer, jht_employee, jht_employer, jp_employee, jp_employer, jkk_employer, jkm_employer, pph21, net_pay, ter_category, ter_rate_bps",
       )
       .eq("payroll_run_id", run.id)
       .eq("company_id", active.id);
@@ -168,6 +173,9 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
     lines = (items ?? []).map((it) => ({
       employeeId: it.employee_id,
       name: nameById.get(it.employee_id) ?? it.employee_id,
+      itemId: it.id,
+      paidAt: it.paid_at,
+      paidMethod: it.paid_method,
       terCategory: it.ter_category,
       terRateBps: it.ter_rate_bps,
       hasNpwp: null,
@@ -200,6 +208,9 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
     lines = preview.lines.map((l) => ({
       employeeId: l.employeeId,
       name: l.name,
+      itemId: null,
+      paidAt: null,
+      paidMethod: null,
       terCategory: l.terCategory,
       terRateBps: l.result?.terRateBps ?? null,
       hasNpwp: l.hasNpwp,
@@ -254,6 +265,23 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
       </div>
 
       <ActionBar runId={run.id} status={run.status} />
+
+      {isPersisted && isAdmin && (
+        <CashPaymentPanel
+          runId={run.id}
+          lines={lines
+            .filter((l): l is DisplayLine & { itemId: string } => l.itemId !== null)
+            .map(
+              (l): CashLine => ({
+                itemId: l.itemId,
+                name: l.name,
+                net: l.net,
+                paidAt: l.paidAt,
+                paidMethod: l.paidMethod,
+              }),
+            )}
+        />
+      )}
 
       <Card className="overflow-hidden p-0">
         <Table>

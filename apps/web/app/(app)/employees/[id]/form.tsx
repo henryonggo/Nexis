@@ -19,6 +19,7 @@ export function EditEmployeeForm({
   canEdit,
   employee,
   baseSalary,
+  paymentMethod,
   ptkpStatus,
   npwp,
   bankName,
@@ -29,6 +30,7 @@ export function EditEmployeeForm({
   canEdit: boolean;
   employee: EmployeeRow;
   baseSalary: number;
+  paymentMethod: "cash" | "bank";
   ptkpStatus: string;
   npwp: string;
   bankName: string;
@@ -150,6 +152,15 @@ export function EditEmployeeForm({
           <Label htmlFor="npwp">{t("form.npwp")}</Label>
           <Input id="npwp" name="npwp" defaultValue={npwp} disabled={disabled} />
           <p className="text-xs text-muted">{t("form.npwpHint")}</p>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="paymentMethod">{t("form.paymentMethod")}</Label>
+          <select id="paymentMethod" name="paymentMethod" className={fieldClasses} defaultValue={paymentMethod} disabled={disabled}>
+            <option value="cash">{t("form.paymentCash")}</option>
+            <option value="bank">{t("form.paymentBank")}</option>
+          </select>
+          <p className="text-xs text-muted">{t("form.paymentMethodHint")}</p>
         </div>
 
         <Separator />

@@ -15,6 +15,7 @@ const updateSchema = z.object({
   status: z.enum(["active", "probation", "inactive", "terminated"]),
   employmentType: z.enum(["permanent", "contract", "intern", "daily"]),
   baseSalary: z.coerce.number().int().min(0).default(0),
+  paymentMethod: z.enum(["cash", "bank"]).default("cash"),
   ptkpStatus: z.enum(["TK/0", "TK/1", "TK/2", "TK/3", "K/0", "K/1", "K/2", "K/3"]),
   npwp: z.string().max(30).optional().or(z.literal("")),
   managerId: z.string().uuid().optional().or(z.literal("")),
@@ -94,11 +95,17 @@ export async function updateEmployee(_prev: EditState, formData: FormData): Prom
     .maybeSingle();
 
   if (comp) {
-    await supabase.from("compensation").update({ base_salary: d.baseSalary }).eq("id", comp.id);
-  } else {
     await supabase
       .from("compensation")
-      .insert({ company_id: active.id, employee_id: d.id, base_salary: d.baseSalary });
+      .update({ base_salary: d.baseSalary, payment_method: d.paymentMethod })
+      .eq("id", comp.id);
+  } else {
+    await supabase.from("compensation").insert({
+      company_id: active.id,
+      employee_id: d.id,
+      base_salary: d.baseSalary,
+      payment_method: d.paymentMethod,
+    });
   }
 
   // Upsert tax profile.

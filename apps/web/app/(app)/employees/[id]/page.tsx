@@ -21,7 +21,7 @@ export default async function EmployeeDetailPage({ params }: { params: { id: str
 
   const { data: comp } = await supabase
     .from("compensation")
-    .select("base_salary")
+    .select("base_salary, payment_method")
     .eq("employee_id", params.id)
     .order("effective_from", { ascending: false })
     .limit(1)
@@ -83,6 +83,7 @@ export default async function EmployeeDetailPage({ params }: { params: { id: str
         canEdit={canEdit}
         employee={employee}
         baseSalary={comp?.base_salary ?? 0}
+        paymentMethod={(comp?.payment_method as "cash" | "bank") ?? "cash"}
         ptkpStatus={tax?.ptkp_status ?? "TK/0"}
         npwp={tax?.npwp ?? ""}
         bankName={bank?.bank_name ?? ""}
