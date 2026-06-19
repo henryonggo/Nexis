@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Download } from "lucide-react";
 import { formatPeriod, formatRupiah } from "@/lib/payroll-format";
@@ -33,7 +33,7 @@ export function PayslipsList({ rows }: { rows: PayslipRow[] }) {
   const t = useTranslations("payslips");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [pending, setPending] = useState(false);
 
   const downloadable = rows.filter((r) => r.hasPdf);
   const allSelected = downloadable.length > 0 && selected.size === downloadable.length;
@@ -51,17 +51,18 @@ export function PayslipsList({ rows }: { rows: PayslipRow[] }) {
     setSelected(allSelected ? new Set() : new Set(downloadable.map((r) => r.id)));
   }
 
-  function download(ids: string[]) {
+  async function download(ids: string[]) {
     if (ids.length === 0) return;
     setError(null);
-    startTransition(async () => {
-      const res = await getPayslipDownloadUrls(ids);
-      if (res.error || !res.urls) {
-        setError(res.error ?? t("downloadError"));
-        return;
-      }
-      await triggerDownloads(res.urls);
-    });
+    setPending(true);
+    const res = await getPayslipDownloadUrls(ids);
+    if (res.error || !res.urls) {
+      setError(res.error ?? t("downloadError"));
+      setPending(false);
+      return;
+    }
+    await triggerDownloads(res.urls);
+    setPending(false);
   }
 
   return (

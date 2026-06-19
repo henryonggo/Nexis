@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { BadgeCheck, Wallet } from "lucide-react";
 import { formatRupiah } from "@/lib/payroll-format";
@@ -24,7 +24,7 @@ export function CashPaymentPanel({ runId, lines }: { runId: string; lines: CashL
     () => new Set(lines.filter((l) => !l.paidAt).map((l) => l.itemId)),
   );
   const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [pending, setPending] = useState(false);
 
   const unpaid = lines.filter((l) => !l.paidAt);
   const allUnpaidSelected =
@@ -43,15 +43,15 @@ export function CashPaymentPanel({ runId, lines }: { runId: string; lines: CashL
     setSelected(allUnpaidSelected ? new Set() : new Set(unpaid.map((l) => l.itemId)));
   }
 
-  function confirm() {
+  async function confirm() {
     const ids = [...selected];
     if (ids.length === 0) return;
     setError(null);
-    startTransition(async () => {
-      const res = await confirmCashPaid(ids, runId, "cash");
-      if (res.error) setError(res.error);
-      else setSelected(new Set());
-    });
+    setPending(true);
+    const res = await confirmCashPaid(ids, runId, "cash");
+    setPending(false);
+    if (res.error) setError(res.error);
+    else setSelected(new Set());
   }
 
   const paidCount = lines.filter((l) => l.paidAt).length;
