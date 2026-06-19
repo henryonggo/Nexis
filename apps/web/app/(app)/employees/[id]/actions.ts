@@ -16,6 +16,7 @@ const updateSchema = z.object({
   employmentType: z.enum(["permanent", "contract", "intern", "daily"]),
   baseSalary: z.coerce.number().int().min(0).default(0),
   paymentMethod: z.enum(["cash", "bank"]).default("cash"),
+  payFrequency: z.enum(["monthly", "daily"]).default("monthly"),
   ptkpStatus: z.enum(["TK/0", "TK/1", "TK/2", "TK/3", "K/0", "K/1", "K/2", "K/3"]),
   npwp: z.string().max(30).optional().or(z.literal("")),
   managerId: z.string().uuid().optional().or(z.literal("")),
@@ -97,7 +98,11 @@ export async function updateEmployee(_prev: EditState, formData: FormData): Prom
   if (comp) {
     await supabase
       .from("compensation")
-      .update({ base_salary: d.baseSalary, payment_method: d.paymentMethod })
+      .update({
+        base_salary: d.baseSalary,
+        payment_method: d.paymentMethod,
+        pay_frequency: d.payFrequency,
+      })
       .eq("id", comp.id);
   } else {
     await supabase.from("compensation").insert({
@@ -105,6 +110,7 @@ export async function updateEmployee(_prev: EditState, formData: FormData): Prom
       employee_id: d.id,
       base_salary: d.baseSalary,
       payment_method: d.paymentMethod,
+      pay_frequency: d.payFrequency,
     });
   }
 
