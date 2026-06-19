@@ -1,7 +1,24 @@
 # Plan — Self-service + Payments (branch `fix/self-service-payments`)
 
 Five changes requested. Scope split: **Claude Code** (app layer) vs **Antigravity**
-(DB / RLS / RPC / worker). Nothing executed yet — this is the plan for review.
+(DB / RLS / RPC / worker).
+
+## Status (branch `fix/self-service-payments`)
+
+- **#1 Dashboard full salary breakdown — DONE** (`cf2f6dc`).
+- **#2 Web submission (leave/claim/attendance) — DONE** (`34ccc09`). Hierarchy
+  approval (H-2) still pending Antigravity.
+- **#3 Cash payments — BLOCKED on Antigravity H-3** (DB columns + paid RPC). App
+  UI ready to build once columns land.
+- **#4 Daily/monthly mix — BLOCKED on Antigravity H-4** + a compliance decision.
+  Deferred deliberately: the monthly engine is TER-based; daily workers (*pekerja
+  harian*) use a different PPh 21 path (daily Rp450k / monthly Rp4.5M threshold,
+  PMK 168/2023). Building the engine before the days-worked source column and the
+  tax-rule decision are pinned would be speculative and risk a compliance error.
+- **#5 Web payslip download (multi-month) — DONE** (`2a793e4`). No DB change
+  needed — RLS + storage policy already allow employee self-reads.
+
+
 
 Current-state facts that shaped the plan:
 
