@@ -3,7 +3,7 @@
 -- ============================================================================
 
 begin;
-select plan(23);
+select plan(27);
 
 -- Ensure pgTAP is available
 create extension if not exists pgtap;
@@ -191,6 +191,32 @@ select is(
 select lives_ok(
   $$ select count(*)::int from storage.objects where id = '94444444-4444-4444-4444-444444444444' $$,
   'Selecting invalid UUID subfolders is robust and does not crash the query'
+);
+
+-- ── 8. Test Daily Pay Support (H-4) ──────────────────────────────────────────
+select set_config('role', 'postgres', true);
+select set_config('request.jwt.claims', null, true);
+
+select throws_ok(
+  $$ update public.compensation set pay_frequency = 'hourly' where id = 'd1111111-1111-1111-1111-111111111111' $$,
+  'new row for relation "compensation" violates check constraint "compensation_pay_frequency_check"',
+  'Invalid pay frequency is rejected'
+);
+
+select lives_ok(
+  $$ update public.compensation set pay_frequency = 'daily' where id = 'd1111111-1111-1111-1111-111111111111' $$,
+  'Valid pay frequency daily is accepted'
+);
+
+select lives_ok(
+  $$ update public.payroll_items set days_worked = 20.5 where id = '92222222-2222-2222-2222-222222222222' $$,
+  'Can set days_worked on payroll_items'
+);
+
+select is(
+  (select days_worked from public.payroll_items where id = '92222222-2222-2222-2222-222222222222'),
+  20.5,
+  'days_worked value retrieved correctly'
 );
 
 select * from finish();

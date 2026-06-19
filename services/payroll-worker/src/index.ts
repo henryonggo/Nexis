@@ -115,6 +115,18 @@ function monthsOfService(joinDate: string | null, year: number, month: number): 
   return Math.max(0, months);
 }
 
+/** Convert timestamp to Asia/Jakarta YYYY-MM-DD date string */
+function getJakartaDate(timestamptzStr: string | Date): string {
+  const d = typeof timestamptzStr === "string" ? new Date(timestamptzStr) : timestamptzStr;
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Jakarta",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  });
+  return formatter.format(d);
+}
+
 /** Filter rows by effective date range */
 function effectiveOn<T extends { effective_from: string; effective_to: string | null }>(
   rows: T[],
@@ -186,7 +198,11 @@ function generatePayslipPdfBuffer(data: any): Promise<Buffer> {
       // Income Section
       doc.fontSize(12).font("Helvetica-Bold").text("PENGHASILAN (EARNINGS)", { underline: true });
       doc.font("Helvetica").fontSize(10);
-      doc.text(`Gaji Pokok: ${appendFX(data.baseSalary, data.payCurrencyBaseSalary, fxCurr)}`);
+      if (data.daysWorked !== null && data.daysWorked !== undefined) {
+        doc.text(`Gaji Pokok (Daily rate x ${data.daysWorked} days): ${appendFX(data.baseSalary, data.payCurrencyBaseSalary, fxCurr)}`);
+      } else {
+        doc.text(`Gaji Pokok: ${appendFX(data.baseSalary, data.payCurrencyBaseSalary, fxCurr)}`);
+      }
       doc.text(`Tunjangan Tetap: ${appendFX(data.allowances, data.payCurrencyAllowances, fxCurr)}`);
       doc.text(`Lembur (Overtime): Rp ${data.overtimePay.toLocaleString("id-ID")}`);
       if (data.reimbursementTaxable && data.reimbursementTaxable > 0) {
@@ -292,6 +308,7 @@ app.post("/process", async (req, res) => {
       { data: dueInstallments },
       { data: currencies },
       { data: exchangeRates },
+      { data: attendanceRecords },
     ] = await Promise.all([
       supabase.from("company_settings").select("*").eq("company_id", run.company_id).maybeSingle(),
       supabase.from("employees").select("*").eq("company_id", run.company_id).eq("status", "active"),
@@ -307,6 +324,7 @@ app.post("/process", async (req, res) => {
       supabase.from("loan_installments").select("*").eq("company_id", run.company_id).eq("status", "scheduled").eq("due_year", run.period_year).eq("due_month", run.period_month),
       supabase.from("currencies").select("*"),
       supabase.from("exchange_rates").select("*"),
+      supabase.from("attendance_records").select("employee_id, event_at").eq("company_id", run.company_id).gte("event_at", `${startDateStr}T00:00:00Z`).lte("event_at", `${endDateStr}T23:59:59Z`),
     ]);
 
     // Map claims by employee
@@ -335,6 +353,18 @@ app.post("/process", async (req, res) => {
       current.amount += Number(inst.amount);
       current.installmentIds.push(inst.id);
       loansByEmployee.set(empId, current);
+    }
+
+    // Map attendance by employee (unique calendar dates in Asia/Jakarta)
+    const attendanceByEmployee = new Map<string, Set<string>>();
+    for (const record of attendanceRecords || []) {
+      const empId = record.employee_id;
+      if (empId && record.event_at) {
+        const dateStr = getJakartaDate(record.event_at);
+        const dates = attendanceByEmployee.get(empId) || new Set<string>();
+        dates.add(dateStr);
+        attendanceByEmployee.set(empId, dates);
+      }
     }
 
     if (!employees || employees.length === 0) {
@@ -507,8 +537,15 @@ app.post("/process", async (req, res) => {
           workweekDays,
         });
 
+        let baseSalaryInput = baseSalary;
+        let daysWorked: number | null = null;
+        if (comp.pay_frequency === "daily") {
+          daysWorked = attendanceByEmployee.get(emp.id)?.size ?? 0;
+          baseSalaryInput = baseSalary * daysWorked;
+        }
+
         const input: EmployeePayrollInput = {
-          baseSalary,
+          baseSalary: baseSalaryInput,
           fixedAllowances: allowances,
           overtimePay,
           variableEarnings: empClaims.taxableAmount,
@@ -553,13 +590,14 @@ app.post("/process", async (req, res) => {
 
         itemResult = {
           ...result,
-          baseSalary,
+          baseSalary: baseSalaryInput,
           allowances,
           overtimePay,
           variableEarnings: empClaims.taxableAmount,
           reimbursementNonTaxable: empClaims.nonTaxableAmount,
           loanDeduction,
           terCategory: ptkpCategory(ptkpStatus),
+          daysWorked,
         };
       }
 
@@ -609,6 +647,7 @@ app.post("/process", async (req, res) => {
           ter_rate_bps: itemResult.terRateBps,
           net_pay: itemResult.netPay,
           loan_deduction: itemResult.loanDeduction || 0,
+          days_worked: itemResult.daysWorked,
           breakdown: itemResult,
         })
         .select("id")
@@ -628,6 +667,7 @@ app.post("/process", async (req, res) => {
         npwp: tax?.npwp || "",
         runType: inferredRunType,
         monthsWorked: itemResult.monthsWorked || 0,
+        daysWorked: itemResult.daysWorked,
         baseSalary: itemResult.baseSalary,
         allowances: itemResult.allowances,
         overtimePay: itemResult.overtimePay,

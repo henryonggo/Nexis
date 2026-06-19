@@ -1825,6 +1825,7 @@ export type Database = {
           company_id: string
           created_at: string
           currency: string
+          days_worked: number | null
           employee_id: string
           gross_pay: number
           id: string
@@ -1853,6 +1854,7 @@ export type Database = {
           company_id: string
           created_at?: string
           currency?: string
+          days_worked?: number | null
           employee_id: string
           gross_pay?: number
           id?: string
@@ -1881,6 +1883,7 @@ export type Database = {
           company_id?: string
           created_at?: string
           currency?: string
+          days_worked?: number | null
           employee_id?: string
           gross_pay?: number
           id?: string
