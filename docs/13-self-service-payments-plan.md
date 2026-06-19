@@ -7,16 +7,16 @@ Five changes requested. Scope split: **Claude Code** (app layer) vs **Antigravit
 
 - **#1 Dashboard full salary breakdown — DONE** (`cf2f6dc`).
 - **#2 Web submission (leave/claim/attendance) — DONE** (`34ccc09`). Hierarchy
-  approval (H-2) still pending Antigravity.
-- **#3 Cash payments — BLOCKED on Antigravity H-3** (DB columns + paid RPC). App
-  UI ready to build once columns land.
+  approval (H-2) — **DONE (DB Migration applied)**.
+- **#3 Cash payments — DONE** (`d95f345`, DB `81f35ea`). Admin cash-payment panel
+  on the run page (select/deselect, confirm via `mark_payroll_items_paid`) +
+  cash/bank `payment_method` selector (cash default) on the employee form.
 - **#4 Daily/monthly mix — BLOCKED on Antigravity H-4** + a compliance decision.
   Deferred deliberately: the monthly engine is TER-based; daily workers (*pekerja
   harian*) use a different PPh 21 path (daily Rp450k / monthly Rp4.5M threshold,
   PMK 168/2023). Building the engine before the days-worked source column and the
   tax-rule decision are pinned would be speculative and risk a compliance error.
-- **#5 Web payslip download (multi-month) — DONE** (`2a793e4`). No DB change
-  needed — RLS + storage policy already allow employee self-reads.
+- **#5 Web payslip download (multi-month) — DONE** (`2a793e4`). Storage policy (H-5) robustness has also landed.
 
 
 
