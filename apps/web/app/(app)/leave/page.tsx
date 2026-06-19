@@ -10,6 +10,7 @@ import {
 import { formatDateRange } from "@/lib/date";
 import { LeaveStatusBadge } from "./status-badge";
 import { PendingLeavesList } from "./pending-leaves-list";
+import { LeaveRequestForm } from "./leave-request-form";
 import { Card } from "@/components/ui/card";
 import {
   Table,
@@ -33,6 +34,32 @@ export default async function LeavePage() {
   const requests = await getCompanyLeaveRequests(supabase, active.id);
   const pending = requests.filter((r) => r.status === "pending");
   const decided = requests.filter((r) => r.status !== "pending");
+
+  // Employees get a self-service view: submit a request + track their own rows
+  // (RLS already scopes `requests` to the signed-in employee).
+  if (!canApprove) {
+    const { data: leaveTypes } = await supabase
+      .from("leave_types")
+      .select("id, name")
+      .eq("company_id", active.id)
+      .order("name", { ascending: true });
+
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
+          <p className="text-sm text-muted">{t("selfSubtitle")}</p>
+        </div>
+        <LeaveRequestForm leaveTypes={(leaveTypes as { id: string; name: string }[] | null) ?? []} />
+        <section className="space-y-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
+            {t("myRequests")}
+          </h2>
+          <HistoryTable rows={requests} />
+        </section>
+      </div>
+    );
+  }
 
   // Pre-sign attachments for pending rows (the queue the manager acts on).
   const attachmentUrls: Record<string, string> = {};

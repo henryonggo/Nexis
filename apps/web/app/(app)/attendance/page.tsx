@@ -7,6 +7,7 @@ import { guardEmployeeAccess } from "@/lib/access";
 import type { Database } from "@nexis/types";
 import { LiveBoard, type AttendanceRecord } from "./live-board";
 import { OvertimeQueue, type PendingOvertime } from "./overtime-queue";
+import { ClockInOut } from "./clock-in-out";
 
 /** Start of "today" in Asia/Jakarta (WIB, UTC+7, no DST), as a UTC ISO string. */
 function startOfTodayJakartaIso(): string {
@@ -84,6 +85,8 @@ export default async function AttendancePage() {
           </Link>
         )}
       </div>
+
+      {active.role === "employee" && <ClockInOut />}
 
       {canApproveOvertime && (
         <OvertimeQueue

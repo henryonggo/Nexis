@@ -19,6 +19,8 @@ export function EditEmployeeForm({
   canEdit,
   employee,
   baseSalary,
+  paymentMethod,
+  payFrequency,
   ptkpStatus,
   npwp,
   bankName,
@@ -29,6 +31,8 @@ export function EditEmployeeForm({
   canEdit: boolean;
   employee: EmployeeRow;
   baseSalary: number;
+  paymentMethod: "cash" | "bank";
+  payFrequency: "monthly" | "daily";
   ptkpStatus: string;
   npwp: string;
   bankName: string;
@@ -129,17 +133,25 @@ export function EditEmployeeForm({
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label htmlFor="baseSalary">{t("form.baseSalaryEdit")}</Label>
-            <Input id="baseSalary" name="baseSalary" type="number" min={0} step={1000} defaultValue={baseSalary} disabled={disabled} />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="ptkpStatus">{t("form.ptkpStatus")}</Label>
-            <select id="ptkpStatus" name="ptkpStatus" className={fieldClasses} defaultValue={ptkpStatus} disabled={disabled}>
-              {PTKP.map((p) => (
-                <option key={p} value={p}>{p}</option>
-              ))}
+            <Label htmlFor="payFrequency">{t("form.payFrequency")}</Label>
+            <select id="payFrequency" name="payFrequency" className={fieldClasses} defaultValue={payFrequency} disabled={disabled}>
+              <option value="monthly">{t("form.payMonthly")}</option>
+              <option value="daily">{t("form.payDaily")}</option>
             </select>
           </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="baseSalary">{t("form.baseSalaryEdit")}</Label>
+            <Input id="baseSalary" name="baseSalary" type="number" min={0} step={1000} defaultValue={baseSalary} disabled={disabled} />
+            <p className="text-xs text-muted">{t("form.baseSalaryHint")}</p>
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="ptkpStatus">{t("form.ptkpStatus")}</Label>
+          <select id="ptkpStatus" name="ptkpStatus" className={fieldClasses} defaultValue={ptkpStatus} disabled={disabled}>
+            {PTKP.map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
         </div>
         <details className="rounded-md border border-border bg-bg/40 px-3 py-2 text-xs text-muted">
           <summary className="cursor-pointer font-medium text-ink">{t("form.ptkpExplainerTitle")}</summary>
@@ -150,6 +162,15 @@ export function EditEmployeeForm({
           <Label htmlFor="npwp">{t("form.npwp")}</Label>
           <Input id="npwp" name="npwp" defaultValue={npwp} disabled={disabled} />
           <p className="text-xs text-muted">{t("form.npwpHint")}</p>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="paymentMethod">{t("form.paymentMethod")}</Label>
+          <select id="paymentMethod" name="paymentMethod" className={fieldClasses} defaultValue={paymentMethod} disabled={disabled}>
+            <option value="cash">{t("form.paymentCash")}</option>
+            <option value="bank">{t("form.paymentBank")}</option>
+          </select>
+          <p className="text-xs text-muted">{t("form.paymentMethodHint")}</p>
         </div>
 
         <Separator />
