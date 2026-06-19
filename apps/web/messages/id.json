@@ -31,6 +31,7 @@
     "attendance": "Kehadiran",
     "leave": "Cuti",
     "claims": "Klaim",
+    "payslips": "Slip Gaji",
     "loans": "Pinjaman",
     "payroll": "Penggajian",
     "performance": "Kinerja",
@@ -379,6 +380,17 @@
     "noHistory": "Belum ada riwayat klaim.",
     "columns": { "employee": "Karyawan", "type": "Jenis", "amount": "Jumlah", "status": "Status" },
     "status": { "pending": "Menunggu", "approved": "Disetujui", "rejected": "Ditolak", "paid": "Dibayar" }
+  },
+  "payslips": {
+    "title": "Slip Gaji",
+    "subtitle": "Unduh slip gaji bulanan Anda. Pilih beberapa bulan untuk mengunduh sekaligus.",
+    "empty": "Belum ada slip gaji.",
+    "noProfile": "Akun ini belum tertaut ke data karyawan.",
+    "selectAll": "Pilih semua",
+    "download": "Unduh",
+    "downloadSelected": "Unduh terpilih ({count})",
+    "notReady": "Belum siap",
+    "downloadError": "Gagal menyiapkan unduhan."
   },
   "loans": {
     "title": "Pinjaman & Kasbon",

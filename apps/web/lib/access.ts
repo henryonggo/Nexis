@@ -38,6 +38,7 @@ export const ACCESS_NAV_FLAGS: Record<string, keyof EmployeeAccess> = {
   attendance: "attendance",
   leave: "leave",
   claims: "claims",
+  payslips: "salary",
 };
 
 /** The active company's employee-access config, defaulting to all-on. */

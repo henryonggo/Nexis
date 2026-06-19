@@ -31,6 +31,7 @@
     "attendance": "Attendance",
     "leave": "Leave",
     "claims": "Claims",
+    "payslips": "Payslips",
     "loans": "Loans",
     "payroll": "Payroll",
     "performance": "Performance",
@@ -379,6 +380,17 @@
     "noHistory": "No claim history yet.",
     "columns": { "employee": "Employee", "type": "Type", "amount": "Amount", "status": "Status" },
     "status": { "pending": "Pending", "approved": "Approved", "rejected": "Rejected", "paid": "Paid" }
+  },
+  "payslips": {
+    "title": "Payslips",
+    "subtitle": "Download your monthly payslips. Select several months to download them at once.",
+    "empty": "No payslips yet.",
+    "noProfile": "This account isn't linked to an employee record yet.",
+    "selectAll": "Select all",
+    "download": "Download",
+    "downloadSelected": "Download selected ({count})",
+    "notReady": "Not ready",
+    "downloadError": "Couldn't prepare the download."
   },
   "loans": {
     "title": "Loans & Advances",
