@@ -6,6 +6,7 @@ import { guardEmployeeAccess } from "@/lib/access";
 import { getCompanyClaims, getReceiptUrl, type ClaimView } from "@/lib/claims";
 import { ClaimStatusBadge } from "./status-badge";
 import { PendingClaimsList } from "./pending-claims-list";
+import { ClaimRequestForm } from "./claim-request-form";
 import { Card } from "@/components/ui/card";
 import {
   Table,
@@ -29,6 +30,32 @@ export default async function ClaimsPage() {
   const claims = await getCompanyClaims(supabase, active.id);
   const pending = claims.filter((c) => c.status === "pending");
   const decided = claims.filter((c) => c.status !== "pending");
+
+  // Employees get a self-service view: submit a claim + track their own rows
+  // (RLS already scopes `claims` to the signed-in employee).
+  if (!canApprove) {
+    const { data: claimTypes } = await supabase
+      .from("claim_types")
+      .select("id, name")
+      .eq("company_id", active.id)
+      .order("name", { ascending: true });
+
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
+          <p className="text-sm text-muted">{t("selfSubtitle")}</p>
+        </div>
+        <ClaimRequestForm claimTypes={(claimTypes as { id: string; name: string }[] | null) ?? []} />
+        <section className="space-y-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
+            {t("myClaims")}
+          </h2>
+          <HistoryTable rows={claims} />
+        </section>
+      </div>
+    );
+  }
 
   const receiptUrls: Record<string, string> = {};
   await Promise.all(

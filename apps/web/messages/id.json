@@ -267,6 +267,15 @@
   "attendance": {
     "title": "Kehadiran",
     "subtitle": "Status langsung kehadiran karyawan {name} hari ini.",
+    "clock": {
+      "title": "Absen masuk / keluar",
+      "clockIn": "Absen masuk",
+      "clockOut": "Absen keluar",
+      "breakStart": "Mulai istirahat",
+      "breakEnd": "Selesai istirahat",
+      "noGeo": "Lokasi tidak didukung di perangkat ini.",
+      "geoDenied": "Gagal mendapatkan lokasi. Aktifkan izin lokasi lalu coba lagi."
+    },
     "live": "Langsung",
     "connecting": "Menyambung…",
     "present": "sedang hadir",
@@ -358,6 +367,19 @@
   "leave": {
     "title": "Cuti",
     "subtitle": "Tinjau dan setujui permintaan cuti karyawan {name}.",
+    "selfSubtitle": "Ajukan cuti dan pantau permintaan Anda.",
+    "myRequests": "Permintaan saya",
+    "request": {
+      "title": "Ajukan cuti",
+      "type": "Jenis cuti",
+      "typePlaceholder": "Pilih jenis cuti",
+      "start": "Tanggal mulai",
+      "end": "Tanggal selesai",
+      "halfDay": "Setengah hari",
+      "reason": "Alasan (opsional)",
+      "submit": "Kirim permintaan",
+      "submitted": "Permintaan terkirim."
+    },
     "pending": "Menunggu persetujuan ({count})",
     "noPending": "Tidak ada permintaan cuti yang menunggu.",
     "history": "Riwayat",
@@ -371,6 +393,18 @@
   "claims": {
     "title": "Klaim Reimbursement",
     "subtitle": "Tinjau dan setujui klaim karyawan {name}. Klaim yang disetujui masuk ke payroll berikutnya.",
+    "selfSubtitle": "Ajukan klaim reimbursement dan pantau klaim Anda.",
+    "myClaims": "Klaim saya",
+    "request": {
+      "title": "Ajukan klaim",
+      "type": "Jenis klaim",
+      "typePlaceholder": "Pilih jenis klaim",
+      "amount": "Jumlah (Rp)",
+      "description": "Keterangan (opsional)",
+      "receipt": "Struk (opsional)",
+      "submit": "Kirim klaim",
+      "submitted": "Klaim terkirim."
+    },
     "pending": "Menunggu persetujuan ({count})",
     "noPending": "Tidak ada klaim yang menunggu.",
     "taxable": "kena pajak",

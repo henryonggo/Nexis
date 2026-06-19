@@ -267,6 +267,15 @@
   "attendance": {
     "title": "Attendance",
     "subtitle": "Live attendance status for {name}'s employees today.",
+    "clock": {
+      "title": "Clock in / out",
+      "clockIn": "Clock in",
+      "clockOut": "Clock out",
+      "breakStart": "Start break",
+      "breakEnd": "End break",
+      "noGeo": "Location isn't supported on this device.",
+      "geoDenied": "Couldn't get your location. Enable location access and try again."
+    },
     "live": "Live",
     "connecting": "Connecting…",
     "present": "currently present",
@@ -358,6 +367,19 @@
   "leave": {
     "title": "Leave",
     "subtitle": "Review and approve leave requests for {name}.",
+    "selfSubtitle": "Request leave and track your requests.",
+    "myRequests": "My requests",
+    "request": {
+      "title": "Request leave",
+      "type": "Leave type",
+      "typePlaceholder": "Select a leave type",
+      "start": "Start date",
+      "end": "End date",
+      "halfDay": "Half day",
+      "reason": "Reason (optional)",
+      "submit": "Submit request",
+      "submitted": "Request submitted."
+    },
     "pending": "Awaiting approval ({count})",
     "noPending": "No pending leave requests.",
     "history": "History",
@@ -371,6 +393,18 @@
   "claims": {
     "title": "Reimbursement Claims",
     "subtitle": "Review and approve claims for {name}. Approved claims flow into the next payroll.",
+    "selfSubtitle": "Submit a reimbursement claim and track your claims.",
+    "myClaims": "My claims",
+    "request": {
+      "title": "Submit a claim",
+      "type": "Claim type",
+      "typePlaceholder": "Select a claim type",
+      "amount": "Amount (Rp)",
+      "description": "Description (optional)",
+      "receipt": "Receipt (optional)",
+      "submit": "Submit claim",
+      "submitted": "Claim submitted."
+    },
     "pending": "Awaiting approval ({count})",
     "noPending": "No pending claims.",
     "taxable": "taxable",
