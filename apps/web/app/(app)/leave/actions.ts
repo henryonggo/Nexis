@@ -7,6 +7,85 @@ import { getActiveCompany } from "@/lib/company";
 
 export type DecisionState = { error?: string; ok?: boolean };
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Working days (Mon–Fri) in the inclusive range; half-day only for a single day. */
+function estimateLeaveDays(startISO: string, endISO: string, halfDay: boolean): number {
+  const start = Date.parse(`${startISO}T00:00:00Z`);
+  const end = Date.parse(`${endISO}T00:00:00Z`);
+  if (Number.isNaN(start) || Number.isNaN(end) || end < start) return 0;
+  let count = 0;
+  for (let t = start; t <= end; t += MS_PER_DAY) {
+    const dow = new Date(t).getUTCDay();
+    if (dow !== 0 && dow !== 6) count += 1;
+  }
+  if (halfDay) return startISO === endISO && count > 0 ? 0.5 : count;
+  return count;
+}
+
+const requestSchema = z.object({
+  leaveTypeId: z.string().uuid(),
+  startDate: z.string().regex(ISO_DATE),
+  endDate: z.string().regex(ISO_DATE),
+  halfDay: z.boolean(),
+  reason: z.string().trim().max(500).optional(),
+});
+
+/**
+ * Employee self-service: submit a leave request for the signed-in user's own
+ * employee record. RLS additionally enforces the employee can only insert their
+ * own row; `days` is computed server-side so the client can't understate it.
+ */
+export async function requestLeave(
+  _prev: DecisionState,
+  formData: FormData,
+): Promise<DecisionState> {
+  const parsed = requestSchema.safeParse({
+    leaveTypeId: formData.get("leaveTypeId"),
+    startDate: formData.get("startDate"),
+    endDate: formData.get("endDate"),
+    halfDay: formData.get("halfDay") === "on",
+    reason: (formData.get("reason") as string) || undefined,
+  });
+  if (!parsed.success) return { error: "Permintaan tidak valid." };
+
+  const active = await getActiveCompany();
+  if (!active) return { error: "Tidak ada perusahaan aktif." };
+
+  const days = estimateLeaveDays(parsed.data.startDate, parsed.data.endDate, parsed.data.halfDay);
+  if (days <= 0) return { error: "Rentang tanggal tidak valid (tidak ada hari kerja)." };
+
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Sesi tidak ditemukan." };
+
+  const { data: employee } = await supabase
+    .from("employees")
+    .select("id")
+    .eq("company_id", active.id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (!employee) return { error: "Akun ini belum tertaut ke data karyawan." };
+
+  const { error } = await supabase.from("leave_requests").insert({
+    company_id: active.id,
+    employee_id: employee.id,
+    leave_type_id: parsed.data.leaveTypeId,
+    start_date: parsed.data.startDate,
+    end_date: parsed.data.endDate,
+    days,
+    half_day: parsed.data.halfDay,
+    reason: parsed.data.reason || null,
+  });
+  if (error) return { error: error.message };
+
+  revalidatePath("/leave");
+  return { ok: true };
+}
+
 /** owner/admin/manager may decide leave; RLS + the SECURITY DEFINER RPC re-check. */
 function canApprove(role: string): boolean {
   return role === "owner" || role === "admin" || role === "manager";

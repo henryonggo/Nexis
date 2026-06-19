@@ -79,6 +79,7 @@ export function sumFixedAllowances(value: unknown): Rupiah {
 interface CompensationRow {
   employee_id: string;
   base_salary: number;
+  pay_frequency: string;
   fixed_allowances: Database["public"]["Tables"]["compensation"]["Row"]["fixed_allowances"];
   bpjs_kes_enrolled: boolean;
   jht_enrolled: boolean;
@@ -101,6 +102,8 @@ export interface PreviewLine {
   terCategory: TerCategory;
   hasNpwp: boolean;
   baseSalary: Rupiah;
+  /** Unique attendance days in the period for daily-paid employees; null if monthly. */
+  daysWorked?: number | null;
   /** Present for monthly runs. */
   result?: PayrollResult;
   /** Present for THR runs. */
@@ -175,6 +178,7 @@ export async function computeRunPreview(
     { data: minWages },
     { data: overtimeEntries },
     { data: holidays },
+    { data: attendanceRecords },
   ] = await Promise.all([
       loadPayrollConfig(supabase, effectiveDate),
       supabase
@@ -190,7 +194,7 @@ export async function computeRunPreview(
         .maybeSingle(),
       supabase
         .from("compensation")
-        .select("employee_id, base_salary, fixed_allowances, bpjs_kes_enrolled, jht_enrolled, jp_enrolled, effective_from")
+        .select("employee_id, base_salary, pay_frequency, fixed_allowances, bpjs_kes_enrolled, jht_enrolled, jp_enrolled, effective_from")
         .eq("company_id", companyId),
       supabase
         .from("tax_profile")
@@ -213,7 +217,30 @@ export async function computeRunPreview(
         .select("date")
         .gte("date", effectiveDate)
         .lte("date", periodEnd),
+      // Attendance for the period — drives days-worked for daily-paid employees,
+      // counting unique Asia/Jakarta calendar dates (mirrors the payroll worker).
+      supabase
+        .from("attendance_records")
+        .select("employee_id, event_at")
+        .eq("company_id", companyId)
+        .gte("event_at", `${effectiveDate}T00:00:00Z`)
+        .lte("event_at", `${periodEnd}T23:59:59Z`),
     ]);
+
+  // Unique worked dates per employee (Asia/Jakarta), for daily-pay scaling.
+  const jakartaDateFmt = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Jakarta",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const daysWorkedByEmployee = new Map<string, Set<string>>();
+  for (const r of (attendanceRecords as { employee_id: string; event_at: string }[] | null) ?? []) {
+    if (!r.employee_id || !r.event_at) continue;
+    const set = daysWorkedByEmployee.get(r.employee_id) ?? new Set<string>();
+    set.add(jakartaDateFmt.format(new Date(r.event_at)));
+    daysWorkedByEmployee.set(r.employee_id, set);
+  }
 
   // Overtime inputs shared with the worker: approved entries grouped by employee,
   // the holiday set, and the company workweek (drives Saturday rest-day rule).
@@ -326,8 +353,17 @@ export async function computeRunPreview(
       continue;
     }
 
+    // Daily-paid employees: base_salary is the daily rate; the earned base is
+    // rate × unique attendance days in the period (mirrors the payroll worker).
+    const isDaily = comp.pay_frequency === "daily";
+    const daysWorked = isDaily ? daysWorkedByEmployee.get(emp.id)?.size ?? 0 : null;
+    const earnedBase = isDaily ? baseSalary * (daysWorked ?? 0) : baseSalary;
+    if (isDaily && daysWorked === 0) {
+      warnings.push("Belum ada kehadiran tercatat periode ini — gaji harian dihitung 0.");
+    }
+
     const input: EmployeePayrollInput = {
-      baseSalary,
+      baseSalary: earnedBase,
       fixedAllowances: sumFixedAllowances(comp.fixed_allowances),
       overtimePay: computeOvertimePayFromEntries({
         entries: otByEmployee.get(emp.id) ?? [],
@@ -344,7 +380,8 @@ export async function computeRunPreview(
     };
     const result = computeMonthlyPayroll(input, config);
 
-    if (umrAmount != null && baseSalary < umrAmount) {
+    // UMR compares a monthly wage; for daily pay the daily rate isn't comparable.
+    if (!isDaily && umrAmount != null && baseSalary < umrAmount) {
       warnings.push(
         `Gaji pokok di bawah UMR ${region} (${formatRupiah(umrAmount)}).`,
       );
@@ -356,7 +393,8 @@ export async function computeRunPreview(
       ptkpStatus,
       terCategory: ptkpCategory(ptkpStatus),
       hasNpwp,
-      baseSalary,
+      baseSalary: earnedBase,
+      daysWorked,
       result,
       warnings,
     });

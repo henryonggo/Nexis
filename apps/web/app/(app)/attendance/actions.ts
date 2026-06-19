@@ -5,6 +5,49 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 
+const clockSchema = z.object({
+  kind: z.enum(["clock_in", "clock_out", "break_start", "break_end"]),
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  note: z.string().trim().max(280).optional(),
+});
+
+export type ClockState = { error?: string; success?: string };
+
+/**
+ * Employee self-service clock event. Geofence + sequencing are enforced inside
+ * the SECURITY DEFINER `record_attendance` RPC (same path the mobile app uses);
+ * coordinates come from the browser's Geolocation API.
+ */
+export async function recordAttendance(
+  _prev: ClockState,
+  formData: FormData,
+): Promise<ClockState> {
+  const parsed = clockSchema.safeParse({
+    kind: formData.get("kind"),
+    latitude: Number(formData.get("latitude")),
+    longitude: Number(formData.get("longitude")),
+    note: (formData.get("note") as string) || undefined,
+  });
+  if (!parsed.success) return { error: "Lokasi tidak valid. Aktifkan izin lokasi lalu coba lagi." };
+
+  const active = await getActiveCompany();
+  if (!active) return { error: "Tidak ada perusahaan aktif." };
+
+  const supabase = createClient();
+  const { error } = await supabase.rpc("record_attendance", {
+    p_company_id: active.id,
+    p_kind: parsed.data.kind,
+    p_latitude: parsed.data.latitude,
+    p_longitude: parsed.data.longitude,
+    p_note: parsed.data.note,
+  });
+  if (error) return { error: error.message };
+
+  revalidatePath("/attendance");
+  return { success: "Kehadiran tercatat." };
+}
+
 const correctionSchema = z.object({
   id: z.string().uuid("ID tidak valid"),
   isValid: z.enum(["true", "false"]),

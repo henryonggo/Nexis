@@ -11,6 +11,77 @@ function canApprove(role: string): boolean {
   return role === "owner" || role === "admin" || role === "manager";
 }
 
+const requestSchema = z.object({
+  claimTypeId: z.string().uuid(),
+  amount: z.number().int().positive(),
+  description: z.string().trim().max(500).optional(),
+});
+
+/** Parse a user-entered rupiah string (e.g. "150.000" or "150000") to integer rupiah. */
+function parseRupiah(input: string): number {
+  const digits = input.replace(/[^\d]/g, "");
+  return digits ? parseInt(digits, 10) : 0;
+}
+
+/**
+ * Employee self-service: submit a reimbursement claim for the signed-in user's
+ * own employee record, with an optional receipt image. RLS enforces an employee
+ * can only insert their own claim; amount is integer rupiah (AGENTS.md rule 3).
+ */
+export async function requestClaim(
+  _prev: DecisionState,
+  formData: FormData,
+): Promise<DecisionState> {
+  const parsed = requestSchema.safeParse({
+    claimTypeId: formData.get("claimTypeId"),
+    amount: parseRupiah((formData.get("amount") as string) ?? ""),
+    description: (formData.get("description") as string) || undefined,
+  });
+  if (!parsed.success) return { error: "Jumlah harus rupiah bulat lebih dari 0." };
+
+  const active = await getActiveCompany();
+  if (!active) return { error: "Tidak ada perusahaan aktif." };
+
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Sesi tidak ditemukan." };
+
+  const { data: employee } = await supabase
+    .from("employees")
+    .select("id")
+    .eq("company_id", active.id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (!employee) return { error: "Akun ini belum tertaut ke data karyawan." };
+
+  let receiptPath: string | null = null;
+  const receipt = formData.get("receipt");
+  if (receipt instanceof File && receipt.size > 0) {
+    const ext = receipt.type === "application/pdf" ? "pdf" : "jpg";
+    const path = `${active.id}/${employee.id}/${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage
+      .from("claim-receipts")
+      .upload(path, await receipt.arrayBuffer(), { contentType: receipt.type, upsert: false });
+    if (upErr) return { error: upErr.message };
+    receiptPath = path;
+  }
+
+  const { error } = await supabase.from("reimbursement_claims").insert({
+    company_id: active.id,
+    employee_id: employee.id,
+    claim_type_id: parsed.data.claimTypeId,
+    amount: parsed.data.amount,
+    description: parsed.data.description || null,
+    receipt_path: receiptPath,
+  });
+  if (error) return { error: error.message };
+
+  revalidatePath("/claims");
+  return { ok: true };
+}
+
 const decisionSchema = z.object({
   claimId: z.string().uuid(),
   note: z.string().trim().max(500).optional(),

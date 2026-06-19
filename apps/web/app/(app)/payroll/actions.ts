@@ -226,3 +226,42 @@ export async function cancelRun(
   revalidatePath(`/payroll/${runId.data}`);
   return {};
 }
+
+const confirmPaidSchema = z.object({
+  runId: z.string().uuid(),
+  itemIds: z.array(z.string().uuid()).min(1).max(500),
+  method: z.enum(["cash", "bank"]),
+});
+
+export type ConfirmPaidState = { error?: string; ok?: boolean };
+
+/**
+ * Mark selected payroll items as paid (e.g. cash handed to employees). Delegates
+ * to the admin-gated, audited `mark_payroll_items_paid` RPC; the admin can select
+ * or deselect individual employees before confirming. Item-level paid tracking is
+ * separate from the run-level `paid` status.
+ */
+export async function confirmCashPaid(
+  itemIds: string[],
+  runId: string,
+  method: "cash" | "bank" = "cash",
+): Promise<ConfirmPaidState> {
+  const parsed = confirmPaidSchema.safeParse({ runId, itemIds, method });
+  if (!parsed.success) return { error: "Pilih minimal satu karyawan." };
+
+  const active = await getActiveCompany();
+  if (!active) return { error: "Tidak ada perusahaan aktif." };
+  if (!isAdmin(active.role)) {
+    return { error: "Hanya admin/pemilik yang dapat mengonfirmasi pembayaran." };
+  }
+
+  const supabase = createClient();
+  const { error } = await supabase.rpc("mark_payroll_items_paid", {
+    p_payroll_item_ids: parsed.data.itemIds,
+    p_payment_method: parsed.data.method,
+  });
+  if (error) return { error: error.message };
+
+  revalidatePath(`/payroll/${parsed.data.runId}`);
+  return { ok: true };
+}
