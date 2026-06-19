@@ -851,6 +851,7 @@ export type Database = {
           jht_enrolled: boolean
           jp_enrolled: boolean
           pay_frequency: string
+          payment_method: string
         }
         Insert: {
           base_salary?: number
@@ -866,6 +867,7 @@ export type Database = {
           jht_enrolled?: boolean
           jp_enrolled?: boolean
           pay_frequency?: string
+          payment_method?: string
         }
         Update: {
           base_salary?: number
@@ -881,6 +883,7 @@ export type Database = {
           jht_enrolled?: boolean
           jp_enrolled?: boolean
           pay_frequency?: string
+          payment_method?: string
         }
         Relationships: [
           {
@@ -1834,6 +1837,8 @@ export type Database = {
           loan_deduction: number
           net_pay: number
           overtime_pay: number
+          paid_at: string | null
+          paid_method: string | null
           payroll_run_id: string
           pph21: number
           ter_category: string | null
@@ -1860,6 +1865,8 @@ export type Database = {
           loan_deduction?: number
           net_pay?: number
           overtime_pay?: number
+          paid_at?: string | null
+          paid_method?: string | null
           payroll_run_id: string
           pph21?: number
           ter_category?: string | null
@@ -1886,6 +1893,8 @@ export type Database = {
           loan_deduction?: number
           net_pay?: number
           overtime_pay?: number
+          paid_at?: string | null
+          paid_method?: string | null
           payroll_run_id?: string
           pph21?: number
           ter_category?: string | null
@@ -2836,6 +2845,10 @@ export type Database = {
         Args: { p_employee_id: string; p_user_id: string }
         Returns: undefined
       }
+      mark_payroll_items_paid: {
+        Args: { p_payment_method?: string; p_payroll_item_ids: string[] }
+        Returns: undefined
+      }
       recompute_employee_overtime: {
         Args: { p_date: string; p_employee_id: string }
         Returns: undefined
@@ -2882,6 +2895,7 @@ export type Database = {
         Args: { p_company_id: string }
         Returns: string
       }
+      safe_cast_uuid: { Args: { p_val: string }; Returns: string }
       scim_set_user_active: {
         Args: { p_active: boolean; p_company_id: string; p_user_id: string }
         Returns: undefined
