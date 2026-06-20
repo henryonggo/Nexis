@@ -32,7 +32,4 @@ USER express
 
 COPY --from=installer /app .
 
-EXPOSE 3001
-ENV PORT=3001
-
 CMD ["node", "services/payroll-worker/dist/index.js"]
