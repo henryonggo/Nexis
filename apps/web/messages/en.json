@@ -885,5 +885,13 @@
       "hasNpwp": "Has NPWP",
       "noNpwp": "No NPWP (+20% tax surcharge applies)"
     }
+  },
+  "glance": {
+    "open": "Glance",
+    "asOf": "As of {time} WIB",
+    "latestPayroll": "Latest payroll",
+    "noPayroll": "No payroll runs yet",
+    "pendingLeave": "Leave to approve",
+    "recentRuns": "Recent runs"
   }
 }

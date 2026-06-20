@@ -65,7 +65,7 @@ Server-only (never shipped to client; in GCP Secret Manager / Vercel encrypted e
 - `SUPABASE_SERVICE_ROLE_KEY` (server actions / worker only)
 - `SUPABASE_JWT_SECRET`
 - `GCP_PROJECT_ID`, `GCP_REGION`
-- `CLOUD_TASKS_QUEUE`, `PAYROLL_WORKER_URL`
+- `CLOUD_TASKS_QUEUE`, `PAYROLL_WORKER_URL`, `PAYROLL_WORKER_INVOKER_SA` (Cloud Tasks → private worker via OIDC)
 - `CLOUD_STORAGE_BUCKET_PAYSLIPS`
 - `PAYSLIP_SIGNING_KEY`
 - `RESEND_API_KEY` (or Supabase SMTP) for transactional email

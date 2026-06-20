@@ -116,7 +116,7 @@ export function MobileNav({
       {open && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="absolute inset-0 bg-ink/40 backdrop-blur-sm" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 top-0 h-full w-72 glass-panel flex flex-col shadow-elev-4 border-r-0 border-y-0 border-l-0 rounded-none">
+          <div className="absolute left-0 top-0 h-full w-72 bg-card flex flex-col shadow-elev-4 border-r border-white/20 rounded-none">
             <div className="flex items-center justify-between border-b border-white/20 px-4 py-3">
               <span className="text-base font-bold text-brand">Nexis</span>
               <button

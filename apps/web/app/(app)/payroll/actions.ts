@@ -270,7 +270,9 @@ export async function cancelRun(
     .update({ status: "cancelled" })
     .eq("id", runId.data)
     .eq("company_id", active.id)
-    .in("status", ["draft", "queued", "failed"]);
+    // "processing" included so a run stuck because the worker never finished can
+    // be cleared (then reopened to draft and re-approved). A not-yet-paid run.
+    .in("status", ["draft", "queued", "processing", "failed"]);
 
   if (error) return { error: error.message };
 

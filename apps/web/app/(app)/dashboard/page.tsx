@@ -412,15 +412,21 @@ export default async function DashboardPage() {
   const atLimit = isFree && used >= limit;
 
   const t = await getTranslations("dashboard");
+  const tGlance = await getTranslations("glance");
   const tPlans = await getTranslations("plans");
   const tStatus = await getTranslations("payroll.status");
   const planName = tPlans(plan.id);
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
-        <p className="text-sm text-muted">{t("company", { name: active.name })}</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
+          <p className="text-sm text-muted">{t("company", { name: active.name })}</p>
+        </div>
+        <Button asChild variant="outline" size="sm" className="shrink-0">
+          <Link href="/glance">{tGlance("open")} →</Link>
+        </Button>
       </div>
 
       {isAdmin && (

@@ -885,5 +885,13 @@
       "hasNpwp": "Memiliki NPWP",
       "noNpwp": "Tidak Memiliki NPWP (Dikenakan tarif pajak +20%)"
     }
+  },
+  "glance": {
+    "open": "Sekilas",
+    "asOf": "Per {time} WIB",
+    "latestPayroll": "Payroll terakhir",
+    "noPayroll": "Belum ada payroll",
+    "pendingLeave": "Cuti menunggu",
+    "recentRuns": "Payroll terbaru"
   }
 }
