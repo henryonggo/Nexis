@@ -52,19 +52,22 @@ export async function createDraftRun(
   const supabase = createClient();
   const { year, month, runType } = parsed.data;
 
-  // One draft/active run per period+type guard (idempotency at the UI layer; the
-  // DB has a uniqueness constraint as the real backstop — AC #6).
+  // One run per period — enforced by the DB uniqueness constraint
+  // (company_id, period_year, period_month). Fetch any existing row regardless
+  // of status so we reconcile with that constraint instead of blindly inserting.
   const { data: existing } = await supabase
     .from("payroll_runs")
     .select("id, status")
     .eq("company_id", active.id)
     .eq("period_year", year)
     .eq("period_month", month)
-    .not("status", "in", "(failed,cancelled)")
     .maybeSingle();
-  if (existing) {
+  // An active/finalized run already holds this period → just open it.
+  if (existing && existing.status !== "cancelled" && existing.status !== "failed") {
     redirect(`/payroll/${existing.id}`);
   }
+  // Otherwise `existing` (if any) is a cancelled/failed run we will reactivate
+  // below, reusing its row so the period's uniqueness constraint still holds.
 
   // Readiness gate (G7): refuse to draft while any active employee is missing
   // compensation, a tax profile, or a bank account — otherwise the engine would
@@ -83,19 +86,36 @@ export async function createDraftRun(
     plan: active.plan,
   });
 
+  const runFields = {
+    status: "draft" as const,
+    config_snapshot: preview.configSnapshot as Database["public"]["Tables"]["payroll_runs"]["Insert"]["config_snapshot"],
+    total_gross: preview.totals.gross,
+    total_bpjs_employee: preview.totals.bpjsEmployee,
+    total_bpjs_employer: preview.totals.bpjsEmployer,
+    total_pph21: preview.totals.pph21,
+    total_net: preview.totals.net,
+  };
+
+  // Reactivate a cancelled/failed run for this period instead of inserting a
+  // second row (the period is unique). Refreshes the snapshot + estimated
+  // totals so the reopened draft reflects current rates and employee data.
+  if (existing) {
+    const { error } = await supabase
+      .from("payroll_runs")
+      .update({ ...runFields, completed_at: null })
+      .eq("id", existing.id);
+    if (error) return { error: error.message };
+    revalidatePath("/payroll");
+    redirect(`/payroll/${existing.id}`);
+  }
+
   const { data: inserted, error } = await supabase
     .from("payroll_runs")
     .insert({
       company_id: active.id,
       period_year: year,
       period_month: month,
-      status: "draft",
-      config_snapshot: preview.configSnapshot as Database["public"]["Tables"]["payroll_runs"]["Insert"]["config_snapshot"],
-      total_gross: preview.totals.gross,
-      total_bpjs_employee: preview.totals.bpjsEmployee,
-      total_bpjs_employer: preview.totals.bpjsEmployer,
-      total_pph21: preview.totals.pph21,
-      total_net: preview.totals.net,
+      ...runFields,
     })
     .select("id")
     .single();
