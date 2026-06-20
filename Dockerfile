@@ -20,6 +20,7 @@ RUN pnpm install --frozen-lockfile
 
 # 3. Build the worker
 COPY --from=builder /app/out/full/ .
+COPY --from=builder /app/tsconfig.base.json ./tsconfig.base.json
 RUN pnpm turbo run build --filter=@nexis/payroll-worker...
 
 # 4. Final runner image
