@@ -1,0 +1,14 @@
+node_modules
+.next
+.turbo
+dist
+out
+.git
+.gemini
+.agents
+.claude
+apps/web/.next
+apps/mobile/.expo
+**/node_modules
+**/dist
+**/out
