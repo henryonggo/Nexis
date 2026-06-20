@@ -220,6 +220,38 @@ export async function markRunPaid(
   return {};
 }
 
+/**
+ * Reopen a cancelled or failed run back to draft so it can be reviewed and
+ * re-approved, reusing the same row (the period is unique per company). The
+ * estimated totals are left as-is; the worker recomputes authoritative figures
+ * on the next approval.
+ */
+export async function reopenRun(
+  _prev: RunActionState,
+  formData: FormData,
+): Promise<RunActionState> {
+  const runId = z.string().uuid().safeParse(formData.get("runId"));
+  if (!runId.success) return { error: "ID run tidak valid." };
+
+  const active = await getActiveCompany();
+  if (!active) return { error: "Tidak ada perusahaan aktif." };
+  if (!isAdmin(active.role)) return { error: "Hanya admin/pemilik yang dapat membuka kembali run." };
+
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("payroll_runs")
+    .update({ status: "draft", completed_at: null })
+    .eq("id", runId.data)
+    .eq("company_id", active.id)
+    .in("status", ["cancelled", "failed"]);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/payroll");
+  revalidatePath(`/payroll/${runId.data}`);
+  return {};
+}
+
 /** Cancel a run that has not been paid. */
 export async function cancelRun(
   _prev: RunActionState,
