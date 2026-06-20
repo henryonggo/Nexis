@@ -32,4 +32,4 @@ USER express
 
 COPY --from=installer /app .
 
-CMD ["node", "services/payroll-worker/dist/services/payroll-worker/src/index.js"]
+CMD ["node", "services/payroll-worker/dist/index.js"]
