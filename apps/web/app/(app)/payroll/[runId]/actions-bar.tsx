@@ -3,7 +3,7 @@
 import { useFormState } from "react-dom";
 import { useTranslations } from "next-intl";
 import type { Database } from "@nexis/types";
-import { approveRun, cancelRun, markRunPaid, type RunActionState } from "../actions";
+import { approveRun, cancelRun, markRunPaid, reopenRun, type RunActionState } from "../actions";
 import { SubmitButton } from "@/components/submit-button";
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
@@ -17,13 +17,15 @@ export function ActionBar({ runId, status }: { runId: string; status: Status }) 
   const [approveState, approve] = useFormState(approveRun, initial);
   const [paidState, markPaid] = useFormState(markRunPaid, initial);
   const [cancelState, cancel] = useFormState(cancelRun, initial);
-  const error = approveState.error ?? paidState.error ?? cancelState.error;
+  const [reopenState, reopen] = useFormState(reopenRun, initial);
+  const error = approveState.error ?? paidState.error ?? cancelState.error ?? reopenState.error;
 
   const canApprove = status === "draft";
   const canMarkPaid = status === "completed";
   const canCancel = status === "draft" || status === "queued" || status === "failed";
+  const canReopen = status === "cancelled" || status === "failed";
 
-  if (!canApprove && !canMarkPaid && !canCancel) return null;
+  if (!canApprove && !canMarkPaid && !canCancel && !canReopen) return null;
 
   return (
     <div className="space-y-2">
@@ -39,6 +41,12 @@ export function ActionBar({ runId, status }: { runId: string; status: Status }) 
           <form action={markPaid}>
             <input type="hidden" name="runId" value={runId} />
             <SubmitButton>{t("markPaid")}</SubmitButton>
+          </form>
+        )}
+        {canReopen && (
+          <form action={reopen}>
+            <input type="hidden" name="runId" value={runId} />
+            <SubmitButton>{t("reopen")}</SubmitButton>
           </form>
         )}
         {canCancel && (
