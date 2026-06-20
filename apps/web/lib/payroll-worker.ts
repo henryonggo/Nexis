@@ -1,33 +1,45 @@
 import "server-only";
 
+import { cloudTasksConfig, enqueueWorkerTask, type EnqueueResult } from "./cloud-tasks";
+
 /**
  * Trigger the payroll worker (`services/payroll-worker`) to process a queued run.
  *
  * The worker exposes `POST /process { runId }` and only acts on runs in
  * `queued`/`draft` (idempotent — re-triggering a run already processing/completed
- * is a no-op 409, which we treat as success). In production this enqueue should
- * go through GCP Cloud Tasks (retries, rate-limiting, OIDC auth to the private
- * Cloud Run URL); locally and by default we POST the worker URL directly, which
- * is the dev trigger path documented in services/payroll-worker/README.md.
+ * is a no-op 409, which we treat as success).
  *
- * Config (env):
+ * In production the worker is private (Cloud Run `--no-allow-unauthenticated`),
+ * so we enqueue a GCP Cloud Tasks task (durable retries + OIDC auth to the
+ * private URL; idempotency key = runId) instead of calling it inline — approval
+ * returns immediately and the platform handles delivery. When the queue isn't
+ * configured (local dev) we fall back to a direct POST to the worker URL, the
+ * dev trigger path documented in services/payroll-worker/README.md.
+ *
+ * Config (env): see ./cloud-tasks for the queue path, plus —
  *  - PAYROLL_WORKER_URL   base URL of the worker (default http://localhost:3001)
- *  - PAYROLL_WORKER_TOKEN optional bearer token (OIDC id-token) for a private
- *                         Cloud Run deployment.
+ *  - PAYROLL_WORKER_TOKEN optional bearer token for the direct-POST dev path.
  */
-export type EnqueueResult = { ok: true } | { ok: false; error: string };
+export type { EnqueueResult };
 
 const DEFAULT_WORKER_URL = "http://localhost:3001";
 const TRIGGER_TIMEOUT_MS = 10_000;
 
 export async function enqueuePayrollRun(runId: string): Promise<EnqueueResult> {
+  const config = cloudTasksConfig();
+  if (config) {
+    return enqueueWorkerTask({
+      config,
+      path: "/process",
+      body: { runId },
+      dedupeKey: `payroll-run-${runId}`,
+    });
+  }
+
+  // Local/dev fallback: no Cloud Tasks queue configured — POST the worker URL
+  // directly (services/payroll-worker/README.md).
   const base = (process.env.PAYROLL_WORKER_URL ?? DEFAULT_WORKER_URL).replace(/\/$/, "");
   const token = process.env.PAYROLL_WORKER_TOKEN;
-
-  // TODO(infra): when a Cloud Tasks queue is provisioned, enqueue a task here
-  // (idempotency key = runId) instead of calling the worker inline, so approval
-  // returns immediately and the platform handles retries. Antigravity owns the
-  // queue + worker IAM; this app only needs the queue name + worker URL.
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), TRIGGER_TIMEOUT_MS);

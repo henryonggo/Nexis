@@ -11,6 +11,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@google-cloud/tasks": "^6.2.0",
     "@hookform/resolvers": "^3.9.0",
     "@nexis/money": "workspace:*",
     "@nexis/payroll": "workspace:*",
