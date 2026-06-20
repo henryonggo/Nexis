@@ -22,7 +22,14 @@ export function ActionBar({ runId, status }: { runId: string; status: Status }) 
 
   const canApprove = status === "draft";
   const canMarkPaid = status === "completed";
-  const canCancel = status === "draft" || status === "queued" || status === "failed";
+  // Include "processing": if the worker dies mid-run (or never reaches it), the
+  // run would otherwise be stuck with no way to clear it. Cancelling lets the
+  // admin reopen to draft and re-approve.
+  const canCancel =
+    status === "draft" ||
+    status === "queued" ||
+    status === "processing" ||
+    status === "failed";
   const canReopen = status === "cancelled" || status === "failed";
 
   if (!canApprove && !canMarkPaid && !canCancel && !canReopen) return null;
