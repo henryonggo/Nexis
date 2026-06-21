@@ -4,6 +4,12 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import {
+  isStatutoryCode,
+  newTables,
+  resolveEmployeeDeductions,
+  statutoryEnrollment,
+} from "@/lib/deductions";
 
 const updateSchema = z.object({
   id: z.string().uuid(),
@@ -129,4 +135,95 @@ export async function updateEmployee(_prev: EditState, formData: FormData): Prom
   revalidatePath(`/employees/${d.id}`);
   revalidatePath("/employees");
   return { success: "Perubahan disimpan." };
+}
+
+/**
+ * Save which deductions apply to one employee: either assign them to a reusable
+ * group template, or pick deductions manually. The resolved statutory set is then
+ * mirrored onto the existing `compensation` enrollment booleans so the current
+ * payroll worker honors the selection immediately.
+ */
+export async function updateEmployeeDeductions(
+  _prev: EditState,
+  formData: FormData,
+): Promise<EditState> {
+  const employeeId = String(formData.get("employeeId") ?? "");
+  if (!employeeId) return { error: "Data tidak valid" };
+
+  const active = await getActiveCompany();
+  if (!active) return { error: "Tidak ada perusahaan aktif." };
+  if (active.role !== "owner" && active.role !== "admin") {
+    return { error: "Hanya pemilik/admin yang dapat mengubah potongan gaji." };
+  }
+
+  const supabase = createClient();
+  const db = newTables(supabase);
+  const mode = formData.get("mode") === "group" ? "group" : "manual";
+
+  if (mode === "group") {
+    const groupId = String(formData.get("groupId") ?? "");
+    if (!groupId) return { error: "Pilih grup potongan." };
+    // Group assignment is the source of truth → clear any manual selections.
+    await db.from("employee_deduction").delete().eq("company_id", active.id).eq("employee_id", employeeId);
+    const { error } = await db
+      .from("employee_deduction_group")
+      .upsert({ company_id: active.id, employee_id: employeeId, group_id: groupId }, { onConflict: "employee_id" });
+    if (error) return { error: error.message };
+  } else {
+    // Manual → clear any group assignment, then replace the per-employee rows.
+    await db.from("employee_deduction_group").delete().eq("company_id", active.id).eq("employee_id", employeeId);
+    await db.from("employee_deduction").delete().eq("company_id", active.id).eq("employee_id", employeeId);
+
+    const statutory = formData.getAll("statutory").map(String).filter(isStatutoryCode);
+    const customIds = formData.getAll("custom").map(String).filter(Boolean);
+    const rows = [
+      ...statutory.map((code) => ({
+        company_id: active.id,
+        employee_id: employeeId,
+        statutory_code: code,
+        custom_type_id: null,
+        enabled: true,
+      })),
+      ...customIds.map((id) => ({
+        company_id: active.id,
+        employee_id: employeeId,
+        statutory_code: null,
+        custom_type_id: id,
+        enabled: true,
+      })),
+    ];
+    if (rows.length > 0) {
+      const { error } = await db.from("employee_deduction").insert(rows);
+      if (error) return { error: error.message };
+    }
+  }
+
+  // Mirror the resolved statutory set onto the compensation enrollment booleans
+  // the worker already reads, so the statutory half takes effect immediately.
+  const resolved = await resolveEmployeeDeductions(supabase, active.id, employeeId);
+  const enr = statutoryEnrollment(resolved);
+  const { data: comp } = await supabase
+    .from("compensation")
+    .select("id")
+    .eq("employee_id", employeeId)
+    .order("effective_from", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (comp) {
+    await supabase
+      .from("compensation")
+      .update({
+        bpjs_kes_enrolled: enr.bpjs_kes_enrolled,
+        bpjs_tk_enrolled: enr.jht_enrolled || enr.jp_enrolled,
+        jht_enrolled: enr.jht_enrolled,
+        jp_enrolled: enr.jp_enrolled,
+        // TODO(db): also write pph21_enrolled once the column exists on
+        // `compensation` — until then PPh 21 selection lives only in the
+        // deduction config tables. — Antigravity
+      })
+      .eq("id", comp.id);
+  }
+
+  revalidatePath(`/employees/${employeeId}`);
+  return { success: "Potongan gaji disimpan." };
 }
