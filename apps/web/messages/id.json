@@ -33,6 +33,7 @@
     "claims": "Klaim",
     "payslips": "Slip Gaji",
     "loans": "Pinjaman",
+    "deductions": "Potongan",
     "payroll": "Penggajian",
     "performance": "Kinerja",
     "analytics": "Analitik",
@@ -425,6 +426,63 @@
     "downloadSelected": "Unduh terpilih ({count})",
     "notReady": "Belum siap",
     "downloadError": "Gagal menyiapkan unduhan."
+  },
+  "deductions": {
+    "title": "Potongan gaji",
+    "subtitle": "Pilih potongan yang berlaku untuk gaji karyawan dan manajer.",
+    "intro": "Tidak ada potongan secara default. Buat grup yang dapat dipakai ulang atau pilih potongan per orang, lalu terapkan di halaman tiap karyawan.",
+    "saved": "Tersimpan.",
+    "statutory": {
+      "bpjsKes": "BPJS Kesehatan",
+      "jht": "BPJS JHT (jaminan hari tua)",
+      "jp": "BPJS JP (jaminan pensiun)",
+      "pph21": "PPh 21 (pajak penghasilan)"
+    },
+    "custom": {
+      "heading": "Potongan kustom",
+      "hint": "Tentukan potongan Anda sendiri, mis. iuran koperasi, seragam, atau denda keterlambatan.",
+      "newHeading": "Tambah potongan kustom",
+      "name": "Nama",
+      "namePlaceholder": "mis. Iuran koperasi",
+      "calc": "Jenis",
+      "calcFixed": "Nominal tetap",
+      "calcPercent": "Persentase",
+      "amount": "Nominal (Rp)",
+      "rate": "Tarif (%)",
+      "base": "Dihitung dari",
+      "baseGross": "Gaji kotor",
+      "baseSalary": "Gaji pokok",
+      "create": "Tambah potongan",
+      "save": "Simpan potongan",
+      "delete": "Hapus"
+    },
+    "group": {
+      "heading": "Grup",
+      "hint": "Grup adalah kumpulan potongan yang dapat dipakai ulang. Terapkan ke karyawan di halaman mereka; mengubah grup memperbarui semua anggotanya.",
+      "newHeading": "Buat grup",
+      "name": "Nama grup",
+      "namePlaceholder": "mis. Karyawan tetap",
+      "description": "Deskripsi",
+      "statutory": "Potongan wajib",
+      "custom": "Potongan kustom",
+      "noCustom": "Belum ada potongan kustom — tambahkan dulu di atas.",
+      "itemCount": "{count} potongan",
+      "create": "Buat grup",
+      "save": "Simpan grup",
+      "delete": "Hapus grup"
+    },
+    "employee": {
+      "title": "Potongan gaji",
+      "subtitle": "Pilih potongan yang berlaku untuk orang ini. Tidak ada yang berlaku sebelum Anda memilihnya.",
+      "mode": {
+        "group": "Gunakan grup",
+        "manual": "Pilih manual"
+      },
+      "group": "Grup",
+      "noGroups": "Belum ada grup. Buat di halaman Potongan, atau pilih manual.",
+      "complianceWarning": "Perhatian: {list} wajib menurut hukum Indonesia dan saat ini nonaktif untuk karyawan ini.",
+      "save": "Simpan potongan"
+    }
   },
   "loans": {
     "title": "Pinjaman & Kasbon",

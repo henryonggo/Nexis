@@ -3,7 +3,13 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import {
+  listCustomDeductions,
+  listDeductionGroups,
+  resolveEmployeeDeductions,
+} from "@/lib/deductions";
 import { EditEmployeeForm } from "./form";
+import { EmployeeDeductionsForm } from "./deductions-form";
 
 export default async function EmployeeDetailPage({ params }: { params: { id: string } }) {
   const supabase = createClient();
@@ -52,6 +58,24 @@ export default async function EmployeeDetailPage({ params }: { params: { id: str
   const canEdit = active.role === "owner" || active.role === "admin";
   const t = await getTranslations("employees");
 
+  // Configurable deductions: groups + custom types for the picker, and the
+  // employee's currently resolved selection.
+  const [groups, customs, resolved] = await Promise.all([
+    listDeductionGroups(supabase, active.id),
+    listCustomDeductions(supabase, active.id),
+    resolveEmployeeDeductions(supabase, active.id, params.id),
+  ]);
+  const groupOptions = groups
+    .filter((g) => g.active)
+    .map((g) => ({ id: g.id, name: g.name, statutory: g.statutory }));
+  const customOptions = customs.filter((c) => c.active).map((c) => ({ id: c.id, name: c.name }));
+  const currentDeductions = {
+    source: resolved.source,
+    groupId: resolved.groupId,
+    statutory: resolved.items.filter((i) => i.statutoryCode).map((i) => i.statutoryCode!),
+    customIds: resolved.items.filter((i) => i.custom).map((i) => i.custom!.id),
+  };
+
   return (
     <div className="max-w-xl space-y-5">
       <div>
@@ -91,6 +115,14 @@ export default async function EmployeeDetailPage({ params }: { params: { id: str
         accountNo={bank?.account_no ?? ""}
         accountName={bank?.account_name ?? ""}
         coworkers={coworkers ?? []}
+      />
+
+      <EmployeeDeductionsForm
+        canEdit={canEdit}
+        employeeId={employee.id}
+        groups={groupOptions}
+        customs={customOptions}
+        current={currentDeductions}
       />
     </div>
   );

@@ -33,6 +33,7 @@
     "claims": "Claims",
     "payslips": "Payslips",
     "loans": "Loans",
+    "deductions": "Deductions",
     "payroll": "Payroll",
     "performance": "Performance",
     "analytics": "Analytics",
@@ -425,6 +426,63 @@
     "downloadSelected": "Download selected ({count})",
     "notReady": "Not ready",
     "downloadError": "Couldn't prepare the download."
+  },
+  "deductions": {
+    "title": "Salary deductions",
+    "subtitle": "Choose what reduces employee and manager pay.",
+    "intro": "Nothing is deducted by default. Build reusable groups or pick deductions per person, then assign them on each employee's page.",
+    "saved": "Saved.",
+    "statutory": {
+      "bpjsKes": "BPJS Kesehatan",
+      "jht": "BPJS JHT (old-age savings)",
+      "jp": "BPJS JP (pension)",
+      "pph21": "PPh 21 income tax"
+    },
+    "custom": {
+      "heading": "Custom deductions",
+      "hint": "Define your own deductions, e.g. cooperative dues, uniform, or late penalties.",
+      "newHeading": "Add a custom deduction",
+      "name": "Name",
+      "namePlaceholder": "e.g. Cooperative dues",
+      "calc": "Type",
+      "calcFixed": "Fixed amount",
+      "calcPercent": "Percentage",
+      "amount": "Amount (Rp)",
+      "rate": "Rate (%)",
+      "base": "Applied to",
+      "baseGross": "Gross pay",
+      "baseSalary": "Base salary",
+      "create": "Add deduction",
+      "save": "Save deduction",
+      "delete": "Remove"
+    },
+    "group": {
+      "heading": "Groups",
+      "hint": "A group is a reusable set of deductions. Assign people to it on their employee page; editing the group updates every member.",
+      "newHeading": "Create a group",
+      "name": "Group name",
+      "namePlaceholder": "e.g. Full-time staff",
+      "description": "Description",
+      "statutory": "Statutory deductions",
+      "custom": "Custom deductions",
+      "noCustom": "No custom deductions yet — add one above first.",
+      "itemCount": "{count} deductions",
+      "create": "Create group",
+      "save": "Save group",
+      "delete": "Delete group"
+    },
+    "employee": {
+      "title": "Salary deductions",
+      "subtitle": "Choose what applies to this person's pay. Nothing applies until you select it.",
+      "mode": {
+        "group": "Use a group",
+        "manual": "Choose manually"
+      },
+      "group": "Group",
+      "noGroups": "No groups yet. Create one on the Deductions page, or choose manually.",
+      "complianceWarning": "Heads up: {list} are legally required in Indonesia and are currently off for this employee.",
+      "save": "Save deductions"
+    }
   },
   "loans": {
     "title": "Loans & Advances",
