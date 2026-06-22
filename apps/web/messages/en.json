@@ -44,6 +44,7 @@
     "developer": "API",
     "members": "Members",
     "access": "Employee access",
+    "superadmin": "Platform admin",
     "profile": "My Profile",
     "settings": "Settings"
   },
@@ -427,6 +428,19 @@
     "downloadSelected": "Download selected ({count})",
     "notReady": "Not ready",
     "downloadError": "Couldn't prepare the download."
+  },
+  "superadmin": {
+    "title": "Platform admin",
+    "subtitle": "Comp any company with a full-access free pass.",
+    "intro": "A free pass moves a company to a comped Enterprise plan: no 5-employee limit and all paid features unlocked, at no charge. Toggle it per company below.",
+    "saved": "Saved.",
+    "empty": "No companies yet.",
+    "notConfigured": "Service-role access isn't configured in this environment (SUPABASE_SERVICE_ROLE_KEY). Cross-company actions are unavailable.",
+    "statusComped": "Free pass (comped enterprise)",
+    "planLabel": "Plan: {plan}",
+    "seats": "{count} active",
+    "grant": "Give free pass",
+    "revoke": "Revoke free pass"
   },
   "earnings": {
     "title": "Allowances & salary breakdown",

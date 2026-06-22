@@ -44,6 +44,7 @@
     "developer": "API",
     "members": "Anggota",
     "access": "Akses karyawan",
+    "superadmin": "Admin platform",
     "profile": "Profil Saya",
     "settings": "Pengaturan"
   },
@@ -427,6 +428,19 @@
     "downloadSelected": "Unduh terpilih ({count})",
     "notReady": "Belum siap",
     "downloadError": "Gagal menyiapkan unduhan."
+  },
+  "superadmin": {
+    "title": "Admin platform",
+    "subtitle": "Beri perusahaan mana pun akses penuh gratis (free pass).",
+    "intro": "Free pass memindahkan perusahaan ke paket Enterprise gratis: tanpa batas 5 karyawan dan semua fitur berbayar terbuka, tanpa biaya. Aktifkan per perusahaan di bawah.",
+    "saved": "Tersimpan.",
+    "empty": "Belum ada perusahaan.",
+    "notConfigured": "Akses service-role belum dikonfigurasi di lingkungan ini (SUPABASE_SERVICE_ROLE_KEY). Aksi lintas perusahaan tidak tersedia.",
+    "statusComped": "Free pass (enterprise gratis)",
+    "planLabel": "Paket: {plan}",
+    "seats": "{count} aktif",
+    "grant": "Beri free pass",
+    "revoke": "Cabut free pass"
   },
   "earnings": {
     "title": "Tunjangan & rincian gaji",

@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getMemberships, getActiveCompany } from "@/lib/company";
 import { getEmployeeAccess, ACCESS_NAV_FLAGS } from "@/lib/access";
+import { isSuperadminEmail } from "@/lib/superadmin";
 import { signOut } from "../(auth)/actions";
 import { CompanySwitcher } from "@/components/company-switcher";
 import { IdleTimeout } from "@/components/idle-timeout";
@@ -70,6 +71,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       const flag = ACCESS_NAV_FLAGS[item.key];
       return !flag || access[flag];
     });
+  }
+
+  // Platform superadmins (email allowlist, above tenancy) get the cross-company
+  // free-pass surface — appended regardless of their per-company role.
+  if (isSuperadminEmail(user.email)) {
+    navItems.push({ href: "/superadmin", key: "superadmin", label: t("superadmin") });
   }
 
   // Flat employees use the top item list; everyone else uses pillar groups.
