@@ -82,3 +82,31 @@ describe("Indonesian payroll engine", () => {
     expect(overtimeHourlyBase(3_460_000)).toBe(20_000);
   });
 });
+
+describe("computeEarnedBase — pay-frequency working-days model", () => {
+  it("monthly: returns the full monthly base regardless of days", async () => {
+    const { computeEarnedBase } = await import("./index");
+    expect(computeEarnedBase({ payFrequency: "monthly", monthlyBase: 5_000_000, daysWorked: 10 }))
+      .toBe(5_000_000);
+  });
+
+  it("daily: dailyRate × daysWorked (falls back to monthlyBase as the rate)", async () => {
+    const { computeEarnedBase } = await import("./index");
+    expect(computeEarnedBase({ payFrequency: "daily", monthlyBase: 150_000, daysWorked: 20 }))
+      .toBe(3_000_000);
+    expect(computeEarnedBase({ payFrequency: "daily", monthlyBase: 0, dailyRate: 200_000, daysWorked: 12 }))
+      .toBe(2_400_000);
+  });
+
+  it("mixed: monthlyBase + dailyRate × daysWorked (the two-box model)", async () => {
+    const { computeEarnedBase } = await import("./index");
+    expect(computeEarnedBase({ payFrequency: "mixed", monthlyBase: 2_000_000, dailyRate: 100_000, daysWorked: 15 }))
+      .toBe(3_500_000);
+  });
+
+  it("monthlyToDailyRate divides by the working-days figure", async () => {
+    const { monthlyToDailyRate } = await import("./index");
+    expect(monthlyToDailyRate(4_400_000, 22)).toBe(200_000);
+    expect(monthlyToDailyRate(1_000_000, 0)).toBe(0);
+  });
+});

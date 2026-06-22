@@ -4,8 +4,12 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { getActiveCompany } from "@/lib/company";
+import { newTables } from "@/lib/deductions";
 
 export type SettingsState = { error?: string };
+
+export type PayrollSettingsState = { error?: string; ok?: boolean };
 
 export type NotificationsState = { error?: string; ok?: boolean };
 
@@ -51,6 +55,50 @@ export async function updateNotifications(
   if (error) return { error: error.message };
 
   revalidatePath("/settings");
+  return { ok: true };
+}
+
+const payrollSettingsSchema = z.object({
+  // Days in the workweek (5 or 6) — drives the Saturday rest-day overtime rule.
+  workweekDays: z.coerce.number().int().min(5).max(7).default(5),
+  // Standard paid working days per month — the divisor/multiplier that converts
+  // between a monthly salary and a daily rate, and the expected days for daily pay.
+  workingDaysPerMonth: z.coerce.number().int().min(1).max(31).default(22),
+});
+
+/**
+ * Save company-level payroll/working-days settings. The working-days figure is
+ * how daily and "mixed" salaries are scaled. Owner/admin only.
+ *
+ * TODO(db): `company_settings.working_days_per_month int not null default 22` is
+ * not yet in the generated schema — the write is routed through the untyped cast
+ * until Antigravity lands the column. See docs/handoff/stage-07-salary-earnings.md.
+ */
+export async function updatePayrollSettings(
+  _prev: PayrollSettingsState,
+  formData: FormData,
+): Promise<PayrollSettingsState> {
+  const active = await getActiveCompany();
+  if (!active) redirect("/onboarding");
+  if (active.role !== "owner" && active.role !== "admin") {
+    return { error: "Hanya pemilik/admin yang dapat mengubah pengaturan payroll." };
+  }
+
+  const parsed = payrollSettingsSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Data tidak valid." };
+
+  const supabase = createClient();
+  const { error } = await newTables(supabase)
+    .from("company_settings")
+    .update({
+      workweek_days: parsed.data.workweekDays,
+      working_days_per_month: parsed.data.workingDaysPerMonth,
+    })
+    .eq("company_id", active.id);
+  if (error) return { error: error.message };
+
+  revalidatePath("/settings");
+  revalidatePath("/payroll", "layout");
   return { ok: true };
 }
 

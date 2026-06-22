@@ -33,6 +33,7 @@
     "claims": "Klaim",
     "payslips": "Slip Gaji",
     "loans": "Pinjaman",
+    "earnings": "Tunjangan",
     "deductions": "Potongan",
     "payroll": "Penggajian",
     "performance": "Kinerja",
@@ -43,6 +44,7 @@
     "developer": "API",
     "members": "Anggota",
     "access": "Akses karyawan",
+    "superadmin": "Admin platform",
     "profile": "Profil Saya",
     "settings": "Pengaturan"
   },
@@ -427,6 +429,72 @@
     "notReady": "Belum siap",
     "downloadError": "Gagal menyiapkan unduhan."
   },
+  "superadmin": {
+    "title": "Admin platform",
+    "subtitle": "Beri perusahaan mana pun akses penuh gratis (free pass).",
+    "intro": "Free pass memindahkan perusahaan ke paket Enterprise gratis: tanpa batas 5 karyawan dan semua fitur berbayar terbuka, tanpa biaya. Aktifkan per perusahaan di bawah.",
+    "saved": "Tersimpan.",
+    "empty": "Belum ada perusahaan.",
+    "notConfigured": "Akses service-role belum dikonfigurasi di lingkungan ini (SUPABASE_SERVICE_ROLE_KEY). Aksi lintas perusahaan tidak tersedia.",
+    "statusComped": "Free pass (enterprise gratis)",
+    "planLabel": "Paket: {plan}",
+    "seats": "{count} aktif",
+    "grant": "Beri free pass",
+    "revoke": "Cabut free pass"
+  },
+  "earnings": {
+    "title": "Tunjangan & rincian gaji",
+    "subtitle": "Pecah gaji menjadi gaji pokok plus komponen bernama (tunjangan).",
+    "intro": "Gaji pokok diatur di tiap karyawan. Di sini Anda mendefinisikan komponen tambahan — tunjangan makan, kendaraan, kompensasi PKWT, apa pun — sebagai tunjangan yang dapat dipakai ulang, lalu terapkan per orang atau ke seluruh grup.",
+    "saved": "Tersimpan.",
+    "custom": {
+      "heading": "Jenis tunjangan",
+      "hint": "Definisikan komponen Anda sendiri, mis. tunjangan makan, transport, atau kompensasi PKWT.",
+      "newHeading": "Tambah tunjangan",
+      "name": "Nama",
+      "namePlaceholder": "mis. Tunjangan transport",
+      "calc": "Tipe",
+      "calcFixed": "Nominal tetap",
+      "calcPercent": "Persentase",
+      "amount": "Nominal (Rp)",
+      "rate": "Tarif (%)",
+      "base": "Dihitung dari",
+      "baseGross": "Gaji kotor",
+      "baseSalary": "Gaji pokok",
+      "taxable": "Kena pajak (masuk gaji kotor kena pajak)",
+      "taxableHint": "Sebagian besar tunjangan kena pajak. Matikan hanya untuk komponen reimburse yang tidak kena pajak.",
+      "create": "Tambah tunjangan",
+      "save": "Simpan tunjangan",
+      "delete": "Hapus"
+    },
+    "group": {
+      "heading": "Grup tunjangan",
+      "hint": "Grup adalah kumpulan tunjangan yang dapat dipakai ulang. Terapkan ke karyawan di halaman mereka; mengubah grup memperbarui semua anggota.",
+      "newHeading": "Buat grup",
+      "name": "Nama grup",
+      "namePlaceholder": "mis. Paket staf lapangan",
+      "description": "Deskripsi",
+      "custom": "Tunjangan",
+      "noCustom": "Belum ada tunjangan — tambahkan di atas dulu.",
+      "itemCount": "{count} tunjangan",
+      "create": "Buat grup",
+      "save": "Simpan grup",
+      "delete": "Hapus grup"
+    },
+    "employee": {
+      "title": "Tunjangan",
+      "subtitle": "Pilih yang diterima orang ini di atas gaji pokok. Nominal bisa disesuaikan per orang.",
+      "mode": {
+        "group": "Pakai grup",
+        "manual": "Pilih manual"
+      },
+      "group": "Grup",
+      "noGroups": "Belum ada grup. Buat di halaman Tunjangan, atau pilih manual.",
+      "noCustom": "Belum ada tunjangan. Tambahkan di halaman Tunjangan dulu.",
+      "override": "Nominal untuk orang ini (Rp)",
+      "save": "Simpan tunjangan"
+    }
+  },
   "deductions": {
     "title": "Potongan gaji",
     "subtitle": "Pilih potongan yang berlaku untuk gaji karyawan dan manajer.",
@@ -559,6 +627,18 @@
       "payFrequency": "Frekuensi pembayaran",
       "payMonthly": "Bulanan",
       "payDaily": "Harian",
+      "payMixed": "Campuran (bulanan + harian)",
+      "payFrequencyHint": {
+        "monthly": "Gaji bulanan tetap, berapa pun hari kerjanya.",
+        "daily": "Dibayar per hari kerja: tarif harian × hari hadir (dibatasi hari kerja).",
+        "mixed": "Gaji pokok bulanan tetap DITAMBAH nominal per hari untuk hari yang dihadiri."
+      },
+      "monthlyBox": "Gaji bulanan (Rp)",
+      "dailyBox": "Tarif harian (Rp)",
+      "dailyBoxHint": "Dibayar untuk setiap hari kerja yang dihadiri dalam periode.",
+      "workingDaysOverride": "Hari kerja untuk karyawan ini",
+      "workingDaysOverridePlaceholder": "Pakai default perusahaan",
+      "workingDaysOverrideHint": "Paruh waktu: hari kerja mereka sendiri per bulan. Kosong = ikut pengaturan perusahaan.",
       "baseSalaryHint": "Untuk pembayaran harian, isi tarif per hari — payroll mengalikannya dengan jumlah hari hadir.",
       "phone": "Telepon",
       "bankSection": "Rekening bank",
@@ -763,6 +843,17 @@
     "title": "Pengaturan",
     "subtitle": "Kelola akun Anda.",
     "account": "Akun",
+    "payroll": {
+      "heading": "Penggajian & hari kerja",
+      "workweekDays": "Minggu kerja",
+      "workweek5": "5 hari (Sen–Jum)",
+      "workweek6": "6 hari (Sen–Sab)",
+      "workweekHint": "Menentukan aturan hari libur Sabtu untuk lembur.",
+      "workingDays": "Hari kerja per bulan",
+      "workingDaysHint": "Standar hari dibayar per bulan. Dipakai untuk menghitung gaji harian & campuran dan membatasi hari kerja.",
+      "save": "Simpan pengaturan penggajian",
+      "saved": "Pengaturan penggajian disimpan."
+    },
     "notifications": {
       "heading": "Notifikasi",
       "description": "Kelola cara kami menghubungi Anda.",

@@ -6,10 +6,17 @@ import { getActiveCompany } from "@/lib/company";
 import {
   listCustomDeductions,
   listDeductionGroups,
+  newTables,
   resolveEmployeeDeductions,
 } from "@/lib/deductions";
+import {
+  listCustomEarnings,
+  listEarningGroups,
+  resolveEmployeeEarnings,
+} from "@/lib/earnings";
 import { EditEmployeeForm } from "./form";
 import { EmployeeDeductionsForm } from "./deductions-form";
+import { EmployeeEarningsForm } from "./earnings-form";
 
 export default async function EmployeeDetailPage({ params }: { params: { id: string } }) {
   const supabase = createClient();
@@ -25,9 +32,11 @@ export default async function EmployeeDetailPage({ params }: { params: { id: str
 
   if (!employee) notFound();
 
-  const { data: comp } = await supabase
+  // `daily_rate` and `working_days_override` are not yet in the generated types
+  // (TODO(db)), so this read is routed through the untyped cast.
+  const { data: comp } = await newTables(supabase)
     .from("compensation")
-    .select("base_salary, payment_method, pay_frequency")
+    .select("base_salary, daily_rate, working_days_override, payment_method, pay_frequency")
     .eq("employee_id", params.id)
     .order("effective_from", { ascending: false })
     .limit(1)
@@ -76,6 +85,29 @@ export default async function EmployeeDetailPage({ params }: { params: { id: str
     customIds: resolved.items.filter((i) => i.custom).map((i) => i.custom!.id),
   };
 
+  // Configurable earnings (allowances): groups + custom types for the picker, and
+  // the employee's currently resolved selection (with per-person overrides).
+  const [earningGroups, earningCustoms, resolvedEarnings] = await Promise.all([
+    listEarningGroups(supabase, active.id),
+    listCustomEarnings(supabase, active.id),
+    resolveEmployeeEarnings(supabase, active.id, params.id),
+  ]);
+  const earningGroupOptions = earningGroups
+    .filter((g) => g.active)
+    .map((g) => ({ id: g.id, name: g.name }));
+  const earningCustomOptions = earningCustoms
+    .filter((c) => c.active)
+    .map((c) => ({ id: c.id, name: c.name, calc: c.calc, amount: c.amount }));
+  const selectedEarnings: Record<string, number | null> = {};
+  for (const item of resolvedEarnings.items) {
+    selectedEarnings[item.type.id] = item.amountOverride;
+  }
+  const currentEarnings = {
+    source: resolvedEarnings.source,
+    groupId: resolvedEarnings.groupId,
+    selected: selectedEarnings,
+  };
+
   return (
     <div className="max-w-xl space-y-5">
       <div>
@@ -107,14 +139,24 @@ export default async function EmployeeDetailPage({ params }: { params: { id: str
         canEdit={canEdit}
         employee={employee}
         baseSalary={comp?.base_salary ?? 0}
+        dailyRate={comp?.daily_rate ?? 0}
+        workingDaysOverride={comp?.working_days_override ?? null}
         paymentMethod={(comp?.payment_method as "cash" | "bank") ?? "cash"}
-        payFrequency={(comp?.pay_frequency as "monthly" | "daily") ?? "monthly"}
+        payFrequency={(comp?.pay_frequency as "monthly" | "daily" | "mixed") ?? "monthly"}
         ptkpStatus={tax?.ptkp_status ?? "TK/0"}
         npwp={tax?.npwp ?? ""}
         bankName={bank?.bank_name ?? ""}
         accountNo={bank?.account_no ?? ""}
         accountName={bank?.account_name ?? ""}
         coworkers={coworkers ?? []}
+      />
+
+      <EmployeeEarningsForm
+        canEdit={canEdit}
+        employeeId={employee.id}
+        groups={earningGroupOptions}
+        customs={earningCustomOptions}
+        current={currentEarnings}
       />
 
       <EmployeeDeductionsForm
