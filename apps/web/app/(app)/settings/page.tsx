@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 import { newTables } from "@/lib/deductions";
+import { normalizeWorkDays } from "@/lib/work-schedule";
 import { DeactivateSection } from "./deactivate-section";
 import { NotificationsForm } from "./notifications-form";
 import { PayrollSettingsForm } from "./payroll-settings-form";
@@ -30,7 +31,7 @@ export default async function SettingsPage() {
   const { data: companySettings } = canManageCompany
     ? await newTables(supabase)
         .from("company_settings")
-        .select("workweek_days, working_days_per_month")
+        .select("workweek_days, work_days")
         .eq("company_id", active!.id)
         .maybeSingle()
     : { data: null };
@@ -74,7 +75,7 @@ export default async function SettingsPage() {
           </h2>
           <PayrollSettingsForm
             workweekDays={companySettings?.workweek_days ?? 5}
-            workingDaysPerMonth={companySettings?.working_days_per_month ?? 22}
+            workDays={normalizeWorkDays(companySettings?.work_days)}
           />
         </section>
       )}

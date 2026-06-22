@@ -120,6 +120,7 @@ export function EmployeeEarningsForm({
         ) : (
           <fieldset className="space-y-2">
             <legend className="text-sm font-semibold text-ink">{t("group.custom")}</legend>
+            <p className="text-xs text-muted">{t("employee.overrideHint")}</p>
             {customs.length === 0 ? (
               <p className="text-xs text-muted">{t("employee.noCustom")}</p>
             ) : (

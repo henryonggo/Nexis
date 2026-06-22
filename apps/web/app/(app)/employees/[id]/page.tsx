@@ -14,9 +14,12 @@ import {
   listEarningGroups,
   resolveEmployeeEarnings,
 } from "@/lib/earnings";
+import { normalizeWorkDays } from "@/lib/work-schedule";
+import { listManualDeductions } from "@/lib/manual-deductions";
 import { EditEmployeeForm } from "./form";
 import { EmployeeDeductionsForm } from "./deductions-form";
 import { EmployeeEarningsForm } from "./earnings-form";
+import { ManualDeductionsForm } from "./manual-deductions-form";
 
 export default async function EmployeeDetailPage({ params }: { params: { id: string } }) {
   const supabase = createClient();
@@ -36,7 +39,7 @@ export default async function EmployeeDetailPage({ params }: { params: { id: str
   // (TODO(db)), so this read is routed through the untyped cast.
   const { data: comp } = await newTables(supabase)
     .from("compensation")
-    .select("base_salary, daily_rate, working_days_override, payment_method, pay_frequency")
+    .select("base_salary, daily_rate, work_days, payment_method, pay_frequency")
     .eq("employee_id", params.id)
     .order("effective_from", { ascending: false })
     .limit(1)
@@ -108,6 +111,10 @@ export default async function EmployeeDetailPage({ params }: { params: { id: str
     selected: selectedEarnings,
   };
 
+  // Manual/absence deductions recorded for this employee.
+  const manualDeductions = await listManualDeductions(supabase, active.id, params.id);
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(new Date());
+
   return (
     <div className="max-w-xl space-y-5">
       <div>
@@ -140,7 +147,7 @@ export default async function EmployeeDetailPage({ params }: { params: { id: str
         employee={employee}
         baseSalary={comp?.base_salary ?? 0}
         dailyRate={comp?.daily_rate ?? 0}
-        workingDaysOverride={comp?.working_days_override ?? null}
+        workDaysOverride={comp?.work_days ? normalizeWorkDays(comp.work_days) : null}
         paymentMethod={(comp?.payment_method as "cash" | "bank") ?? "cash"}
         payFrequency={(comp?.pay_frequency as "monthly" | "daily" | "mixed") ?? "monthly"}
         ptkpStatus={tax?.ptkp_status ?? "TK/0"}
@@ -165,6 +172,13 @@ export default async function EmployeeDetailPage({ params }: { params: { id: str
         groups={groupOptions}
         customs={customOptions}
         current={currentDeductions}
+      />
+
+      <ManualDeductionsForm
+        canEdit={canEdit}
+        employeeId={employee.id}
+        entries={manualDeductions}
+        today={today}
       />
     </div>
   );

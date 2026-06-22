@@ -26,6 +26,8 @@ import {
   type EarningLine,
 } from "./earnings";
 import { newTables } from "./deductions";
+import { normalizeWorkDays, expectedWorkdaysInMonth } from "./work-schedule";
+import { loadBulkManualDeductions, sumManualDeductionsForPeriod } from "./manual-deductions";
 
 export type RunType = "monthly" | "thr";
 
@@ -92,7 +94,8 @@ interface CompensationRow {
   pay_frequency: string;
   // New columns (TODO(db) — not yet in generated types). Read via untyped cast.
   daily_rate: number | null;
-  working_days_override: number | null;
+  /** Per-employee weekly schedule (ISO weekdays) or null to follow the company default. */
+  work_days: number[] | null;
   fixed_allowances: Database["public"]["Tables"]["compensation"]["Row"]["fixed_allowances"];
   bpjs_kes_enrolled: boolean;
   jht_enrolled: boolean;
@@ -117,8 +120,12 @@ export interface PreviewLine {
   baseSalary: Rupiah;
   /** Unique attendance days in the period for daily-paid employees; null if monthly. */
   daysWorked?: number | null;
+  /** Expected workdays this month per the employee's schedule (daily/mixed only). */
+  expectedDays?: number | null;
   /** Configurable earnings (allowances) resolved for this employee. */
   earnings?: EarningLine[];
+  /** Manual/absence deductions attributed to this period (subtracted from net). */
+  manualDeductions?: Rupiah;
   /** Present for monthly runs. */
   result?: PayrollResult;
   /** Present for THR runs. */
@@ -195,6 +202,7 @@ export async function computeRunPreview(
     { data: holidays },
     { data: attendanceRecords },
     bulkEarnings,
+    bulkManualDeductions,
   ] = await Promise.all([
       loadPayrollConfig(supabase, effectiveDate),
       supabase
@@ -203,16 +211,16 @@ export async function computeRunPreview(
         .eq("company_id", companyId)
         .eq("status", "active")
         .order("full_name", { ascending: true }),
-      // `working_days_per_month` is a new column (TODO(db)); read via untyped cast.
+      // `work_days` is a new column (TODO(db)); read via untyped cast.
       newTables(supabase)
         .from("company_settings")
-        .select("jkk_risk_class, region, workweek_days, working_days_per_month")
+        .select("jkk_risk_class, region, workweek_days, work_days")
         .eq("company_id", companyId)
         .maybeSingle(),
-      // `daily_rate` / `working_days_override` are new columns (TODO(db)); untyped cast.
+      // `daily_rate` / `work_days` are new columns (TODO(db)); untyped cast.
       newTables(supabase)
         .from("compensation")
-        .select("employee_id, base_salary, pay_frequency, daily_rate, working_days_override, fixed_allowances, bpjs_kes_enrolled, jht_enrolled, jp_enrolled, effective_from")
+        .select("employee_id, base_salary, pay_frequency, daily_rate, work_days, fixed_allowances, bpjs_kes_enrolled, jht_enrolled, jp_enrolled, effective_from")
         .eq("company_id", companyId),
       supabase
         .from("tax_profile")
@@ -246,6 +254,9 @@ export async function computeRunPreview(
       // Configurable earnings (allowances) for the whole company, resolved per
       // employee in memory below (group assignment wins, else manual rows).
       loadBulkEarnings(supabase, companyId),
+      // Manual/absence deductions, grouped by employee; the dated entries in this
+      // period are subtracted from net pay below.
+      loadBulkManualDeductions(supabase, companyId),
     ]);
 
   // Unique worked dates per employee (Asia/Jakarta), for daily-pay scaling.
@@ -266,9 +277,10 @@ export async function computeRunPreview(
   // Overtime inputs shared with the worker: approved entries grouped by employee,
   // the holiday set, and the company workweek (drives Saturday rest-day rule).
   const workweekDays = settings?.workweek_days ?? 5;
-  // Company-standard paid working days per month — the divisor/cap for daily &
-  // mixed pay (a per-employee `working_days_override` takes precedence below).
-  const companyWorkingDays = settings?.working_days_per_month ?? 22;
+  // Company default weekly schedule (ISO weekdays). A per-employee `work_days`
+  // override takes precedence below. The expected workdays in the run month are
+  // derived from this schedule and cap daily/mixed paid days.
+  const companyWorkDays = normalizeWorkDays(settings?.work_days);
   const holidayDates = new Set(
     ((holidays as { date: string }[] | null) ?? []).map((h) => h.date),
   );
@@ -386,12 +398,16 @@ export async function computeRunPreview(
       ? comp.pay_frequency
       : "monthly") as PayFrequency;
     const usesDays = frequency === "daily" || frequency === "mixed";
-    // Pay days are the attended days, capped at the employee's working-days schedule
-    // (their own override if set, else the company standard) so a daily/mixed
-    // employee is never paid for more than their agreed working days in a period.
+    // The employee's expected weekly schedule (own override, else company default)
+    // → expected workdays this month. Pay days are the attended days capped at the
+    // expected days, so a daily/mixed employee is never paid beyond their roster.
+    const schedule =
+      comp.work_days && comp.work_days.length > 0
+        ? normalizeWorkDays(comp.work_days)
+        : companyWorkDays;
+    const expectedDays = usesDays ? expectedWorkdaysInMonth(schedule, year, month) : 0;
     const attendedDays = usesDays ? daysWorkedByEmployee.get(emp.id)?.size ?? 0 : 0;
-    const effectiveWorkingDays = comp.working_days_override ?? companyWorkingDays;
-    const daysWorked = usesDays ? Math.min(attendedDays, effectiveWorkingDays) : null;
+    const daysWorked = usesDays ? Math.min(attendedDays, expectedDays) : null;
     const dailyRate = comp.daily_rate ?? baseSalary;
     const monthlyBase = frequency === "daily" ? 0 : baseSalary;
     const earnedBase = computeEarnedBase({
@@ -431,6 +447,18 @@ export async function computeRunPreview(
     };
     const result = computeMonthlyPayroll(input, config);
 
+    // Manual/absence deductions dated in this period reduce net pay.
+    const manualDeductions = sumManualDeductionsForPeriod(
+      bulkManualDeductions.get(emp.id),
+      effectiveDate,
+      periodEnd,
+    );
+    if (manualDeductions > 0 && attendedDays < expectedDays) {
+      warnings.push(
+        `Ada potongan absensi (${formatRupiah(manualDeductions)}) untuk periode ini.`,
+      );
+    }
+
     // UMR compares a monthly wage; only meaningful for fully monthly pay.
     if (frequency === "monthly" && umrAmount != null && baseSalary < umrAmount) {
       warnings.push(
@@ -446,7 +474,9 @@ export async function computeRunPreview(
       hasNpwp,
       baseSalary: earnedBase,
       daysWorked,
+      expectedDays: usesDays ? expectedDays : null,
       earnings,
+      manualDeductions,
       result,
       warnings,
     });
@@ -461,7 +491,7 @@ export async function computeRunPreview(
           line.result.bpjsKesEmployer + line.result.jhtEmployer + line.result.jpEmployer +
           line.result.jkkEmployer + line.result.jkmEmployer;
         acc.pph21 += line.result.pph21;
-        acc.net += line.result.netPay;
+        acc.net += line.result.netPay - (line.manualDeductions ?? 0);
       } else if (line.thrAmount) {
         acc.gross += line.thrAmount;
         acc.net += line.thrAmount;
