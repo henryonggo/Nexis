@@ -126,6 +126,60 @@ export function overtimeHourlyBase(monthlyWage: Rupiah): Rupiah {
 }
 
 // ───────────────────────────────────────────────────────────────────────────
+// Pay frequency → earned base salary (working-days model).
+// A company sets a standard working-days figure; daily-paid people earn per day
+// attended, and "mixed" people earn a fixed monthly base PLUS a per-day rate.
+// Pure + deterministic so the run preview (apps/web) and the worker (services)
+// agree to the rupiah. Conversions between monthly and daily go through the
+// working-days figure (monthly = daily × workingDays; daily = monthly ÷ workingDays).
+// ───────────────────────────────────────────────────────────────────────────
+
+export type PayFrequency = "monthly" | "daily" | "mixed";
+
+export interface EarnedBaseInput {
+  payFrequency: PayFrequency;
+  /** Monthly base salary (whole rupiah). Used by "monthly" and "mixed". */
+  monthlyBase: Rupiah;
+  /**
+   * Per-day rate (whole rupiah). Used by "mixed". For "daily", the daily rate is
+   * carried in `monthlyBase` (legacy: daily-paid `compensation.base_salary` is the
+   * daily rate) when `dailyRate` is omitted.
+   */
+  dailyRate?: Rupiah;
+  /** Unique days attended in the period (drives the per-day portion). */
+  daysWorked: number;
+}
+
+/**
+ * Base salary actually earned in a period, by pay frequency:
+ *  - `monthly` → the full monthly base (attendance affects nothing here).
+ *  - `daily`   → dailyRate × daysWorked (dailyRate defaults to monthlyBase for
+ *               backward compatibility with existing daily-paid records).
+ *  - `mixed`   → monthlyBase + dailyRate × daysWorked (the two-box model).
+ */
+export function computeEarnedBase(input: EarnedBaseInput): Rupiah {
+  const days = Math.max(0, input.daysWorked);
+  switch (input.payFrequency) {
+    case "monthly":
+      return toRupiah(input.monthlyBase);
+    case "daily": {
+      const rate = input.dailyRate ?? input.monthlyBase;
+      return toRupiah(rate * days);
+    }
+    case "mixed": {
+      const rate = input.dailyRate ?? 0;
+      return sum(input.monthlyBase, toRupiah(rate * days));
+    }
+  }
+}
+
+/** Daily rate implied by a monthly salary and the company's working-days figure. */
+export function monthlyToDailyRate(monthlyBase: Rupiah, workingDaysPerMonth: number): Rupiah {
+  if (workingDaysPerMonth <= 0) return 0;
+  return toRupiah(monthlyBase / workingDaysPerMonth);
+}
+
+// ───────────────────────────────────────────────────────────────────────────
 // Overtime pay (statutory multipliers — docs/05 §4). The multipliers are part of
 // the *method* (Kepmenaker / UU Cipta Kerja), like the 1/173 base above; only
 // the wage is variable input.

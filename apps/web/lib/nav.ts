@@ -11,6 +11,7 @@ import {
   ReceiptText,
   Landmark,
   Scissors,
+  Coins,
   FileDown,
   Wallet,
   Target,
@@ -36,6 +37,7 @@ export const ICONS: Record<string, LucideIcon> = {
   leave: CalendarDays,
   claims: ReceiptText,
   loans: Landmark,
+  earnings: Coins,
   deductions: Scissors,
   payslips: FileDown,
   payroll: Wallet,
@@ -62,7 +64,7 @@ export const PILLAR_ITEMS: Record<string, string[]> = {
   overview: ["dashboard", "analytics", "reports", "audit"],
   people: ["employees", "members"],
   operations: ["attendance", "leave", "performance"],
-  finance: ["payroll", "payslips", "claims", "loans", "deductions", "billing"],
+  finance: ["payroll", "payslips", "claims", "loans", "earnings", "deductions", "billing"],
   platform: ["access", "developer", "settings"],
 };
 
@@ -70,7 +72,7 @@ export function getActivePillar(pathname: string): string {
   if (pathname.startsWith("/dashboard") || pathname.startsWith("/analytics") || pathname.startsWith("/reports") || pathname.startsWith("/audit")) return "overview";
   if (pathname.startsWith("/employees") || pathname.startsWith("/members")) return "people";
   if (pathname.startsWith("/attendance") || pathname.startsWith("/leave") || pathname.startsWith("/performance")) return "operations";
-  if (pathname.startsWith("/payroll") || pathname.startsWith("/payslips") || pathname.startsWith("/claims") || pathname.startsWith("/loans") || pathname.startsWith("/deductions") || pathname.startsWith("/billing")) return "finance";
+  if (pathname.startsWith("/payroll") || pathname.startsWith("/payslips") || pathname.startsWith("/claims") || pathname.startsWith("/loans") || pathname.startsWith("/earnings") || pathname.startsWith("/deductions") || pathname.startsWith("/billing")) return "finance";
   if (pathname.startsWith("/developer") || pathname.startsWith("/settings")) return "platform";
   return "overview";
 }
