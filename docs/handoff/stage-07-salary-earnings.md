@@ -45,12 +45,23 @@ write; the per-employee read used by payroll readable by the worker/service cont
 
 ### 1. New columns on existing tables
 
+> **Updated model (replaces the earlier numeric working-days fields):** working
+> days are now a **weekly schedule** — the set of weekdays someone is expected to
+> work — stored as an `int[]` of ISO weekdays (**1 = Monday … 7 = Sunday**), not a
+> monthly count. Expected workdays in a month are derived by counting matching
+> dates (`apps/web/lib/work-schedule.ts`). If you already added
+> `working_days_per_month` / `working_days_override`, **drop them** for the arrays
+> below.
+
 | Table.column | type | notes |
 |---|---|---|
 | `compensation.daily_rate` | bigint not null default 0 | integer rupiah; daily portion of daily/mixed pay |
-| `compensation.working_days_override` | int check (working_days_override between 0 and 31) | nullable; part-timer's own working days/month |
-| `company_settings.working_days_per_month` | int not null default 22 check (between 1 and 31) | company standard paid days/month |
+| `compensation.work_days` | int[] (nullable) | per-employee weekly schedule, ISO weekdays 1–7; null = follow company default |
+| `company_settings.work_days` | int[] not null default `'{1,2,3,4,5}'` | company default weekly schedule (Mon–Fri) |
 | **`compensation.pay_frequency` check constraint** | widen to `in ('monthly','daily','mixed')` | currently only `monthly`/`daily` (see `20260619100000_daily_payroll_support.sql`) — **the app writes `mixed` and it will fail until this is widened** |
+
+Optionally add a check that `work_days` elements are within 1–7
+(`check (work_days <@ array[1,2,3,4,5,6,7])`).
 
 ### 2. Table `custom_earning_types`
 | column | type | notes |
@@ -87,7 +98,24 @@ employees on delete cascade, `custom_type_id` uuid not null →
 (amount_override >= 0) **nullable** (per-person fixed-amount override; null = use
 the type's amount), `enabled` boolean not null default true.
 
-### 7. `payroll_items` earnings breakdown (payslip itemization)
+### 7. Table `employee_manual_deduction` (ad-hoc / absence deductions)
+One-off per-employee deductions with a mandatory reason (e.g. an absence on an
+expected workday). Company-scoped, integer rupiah, RLS like the other tables.
+| column | type | notes |
+|---|---|---|
+| id | uuid pk default gen_random_uuid() | |
+| company_id | uuid not null → companies(id) on delete cascade | RLS |
+| employee_id | uuid not null → employees(id) on delete cascade | |
+| amount | bigint not null check (amount > 0) | integer rupiah |
+| reason | text not null | required; shown on record + payslip |
+| date | date | the day it applies to (e.g. missed workday); null = undated note |
+| created_by | uuid → profiles(id) | who recorded it |
+| created_at | timestamptz not null default now() | |
+
+The run subtracts the entries whose `date` falls in the run period (the preview in
+`apps/web/lib/payroll.ts` already does this via `sumManualDeductionsForPeriod`).
+
+### 8. `payroll_items` earnings breakdown (payslip itemization)
 Mirror the deduction itemization. Add a child table so payslips can show the
 breakdown seen in the example slip (Gaji, Transport Allowance, Kompensasi PKWT, …):
 ```
@@ -103,9 +131,11 @@ payroll_item_earnings(
 
 1. **Earned base** per employee via `computeEarnedBase` (already in `@nexis/payroll`):
    monthly → monthly base; daily → `daily_rate × daysWorked`; mixed →
-   `monthly + daily_rate × daysWorked`. Cap `daysWorked` at
-   `working_days_override ?? company_settings.working_days_per_month` (the preview
-   in `apps/web/lib/payroll.ts` does exactly this — keep them in lockstep).
+   `monthly + daily_rate × daysWorked`. Cap `daysWorked` at the **expected workdays
+   this month**, derived from the employee's `work_days` (else
+   `company_settings.work_days`) via `expectedWorkdaysInMonth` in
+   `apps/web/lib/work-schedule.ts` (the preview does exactly this — keep in lockstep).
+   Also subtract dated `employee_manual_deduction` rows that fall in the run period.
 2. **Resolve earnings** per employee using the rule in `lib/earnings.ts` (group
    assignment wins, else manual rows, else none). Add **taxable** earning lines to
    taxable gross; add **non-taxable** lines to net pay *after* tax. Write the

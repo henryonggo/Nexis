@@ -6,6 +6,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 import { newTables } from "@/lib/deductions";
+import { normalizeWorkDays } from "@/lib/work-schedule";
 
 export type SettingsState = { error?: string };
 
@@ -61,18 +62,18 @@ export async function updateNotifications(
 const payrollSettingsSchema = z.object({
   // Days in the workweek (5 or 6) — drives the Saturday rest-day overtime rule.
   workweekDays: z.coerce.number().int().min(5).max(7).default(5),
-  // Standard paid working days per month — the divisor/multiplier that converts
-  // between a monthly salary and a daily rate, and the expected days for daily pay.
-  workingDaysPerMonth: z.coerce.number().int().min(1).max(31).default(22),
 });
 
 /**
- * Save company-level payroll/working-days settings. The working-days figure is
- * how daily and "mixed" salaries are scaled. Owner/admin only.
+ * Save company-level payroll/working-days settings: the workweek length (for
+ * overtime) and the default weekly work schedule (which weekdays staff are
+ * expected to work), which scales daily/mixed pay and defines absences. Owner/
+ * admin only.
  *
- * TODO(db): `company_settings.working_days_per_month int not null default 22` is
- * not yet in the generated schema — the write is routed through the untyped cast
- * until Antigravity lands the column. See docs/handoff/stage-07-salary-earnings.md.
+ * TODO(db): `company_settings.work_days int[] not null default '{1,2,3,4,5}'`
+ * (ISO weekdays, 1=Mon…7=Sun) is not yet in the generated schema — the write is
+ * routed through the untyped cast until Antigravity lands the column. See
+ * docs/handoff/stage-07-salary-earnings.md.
  */
 export async function updatePayrollSettings(
   _prev: PayrollSettingsState,
@@ -87,12 +88,14 @@ export async function updatePayrollSettings(
   const parsed = payrollSettingsSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Data tidak valid." };
 
+  const workDays = normalizeWorkDays(formData.getAll("workDays").map((v) => Number(v)));
+
   const supabase = createClient();
   const { error } = await newTables(supabase)
     .from("company_settings")
     .update({
       workweek_days: parsed.data.workweekDays,
-      working_days_per_month: parsed.data.workingDaysPerMonth,
+      work_days: workDays,
     })
     .eq("company_id", active.id);
   if (error) return { error: error.message };

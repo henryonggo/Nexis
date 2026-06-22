@@ -5,6 +5,8 @@ import { useFormState } from "react-dom";
 import { useTranslations } from "next-intl";
 import { updateEmployee, type EditState } from "./actions";
 import { SubmitButton } from "@/components/submit-button";
+import { WeekdayPicker } from "@/components/weekday-picker";
+import { DEFAULT_WORK_DAYS } from "@/lib/work-schedule";
 import type { EmployeeRow } from "@nexis/types";
 import { Card } from "@/components/ui/card";
 import { Input, fieldClasses } from "@/components/ui/input";
@@ -21,7 +23,7 @@ export function EditEmployeeForm({
   employee,
   baseSalary,
   dailyRate,
-  workingDaysOverride,
+  workDaysOverride,
   paymentMethod,
   payFrequency,
   ptkpStatus,
@@ -35,7 +37,8 @@ export function EditEmployeeForm({
   employee: EmployeeRow;
   baseSalary: number;
   dailyRate: number;
-  workingDaysOverride: number | null;
+  /** Per-employee weekly schedule (ISO weekdays), or null to follow the company default. */
+  workDaysOverride: number[] | null;
   paymentMethod: "cash" | "bank";
   payFrequency: "monthly" | "daily" | "mixed";
   ptkpStatus: string;
@@ -49,6 +52,7 @@ export function EditEmployeeForm({
   const tc = useTranslations("common");
   const [state, action] = useFormState(updateEmployee, initial);
   const [frequency, setFrequency] = useState<"monthly" | "daily" | "mixed">(payFrequency);
+  const [customSchedule, setCustomSchedule] = useState(workDaysOverride != null);
   const disabled = !canEdit;
   const showMonthly = frequency === "monthly" || frequency === "mixed";
   const showDaily = frequency === "daily" || frequency === "mixed";
@@ -175,19 +179,28 @@ export function EditEmployeeForm({
         </div>
 
         {showDaily && (
-          <div className="space-y-1.5">
-            <Label htmlFor="workingDaysOverride">{t("form.workingDaysOverride")}</Label>
-            <Input
-              id="workingDaysOverride"
-              name="workingDaysOverride"
-              type="number"
-              min={0}
-              max={31}
-              defaultValue={workingDaysOverride ?? ""}
-              placeholder={t("form.workingDaysOverridePlaceholder")}
-              disabled={disabled}
-            />
-            <p className="text-xs text-muted">{t("form.workingDaysOverrideHint")}</p>
+          <div className="space-y-2">
+            <Label>{t("form.workScheduleTitle")}</Label>
+            <label className="flex items-center gap-2 text-sm text-ink">
+              <input
+                type="checkbox"
+                name="customSchedule"
+                checked={customSchedule}
+                onChange={(e) => setCustomSchedule(e.target.checked)}
+                disabled={disabled}
+                className="h-4 w-4 accent-brand"
+              />
+              {t("form.workScheduleCustom")}
+            </label>
+            {customSchedule ? (
+              <WeekdayPicker
+                name="workDays"
+                defaultSelected={workDaysOverride ?? DEFAULT_WORK_DAYS}
+                disabled={disabled}
+              />
+            ) : (
+              <p className="text-xs text-muted">{t("form.workScheduleDefaultHint")}</p>
+            )}
           </div>
         )}
         <div className="space-y-1.5">
