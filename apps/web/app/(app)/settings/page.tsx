@@ -1,7 +1,10 @@
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
+import { getActiveCompany } from "@/lib/company";
+import { newTables } from "@/lib/deductions";
 import { DeactivateSection } from "./deactivate-section";
 import { NotificationsForm } from "./notifications-form";
+import { PayrollSettingsForm } from "./payroll-settings-form";
 import { ThemeSettingsForm } from "./theme-settings-form";
 import { Card } from "@/components/ui/card";
 
@@ -19,6 +22,18 @@ export default async function SettingsPage() {
     .select("phone, whatsapp_opt_in")
     .eq("id", user?.id ?? "")
     .maybeSingle();
+
+  // Company-level payroll settings (owner/admin only). `working_days_per_month`
+  // is not yet in the generated types (TODO(db)), so the read uses the untyped cast.
+  const active = await getActiveCompany();
+  const canManageCompany = active?.role === "owner" || active?.role === "admin";
+  const { data: companySettings } = canManageCompany
+    ? await newTables(supabase)
+        .from("company_settings")
+        .select("workweek_days, working_days_per_month")
+        .eq("company_id", active!.id)
+        .maybeSingle()
+    : { data: null };
 
   return (
     <div className="max-w-xl space-y-6">
@@ -51,6 +66,18 @@ export default async function SettingsPage() {
           defaultOptIn={prefs?.whatsapp_opt_in ?? false}
         />
       </section>
+
+      {canManageCompany && (
+        <section className="space-y-2">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
+            {t("payroll.heading")}
+          </h2>
+          <PayrollSettingsForm
+            workweekDays={companySettings?.workweek_days ?? 5}
+            workingDaysPerMonth={companySettings?.working_days_per_month ?? 22}
+          />
+        </section>
+      )}
 
       <section className="space-y-2">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t("dangerZone")}</h2>

@@ -33,6 +33,7 @@
     "claims": "Claims",
     "payslips": "Payslips",
     "loans": "Loans",
+    "earnings": "Allowances",
     "deductions": "Deductions",
     "payroll": "Payroll",
     "performance": "Performance",
@@ -43,6 +44,7 @@
     "developer": "API",
     "members": "Members",
     "access": "Employee access",
+    "superadmin": "Platform admin",
     "profile": "My Profile",
     "settings": "Settings"
   },
@@ -427,6 +429,72 @@
     "notReady": "Not ready",
     "downloadError": "Couldn't prepare the download."
   },
+  "superadmin": {
+    "title": "Platform admin",
+    "subtitle": "Comp any company with a full-access free pass.",
+    "intro": "A free pass moves a company to a comped Enterprise plan: no 5-employee limit and all paid features unlocked, at no charge. Toggle it per company below.",
+    "saved": "Saved.",
+    "empty": "No companies yet.",
+    "notConfigured": "Service-role access isn't configured in this environment (SUPABASE_SERVICE_ROLE_KEY). Cross-company actions are unavailable.",
+    "statusComped": "Free pass (comped enterprise)",
+    "planLabel": "Plan: {plan}",
+    "seats": "{count} active",
+    "grant": "Give free pass",
+    "revoke": "Revoke free pass"
+  },
+  "earnings": {
+    "title": "Allowances & salary breakdown",
+    "subtitle": "Break a salary into base pay plus named components (tunjangan).",
+    "intro": "Base salary (gaji pokok) is set on each employee. Here you define extra components — meal, transport, PKWT compensation, anything — as reusable allowances, then assign them per person or to a whole group.",
+    "saved": "Saved.",
+    "custom": {
+      "heading": "Allowance types",
+      "hint": "Define your own components, e.g. meal allowance, transport, or PKWT compensation.",
+      "newHeading": "Add an allowance",
+      "name": "Name",
+      "namePlaceholder": "e.g. Transport allowance",
+      "calc": "Type",
+      "calcFixed": "Fixed amount",
+      "calcPercent": "Percentage",
+      "amount": "Amount (Rp)",
+      "rate": "Rate (%)",
+      "base": "Applied to",
+      "baseGross": "Gross pay",
+      "baseSalary": "Base salary",
+      "taxable": "Taxable (counts toward taxable gross)",
+      "taxableHint": "Most allowances are taxable. Turn off only for non-taxable reimbursive components.",
+      "create": "Add allowance",
+      "save": "Save allowance",
+      "delete": "Remove"
+    },
+    "group": {
+      "heading": "Allowance groups",
+      "hint": "A group is a reusable set of allowances. Assign people to it on their employee page; editing the group updates every member.",
+      "newHeading": "Create a group",
+      "name": "Group name",
+      "namePlaceholder": "e.g. Field staff package",
+      "description": "Description",
+      "custom": "Allowances",
+      "noCustom": "No allowances yet — add one above first.",
+      "itemCount": "{count} allowances",
+      "create": "Create group",
+      "save": "Save group",
+      "delete": "Delete group"
+    },
+    "employee": {
+      "title": "Allowances",
+      "subtitle": "Choose what this person earns on top of base pay. Amounts can be adjusted per person.",
+      "mode": {
+        "group": "Use a group",
+        "manual": "Choose manually"
+      },
+      "group": "Group",
+      "noGroups": "No groups yet. Create one on the Allowances page, or choose manually.",
+      "noCustom": "No allowances defined yet. Add them on the Allowances page first.",
+      "override": "Amount for this person (Rp)",
+      "save": "Save allowances"
+    }
+  },
   "deductions": {
     "title": "Salary deductions",
     "subtitle": "Choose what reduces employee and manager pay.",
@@ -559,6 +627,18 @@
       "payFrequency": "Pay frequency",
       "payMonthly": "Monthly",
       "payDaily": "Daily",
+      "payMixed": "Mixed (monthly + daily)",
+      "payFrequencyHint": {
+        "monthly": "A fixed monthly salary, regardless of days worked.",
+        "daily": "Paid per day worked: daily rate × attendance days (capped at working days).",
+        "mixed": "A fixed monthly base PLUS a per-day amount for days worked."
+      },
+      "monthlyBox": "Monthly salary (Rp)",
+      "dailyBox": "Daily rate (Rp)",
+      "dailyBoxHint": "Paid for each working day attended in the period.",
+      "workingDaysOverride": "Working days for this employee",
+      "workingDaysOverridePlaceholder": "Use company default",
+      "workingDaysOverrideHint": "Part-timers: their own working days per month. Blank uses the company setting.",
       "baseSalaryHint": "For daily pay, enter the daily rate — payroll multiplies it by attendance days.",
       "phone": "Phone",
       "bankSection": "Bank account",
@@ -763,6 +843,17 @@
     "title": "Settings",
     "subtitle": "Manage your account.",
     "account": "Account",
+    "payroll": {
+      "heading": "Payroll & working days",
+      "workweekDays": "Workweek",
+      "workweek5": "5 days (Mon–Fri)",
+      "workweek6": "6 days (Mon–Sat)",
+      "workweekHint": "Drives the Saturday rest-day rule for overtime.",
+      "workingDays": "Working days per month",
+      "workingDaysHint": "Standard paid days per month. Used to scale daily & mixed salaries and cap days worked.",
+      "save": "Save payroll settings",
+      "saved": "Payroll settings saved."
+    },
     "notifications": {
       "heading": "Notifications",
       "description": "Manage how we reach you.",

@@ -5,17 +5,27 @@ import type { Database } from "@nexis/types";
 import { formatRupiah, type Rupiah } from "@nexis/money";
 import {
   buildPayrollConfig,
+  computeEarnedBase,
   computeMonthlyPayroll,
   computeOvertimePayFromEntries,
   computeThr,
   ptkpCategory,
   type EmployeePayrollInput,
   type JkkRiskClass,
+  type PayFrequency,
   type PayrollConfig,
   type PayrollResult,
   type PtkpStatus,
   type TerCategory,
 } from "@nexis/payroll";
+import {
+  computeEarningLines,
+  loadBulkEarnings,
+  resolveFromBulk,
+  sumTaxableEarnings,
+  type EarningLine,
+} from "./earnings";
+import { newTables } from "./deductions";
 
 export type RunType = "monthly" | "thr";
 
@@ -80,6 +90,9 @@ interface CompensationRow {
   employee_id: string;
   base_salary: number;
   pay_frequency: string;
+  // New columns (TODO(db) — not yet in generated types). Read via untyped cast.
+  daily_rate: number | null;
+  working_days_override: number | null;
   fixed_allowances: Database["public"]["Tables"]["compensation"]["Row"]["fixed_allowances"];
   bpjs_kes_enrolled: boolean;
   jht_enrolled: boolean;
@@ -104,6 +117,8 @@ export interface PreviewLine {
   baseSalary: Rupiah;
   /** Unique attendance days in the period for daily-paid employees; null if monthly. */
   daysWorked?: number | null;
+  /** Configurable earnings (allowances) resolved for this employee. */
+  earnings?: EarningLine[];
   /** Present for monthly runs. */
   result?: PayrollResult;
   /** Present for THR runs. */
@@ -179,6 +194,7 @@ export async function computeRunPreview(
     { data: overtimeEntries },
     { data: holidays },
     { data: attendanceRecords },
+    bulkEarnings,
   ] = await Promise.all([
       loadPayrollConfig(supabase, effectiveDate),
       supabase
@@ -187,14 +203,16 @@ export async function computeRunPreview(
         .eq("company_id", companyId)
         .eq("status", "active")
         .order("full_name", { ascending: true }),
-      supabase
+      // `working_days_per_month` is a new column (TODO(db)); read via untyped cast.
+      newTables(supabase)
         .from("company_settings")
-        .select("jkk_risk_class, region, workweek_days")
+        .select("jkk_risk_class, region, workweek_days, working_days_per_month")
         .eq("company_id", companyId)
         .maybeSingle(),
-      supabase
+      // `daily_rate` / `working_days_override` are new columns (TODO(db)); untyped cast.
+      newTables(supabase)
         .from("compensation")
-        .select("employee_id, base_salary, pay_frequency, fixed_allowances, bpjs_kes_enrolled, jht_enrolled, jp_enrolled, effective_from")
+        .select("employee_id, base_salary, pay_frequency, daily_rate, working_days_override, fixed_allowances, bpjs_kes_enrolled, jht_enrolled, jp_enrolled, effective_from")
         .eq("company_id", companyId),
       supabase
         .from("tax_profile")
@@ -225,6 +243,9 @@ export async function computeRunPreview(
         .eq("company_id", companyId)
         .gte("event_at", `${effectiveDate}T00:00:00Z`)
         .lte("event_at", `${periodEnd}T23:59:59Z`),
+      // Configurable earnings (allowances) for the whole company, resolved per
+      // employee in memory below (group assignment wins, else manual rows).
+      loadBulkEarnings(supabase, companyId),
     ]);
 
   // Unique worked dates per employee (Asia/Jakarta), for daily-pay scaling.
@@ -245,6 +266,9 @@ export async function computeRunPreview(
   // Overtime inputs shared with the worker: approved entries grouped by employee,
   // the holiday set, and the company workweek (drives Saturday rest-day rule).
   const workweekDays = settings?.workweek_days ?? 5;
+  // Company-standard paid working days per month — the divisor/cap for daily &
+  // mixed pay (a per-employee `working_days_override` takes precedence below).
+  const companyWorkingDays = settings?.working_days_per_month ?? 22;
   const holidayDates = new Set(
     ((holidays as { date: string }[] | null) ?? []).map((h) => h.date),
   );
@@ -353,18 +377,45 @@ export async function computeRunPreview(
       continue;
     }
 
-    // Daily-paid employees: base_salary is the daily rate; the earned base is
-    // rate × unique attendance days in the period (mirrors the payroll worker).
-    const isDaily = comp.pay_frequency === "daily";
-    const daysWorked = isDaily ? daysWorkedByEmployee.get(emp.id)?.size ?? 0 : null;
-    const earnedBase = isDaily ? baseSalary * (daysWorked ?? 0) : baseSalary;
-    if (isDaily && daysWorked === 0) {
-      warnings.push("Belum ada kehadiran tercatat periode ini — gaji harian dihitung 0.");
+    // Earned base by pay frequency (working-days model):
+    //  - monthly → full monthly base.
+    //  - daily   → daily rate × unique attendance days.
+    //  - mixed   → monthly base + daily rate × unique attendance days.
+    // The daily rate is `daily_rate` when set, else `base_salary` (legacy daily).
+    const frequency = (["monthly", "daily", "mixed"].includes(comp.pay_frequency)
+      ? comp.pay_frequency
+      : "monthly") as PayFrequency;
+    const usesDays = frequency === "daily" || frequency === "mixed";
+    // Pay days are the attended days, capped at the employee's working-days schedule
+    // (their own override if set, else the company standard) so a daily/mixed
+    // employee is never paid for more than their agreed working days in a period.
+    const attendedDays = usesDays ? daysWorkedByEmployee.get(emp.id)?.size ?? 0 : 0;
+    const effectiveWorkingDays = comp.working_days_override ?? companyWorkingDays;
+    const daysWorked = usesDays ? Math.min(attendedDays, effectiveWorkingDays) : null;
+    const dailyRate = comp.daily_rate ?? baseSalary;
+    const monthlyBase = frequency === "daily" ? 0 : baseSalary;
+    const earnedBase = computeEarnedBase({
+      payFrequency: frequency,
+      monthlyBase,
+      dailyRate,
+      daysWorked: daysWorked ?? 0,
+    });
+    if (usesDays && daysWorked === 0) {
+      warnings.push("Belum ada kehadiran tercatat periode ini — porsi harian dihitung 0.");
     }
+
+    // Configurable earnings (allowances): resolved set → rupiah lines. Taxable
+    // lines flow into gross via fixedAllowances; the worker adds any non-taxable
+    // lines post-tax (TODO handoff). Percentage earnings use the earned base.
+    const earnings = computeEarningLines(resolveFromBulk(bulkEarnings, emp.id), {
+      gross: earnedBase + sumFixedAllowances(comp.fixed_allowances),
+      baseSalary: earnedBase,
+    });
+    const fixedAllowances = sumFixedAllowances(comp.fixed_allowances) + sumTaxableEarnings(earnings);
 
     const input: EmployeePayrollInput = {
       baseSalary: earnedBase,
-      fixedAllowances: sumFixedAllowances(comp.fixed_allowances),
+      fixedAllowances,
       overtimePay: computeOvertimePayFromEntries({
         entries: otByEmployee.get(emp.id) ?? [],
         monthlyWage: baseSalary,
@@ -380,8 +431,8 @@ export async function computeRunPreview(
     };
     const result = computeMonthlyPayroll(input, config);
 
-    // UMR compares a monthly wage; for daily pay the daily rate isn't comparable.
-    if (!isDaily && umrAmount != null && baseSalary < umrAmount) {
+    // UMR compares a monthly wage; only meaningful for fully monthly pay.
+    if (frequency === "monthly" && umrAmount != null && baseSalary < umrAmount) {
       warnings.push(
         `Gaji pokok di bawah UMR ${region} (${formatRupiah(umrAmount)}).`,
       );
@@ -395,6 +446,7 @@ export async function computeRunPreview(
       hasNpwp,
       baseSalary: earnedBase,
       daysWorked,
+      earnings,
       result,
       warnings,
     });

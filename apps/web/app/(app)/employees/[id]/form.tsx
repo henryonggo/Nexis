@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useFormState } from "react-dom";
 import { useTranslations } from "next-intl";
 import { updateEmployee, type EditState } from "./actions";
@@ -19,6 +20,8 @@ export function EditEmployeeForm({
   canEdit,
   employee,
   baseSalary,
+  dailyRate,
+  workingDaysOverride,
   paymentMethod,
   payFrequency,
   ptkpStatus,
@@ -31,8 +34,10 @@ export function EditEmployeeForm({
   canEdit: boolean;
   employee: EmployeeRow;
   baseSalary: number;
+  dailyRate: number;
+  workingDaysOverride: number | null;
   paymentMethod: "cash" | "bank";
-  payFrequency: "monthly" | "daily";
+  payFrequency: "monthly" | "daily" | "mixed";
   ptkpStatus: string;
   npwp: string;
   bankName: string;
@@ -43,7 +48,10 @@ export function EditEmployeeForm({
   const t = useTranslations("employees");
   const tc = useTranslations("common");
   const [state, action] = useFormState(updateEmployee, initial);
+  const [frequency, setFrequency] = useState<"monthly" | "daily" | "mixed">(payFrequency);
   const disabled = !canEdit;
+  const showMonthly = frequency === "monthly" || frequency === "mixed";
+  const showDaily = frequency === "daily" || frequency === "mixed";
 
   return (
     <Card className="max-w-xl p-8">
@@ -131,20 +139,57 @@ export function EditEmployeeForm({
         <Separator />
         <p className="text-sm font-semibold text-ink">{t("form.payTaxSection")}</p>
 
+        <div className="space-y-1.5">
+          <Label htmlFor="payFrequency">{t("form.payFrequency")}</Label>
+          <select
+            id="payFrequency"
+            name="payFrequency"
+            className={fieldClasses}
+            value={frequency}
+            onChange={(e) => setFrequency(e.target.value as "monthly" | "daily" | "mixed")}
+            disabled={disabled}
+          >
+            <option value="monthly">{t("form.payMonthly")}</option>
+            <option value="daily">{t("form.payDaily")}</option>
+            <option value="mixed">{t("form.payMixed")}</option>
+          </select>
+          <p className="text-xs text-muted">{t(`form.payFrequencyHint.${frequency}`)}</p>
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="payFrequency">{t("form.payFrequency")}</Label>
-            <select id="payFrequency" name="payFrequency" className={fieldClasses} defaultValue={payFrequency} disabled={disabled}>
-              <option value="monthly">{t("form.payMonthly")}</option>
-              <option value="daily">{t("form.payDaily")}</option>
-            </select>
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="baseSalary">{t("form.baseSalaryEdit")}</Label>
+          {/* Monthly base box — shown for monthly & mixed. Kept mounted (hidden)
+              for daily so the field always submits a value. */}
+          <div className={`space-y-1.5 ${showMonthly ? "" : "hidden"}`}>
+            <Label htmlFor="baseSalary">
+              {frequency === "mixed" ? t("form.monthlyBox") : t("form.baseSalaryEdit")}
+            </Label>
             <Input id="baseSalary" name="baseSalary" type="number" min={0} step={1000} defaultValue={baseSalary} disabled={disabled} />
             <p className="text-xs text-muted">{t("form.baseSalaryHint")}</p>
           </div>
+          {/* Daily rate box — shown for daily & mixed (the second box of "mixed"). */}
+          <div className={`space-y-1.5 ${showDaily ? "" : "hidden"}`}>
+            <Label htmlFor="dailyRate">{t("form.dailyBox")}</Label>
+            <Input id="dailyRate" name="dailyRate" type="number" min={0} step={1000} defaultValue={dailyRate} disabled={disabled} />
+            <p className="text-xs text-muted">{t("form.dailyBoxHint")}</p>
+          </div>
         </div>
+
+        {showDaily && (
+          <div className="space-y-1.5">
+            <Label htmlFor="workingDaysOverride">{t("form.workingDaysOverride")}</Label>
+            <Input
+              id="workingDaysOverride"
+              name="workingDaysOverride"
+              type="number"
+              min={0}
+              max={31}
+              defaultValue={workingDaysOverride ?? ""}
+              placeholder={t("form.workingDaysOverridePlaceholder")}
+              disabled={disabled}
+            />
+            <p className="text-xs text-muted">{t("form.workingDaysOverrideHint")}</p>
+          </div>
+        )}
         <div className="space-y-1.5">
           <Label htmlFor="ptkpStatus">{t("form.ptkpStatus")}</Label>
           <select id="ptkpStatus" name="ptkpStatus" className={fieldClasses} defaultValue={ptkpStatus} disabled={disabled}>
