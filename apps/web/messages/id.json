@@ -429,6 +429,27 @@
     "notReady": "Belum siap",
     "downloadError": "Gagal menyiapkan unduhan."
   },
+  "weekdays": {
+    "mon": "Sen",
+    "tue": "Sel",
+    "wed": "Rab",
+    "thu": "Kam",
+    "fri": "Jum",
+    "sat": "Sab",
+    "sun": "Min"
+  },
+  "manualDeductions": {
+    "title": "Potongan manual",
+    "subtitle": "Catat potongan sekali (mis. absen). Setiap potongan butuh alasan dan dikurangi pada periode payroll yang sesuai.",
+    "amount": "Nominal (Rp)",
+    "date": "Tanggal",
+    "reason": "Alasan",
+    "reasonPlaceholder": "mis. Absen tanpa kabar tanggal 12",
+    "reasonHint": "Wajib — menjelaskan potongan pada catatan dan slip gaji.",
+    "add": "Tambah potongan",
+    "remove": "Hapus",
+    "noDate": "Tanpa tanggal"
+  },
   "superadmin": {
     "title": "Admin platform",
     "subtitle": "Beri perusahaan mana pun akses penuh gratis (free pass).",
@@ -456,7 +477,7 @@
       "calc": "Tipe",
       "calcFixed": "Nominal tetap",
       "calcPercent": "Persentase",
-      "amount": "Nominal (Rp)",
+      "amount": "Nominal default (Rp)",
       "rate": "Tarif (%)",
       "base": "Dihitung dari",
       "baseGross": "Gaji kotor",
@@ -492,6 +513,7 @@
       "noGroups": "Belum ada grup. Buat di halaman Tunjangan, atau pilih manual.",
       "noCustom": "Belum ada tunjangan. Tambahkan di halaman Tunjangan dulu.",
       "override": "Nominal untuk orang ini (Rp)",
+      "overrideHint": "Nominal mengikuti default dari halaman Tunjangan tetapi diatur per orang di sini — tiap karyawan bisa berbeda.",
       "save": "Simpan tunjangan"
     }
   },
@@ -636,9 +658,9 @@
       "monthlyBox": "Gaji bulanan (Rp)",
       "dailyBox": "Tarif harian (Rp)",
       "dailyBoxHint": "Dibayar untuk setiap hari kerja yang dihadiri dalam periode.",
-      "workingDaysOverride": "Hari kerja untuk karyawan ini",
-      "workingDaysOverridePlaceholder": "Pakai default perusahaan",
-      "workingDaysOverrideHint": "Paruh waktu: hari kerja mereka sendiri per bulan. Kosong = ikut pengaturan perusahaan.",
+      "workScheduleTitle": "Hari kerja",
+      "workScheduleCustom": "Jadwal khusus untuk karyawan ini (paruh waktu)",
+      "workScheduleDefaultHint": "Mengikuti hari kerja default perusahaan.",
       "baseSalaryHint": "Untuk pembayaran harian, isi tarif per hari — payroll mengalikannya dengan jumlah hari hadir.",
       "phone": "Telepon",
       "bankSection": "Rekening bank",
@@ -845,12 +867,12 @@
     "account": "Akun",
     "payroll": {
       "heading": "Penggajian & hari kerja",
+      "workDays": "Hari kerja default",
+      "workDaysHint": "Hari mana saja karyawan diharapkan bekerja. Menentukan jumlah hari kerja untuk gaji harian & campuran; hari kerja tanpa kehadiran dianggap absen yang bisa dipotong.",
       "workweekDays": "Minggu kerja",
       "workweek5": "5 hari (Sen–Jum)",
       "workweek6": "6 hari (Sen–Sab)",
       "workweekHint": "Menentukan aturan hari libur Sabtu untuk lembur.",
-      "workingDays": "Hari kerja per bulan",
-      "workingDaysHint": "Standar hari dibayar per bulan. Dipakai untuk menghitung gaji harian & campuran dan membatasi hari kerja.",
       "save": "Simpan pengaturan penggajian",
       "saved": "Pengaturan penggajian disimpan."
     },

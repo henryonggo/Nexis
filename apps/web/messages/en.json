@@ -429,6 +429,27 @@
     "notReady": "Not ready",
     "downloadError": "Couldn't prepare the download."
   },
+  "weekdays": {
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "sat": "Sat",
+    "sun": "Sun"
+  },
+  "manualDeductions": {
+    "title": "Manual deductions",
+    "subtitle": "Record one-off deductions (e.g. an absence). Each needs a reason and is subtracted from the matching payroll period.",
+    "amount": "Amount (Rp)",
+    "date": "Date",
+    "reason": "Reason",
+    "reasonPlaceholder": "e.g. Absent without notice on the 12th",
+    "reasonHint": "Required — explains the deduction on the record and payslip.",
+    "add": "Add deduction",
+    "remove": "Remove",
+    "noDate": "No date"
+  },
   "superadmin": {
     "title": "Platform admin",
     "subtitle": "Comp any company with a full-access free pass.",
@@ -456,7 +477,7 @@
       "calc": "Type",
       "calcFixed": "Fixed amount",
       "calcPercent": "Percentage",
-      "amount": "Amount (Rp)",
+      "amount": "Default amount (Rp)",
       "rate": "Rate (%)",
       "base": "Applied to",
       "baseGross": "Gross pay",
@@ -492,6 +513,7 @@
       "noGroups": "No groups yet. Create one on the Allowances page, or choose manually.",
       "noCustom": "No allowances defined yet. Add them on the Allowances page first.",
       "override": "Amount for this person (Rp)",
+      "overrideHint": "Amounts default from the Allowances page but are set per person here — each employee can have a different number.",
       "save": "Save allowances"
     }
   },
@@ -636,9 +658,9 @@
       "monthlyBox": "Monthly salary (Rp)",
       "dailyBox": "Daily rate (Rp)",
       "dailyBoxHint": "Paid for each working day attended in the period.",
-      "workingDaysOverride": "Working days for this employee",
-      "workingDaysOverridePlaceholder": "Use company default",
-      "workingDaysOverrideHint": "Part-timers: their own working days per month. Blank uses the company setting.",
+      "workScheduleTitle": "Working days",
+      "workScheduleCustom": "Custom schedule for this employee (part-timer)",
+      "workScheduleDefaultHint": "Following the company default working days.",
       "baseSalaryHint": "For daily pay, enter the daily rate — payroll multiplies it by attendance days.",
       "phone": "Phone",
       "bankSection": "Bank account",
@@ -845,12 +867,12 @@
     "account": "Account",
     "payroll": {
       "heading": "Payroll & working days",
+      "workDays": "Default working days",
+      "workDaysHint": "Which weekdays staff are expected to work. Sets expected days for daily & mixed pay; an expected day with no attendance is an absence you can deduct for.",
       "workweekDays": "Workweek",
       "workweek5": "5 days (Mon–Fri)",
       "workweek6": "6 days (Mon–Sat)",
       "workweekHint": "Drives the Saturday rest-day rule for overtime.",
-      "workingDays": "Working days per month",
-      "workingDaysHint": "Standard paid days per month. Used to scale daily & mixed salaries and cap days worked.",
       "save": "Save payroll settings",
       "saved": "Payroll settings saved."
     },

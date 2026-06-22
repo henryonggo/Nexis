@@ -10,6 +10,7 @@ import {
   resolveEmployeeDeductions,
   statutoryEnrollment,
 } from "@/lib/deductions";
+import { normalizeWorkDays } from "@/lib/work-schedule";
 
 const updateSchema = z.object({
   id: z.string().uuid(),
@@ -23,8 +24,6 @@ const updateSchema = z.object({
   baseSalary: z.coerce.number().int().min(0).default(0),
   // Daily rate for daily / mixed pay; the second box of the "mixed" salary model.
   dailyRate: z.coerce.number().int().min(0).default(0),
-  // Per-employee working-days override (part-timers); blank = use the company figure.
-  workingDaysOverride: z.coerce.number().int().min(0).max(31).optional().or(z.literal("")),
   paymentMethod: z.enum(["cash", "bank"]).default("cash"),
   payFrequency: z.enum(["monthly", "daily", "mixed"]).default("monthly"),
   ptkpStatus: z.enum(["TK/0", "TK/1", "TK/2", "TK/3", "K/0", "K/1", "K/2", "K/3"]),
@@ -110,10 +109,12 @@ export async function updateEmployee(_prev: EditState, formData: FormData): Prom
   // the compensation write is routed through the untyped cast used for the other
   // not-yet-migrated tables. The "mixed" pay_frequency value likewise needs the
   // check constraint widened before it persists.
-  const workingDaysOverride =
-    d.workingDaysOverride === "" || d.workingDaysOverride == null
-      ? null
-      : Number(d.workingDaysOverride);
+  // Per-employee weekly schedule: when "custom schedule" is on, store the checked
+  // ISO weekdays; otherwise null = follow the company default schedule.
+  const workDaysOverride =
+    formData.get("customSchedule") === "on"
+      ? normalizeWorkDays(formData.getAll("workDays").map((v) => Number(v)))
+      : null;
   // For pure daily pay, `base_salary` mirrors the daily rate so the existing
   // worker (which reads daily-paid base_salary as the rate) keeps working until
   // it reads `daily_rate` directly. Monthly & mixed keep base_salary = monthly.
@@ -121,7 +122,7 @@ export async function updateEmployee(_prev: EditState, formData: FormData): Prom
   const compPayload = {
     base_salary: baseSalary,
     daily_rate: d.dailyRate,
-    working_days_override: workingDaysOverride,
+    work_days: workDaysOverride,
     payment_method: d.paymentMethod,
     pay_frequency: d.payFrequency,
   };
@@ -300,4 +301,65 @@ export async function updateEmployeeEarnings(
 
   revalidatePath(`/employees/${employeeId}`);
   return { success: "Tunjangan disimpan." };
+}
+
+const manualDeductionSchema = z.object({
+  employeeId: z.string().uuid(),
+  amount: z.coerce.number().int().positive("Masukkan nominal potongan."),
+  reason: z.string().trim().min(2, "Alasan wajib diisi.").max(200),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Tanggal tidak valid.").optional().or(z.literal("")),
+});
+
+/**
+ * Record a one-off manual deduction for an employee (e.g. an absence), with a
+ * mandatory reason. Owner/admin only; the dated entry is subtracted from net pay
+ * in the run period it falls in.
+ */
+export async function createManualDeduction(
+  _prev: EditState,
+  formData: FormData,
+): Promise<EditState> {
+  const parsed = manualDeductionSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Data tidak valid." };
+
+  const active = await getActiveCompany();
+  if (!active) return { error: "Tidak ada perusahaan aktif." };
+  if (active.role !== "owner" && active.role !== "admin") {
+    return { error: "Hanya pemilik/admin yang dapat menambah potongan." };
+  }
+
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { error } = await newTables(supabase).from("employee_manual_deduction").insert({
+    company_id: active.id,
+    employee_id: parsed.data.employeeId,
+    amount: parsed.data.amount,
+    reason: parsed.data.reason,
+    date: parsed.data.date || null,
+    created_by: user?.id ?? null,
+  });
+  if (error) return { error: error.message };
+
+  revalidatePath(`/employees/${parsed.data.employeeId}`);
+  return { success: "Potongan dicatat." };
+}
+
+export async function deleteManualDeduction(formData: FormData): Promise<void> {
+  const id = String(formData.get("id") ?? "");
+  const employeeId = String(formData.get("employeeId") ?? "");
+  if (!id) return;
+
+  const active = await getActiveCompany();
+  if (!active || (active.role !== "owner" && active.role !== "admin")) return;
+
+  const supabase = createClient();
+  await newTables(supabase)
+    .from("employee_manual_deduction")
+    .delete()
+    .eq("id", id)
+    .eq("company_id", active.id);
+
+  revalidatePath(`/employees/${employeeId}`);
 }
