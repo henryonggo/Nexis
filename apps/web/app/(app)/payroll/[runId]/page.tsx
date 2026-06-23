@@ -5,7 +5,7 @@ import { getTranslations } from "next-intl/server";
 import type { Database } from "@nexis/types";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
-import { computeRunPreview, formatPeriod, formatRupiah } from "@/lib/payroll";
+import { computeRunPreview, PayrollConfigError, formatPeriod, formatRupiah } from "@/lib/payroll";
 import { formatDateRange } from "@/lib/date";
 import { ActionBar } from "./actions-bar";
 import { CashPaymentPanel, type CashLine } from "./cash-payment-panel";
@@ -138,6 +138,7 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
 
   let lines: DisplayLine[] = [];
   let notices: string[] = [];
+  let previewError: string | null = null;
   let totals = {
     gross: run.total_gross,
     bpjsEmployee: run.total_bpjs_employee,
@@ -199,15 +200,24 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
     // Live "dry run" estimate (run not yet processed by the worker).
     const snapshotRunType =
       (run.config_snapshot as { runType?: string } | null)?.runType === "thr" ? "thr" : "monthly";
-    const preview = await computeRunPreview(supabase, active.id, {
-      year: run.period_year,
-      month: run.period_month,
-      runType: snapshotRunType,
-      plan: active.plan,
-    });
-    notices = preview.notices;
-    totals = preview.totals;
-    lines = preview.lines.map((l) => ({
+    let preview;
+    try {
+      preview = await computeRunPreview(supabase, active.id, {
+        year: run.period_year,
+        month: run.period_month,
+        runType: snapshotRunType,
+        plan: active.plan,
+      });
+    } catch (err) {
+      // A transient reference-config load failure must not crash the whole run
+      // page — show the persisted estimate totals + a retryable notice instead.
+      if (!(err instanceof PayrollConfigError)) throw err;
+      previewError = err.message;
+      preview = null;
+    }
+    notices = preview?.notices ?? [];
+    totals = preview?.totals ?? totals;
+    lines = (preview?.lines ?? []).map((l) => ({
       employeeId: l.employeeId,
       name: l.name,
       itemId: null,
@@ -255,6 +265,8 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
       </div>
 
       {run.status === "queued" && <Alert variant="info">{t("queuedNote")}</Alert>}
+
+      {previewError && <Alert variant="destructive">{previewError}</Alert>}
 
       {notices.map((n) => (
         <Alert key={n} variant="warning">{n}</Alert>

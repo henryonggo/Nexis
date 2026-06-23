@@ -6,7 +6,7 @@ import { z } from "zod";
 import type { Database } from "@nexis/types";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
-import { computeRunPreview, computeRunReadiness, type RunType } from "@/lib/payroll";
+import { computeRunPreview, computeRunReadiness, PayrollConfigError, type RunType } from "@/lib/payroll";
 import { enqueuePayrollRun } from "@/lib/payroll-worker";
 
 const now = new Date();
@@ -79,12 +79,20 @@ export async function createDraftRun(
     };
   }
 
-  const preview = await computeRunPreview(supabase, active.id, {
-    year,
-    month,
-    runType: runType as RunType,
-    plan: active.plan,
-  });
+  let preview;
+  try {
+    preview = await computeRunPreview(supabase, active.id, {
+      year,
+      month,
+      runType: runType as RunType,
+      plan: active.plan,
+    });
+  } catch (err) {
+    // A reference-config load failure (e.g. PostgREST mid schema-cache reload)
+    // is transient/retryable — surface a clear message instead of a 500.
+    if (err instanceof PayrollConfigError) return { error: err.message };
+    throw err;
+  }
 
   const runFields = {
     status: "draft" as const,
