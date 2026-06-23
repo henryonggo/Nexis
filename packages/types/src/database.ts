@@ -7,30 +7,10 @@ export type Json =
   | Json[]
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -719,6 +699,7 @@ export type Database = {
           payroll_cutoff_day: number
           region: string
           updated_at: string
+          work_days: number[]
           workweek_days: number
         }
         Insert: {
@@ -729,6 +710,7 @@ export type Database = {
           payroll_cutoff_day?: number
           region?: string
           updated_at?: string
+          work_days?: number[]
           workweek_days?: number
         }
         Update: {
@@ -739,6 +721,7 @@ export type Database = {
           payroll_cutoff_day?: number
           region?: string
           updated_at?: string
+          work_days?: number[]
           workweek_days?: number
         }
         Relationships: [
@@ -844,6 +827,7 @@ export type Database = {
           company_id: string
           created_at: string
           currency: string
+          daily_rate: number
           effective_from: string
           employee_id: string
           fixed_allowances: Json
@@ -852,6 +836,8 @@ export type Database = {
           jp_enrolled: boolean
           pay_frequency: string
           payment_method: string
+          pph21_enrolled: boolean
+          work_days: number[] | null
         }
         Insert: {
           base_salary?: number
@@ -860,6 +846,7 @@ export type Database = {
           company_id: string
           created_at?: string
           currency?: string
+          daily_rate?: number
           effective_from?: string
           employee_id: string
           fixed_allowances?: Json
@@ -868,6 +855,8 @@ export type Database = {
           jp_enrolled?: boolean
           pay_frequency?: string
           payment_method?: string
+          pph21_enrolled?: boolean
+          work_days?: number[] | null
         }
         Update: {
           base_salary?: number
@@ -876,6 +865,7 @@ export type Database = {
           company_id?: string
           created_at?: string
           currency?: string
+          daily_rate?: number
           effective_from?: string
           employee_id?: string
           fixed_allowances?: Json
@@ -884,6 +874,8 @@ export type Database = {
           jp_enrolled?: boolean
           pay_frequency?: string
           payment_method?: string
+          pph21_enrolled?: boolean
+          work_days?: number[] | null
         }
         Relationships: [
           {
@@ -929,6 +921,434 @@ export type Database = {
           symbol?: string
         }
         Relationships: []
+      }
+      custom_deduction_types: {
+        Row: {
+          active: boolean
+          amount: number | null
+          base: string | null
+          calc: string
+          company_id: string
+          created_at: string
+          id: string
+          name: string
+          rate_bps: number | null
+        }
+        Insert: {
+          active?: boolean
+          amount?: number | null
+          base?: string | null
+          calc: string
+          company_id: string
+          created_at?: string
+          id?: string
+          name: string
+          rate_bps?: number | null
+        }
+        Update: {
+          active?: boolean
+          amount?: number | null
+          base?: string | null
+          calc?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          rate_bps?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_deduction_types_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      custom_earning_types: {
+        Row: {
+          active: boolean
+          amount: number | null
+          base: string | null
+          calc: string
+          company_id: string
+          created_at: string
+          id: string
+          name: string
+          rate_bps: number | null
+          taxable: boolean
+        }
+        Insert: {
+          active?: boolean
+          amount?: number | null
+          base?: string | null
+          calc: string
+          company_id: string
+          created_at?: string
+          id?: string
+          name: string
+          rate_bps?: number | null
+          taxable?: boolean
+        }
+        Update: {
+          active?: boolean
+          amount?: number | null
+          base?: string | null
+          calc?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          rate_bps?: number | null
+          taxable?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_earning_types_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deduction_group_items: {
+        Row: {
+          company_id: string
+          custom_type_id: string | null
+          group_id: string
+          id: string
+          statutory_code: string | null
+        }
+        Insert: {
+          company_id: string
+          custom_type_id?: string | null
+          group_id: string
+          id?: string
+          statutory_code?: string | null
+        }
+        Update: {
+          company_id?: string
+          custom_type_id?: string | null
+          group_id?: string
+          id?: string
+          statutory_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deduction_group_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deduction_group_items_custom_type_id_fkey"
+            columns: ["custom_type_id"]
+            isOneToOne: false
+            referencedRelation: "custom_deduction_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deduction_group_items_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "deduction_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deduction_groups: {
+        Row: {
+          active: boolean
+          company_id: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          company_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deduction_groups_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      earning_group_items: {
+        Row: {
+          company_id: string
+          custom_type_id: string
+          group_id: string
+          id: string
+        }
+        Insert: {
+          company_id: string
+          custom_type_id: string
+          group_id: string
+          id?: string
+        }
+        Update: {
+          company_id?: string
+          custom_type_id?: string
+          group_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "earning_group_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "earning_group_items_custom_type_id_fkey"
+            columns: ["custom_type_id"]
+            isOneToOne: false
+            referencedRelation: "custom_earning_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "earning_group_items_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "earning_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      earning_groups: {
+        Row: {
+          active: boolean
+          company_id: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          company_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "earning_groups_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_deduction: {
+        Row: {
+          company_id: string
+          custom_type_id: string | null
+          employee_id: string
+          enabled: boolean
+          id: string
+          statutory_code: string | null
+        }
+        Insert: {
+          company_id: string
+          custom_type_id?: string | null
+          employee_id: string
+          enabled?: boolean
+          id?: string
+          statutory_code?: string | null
+        }
+        Update: {
+          company_id?: string
+          custom_type_id?: string | null
+          employee_id?: string
+          enabled?: boolean
+          id?: string
+          statutory_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_deduction_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_deduction_custom_type_id_fkey"
+            columns: ["custom_type_id"]
+            isOneToOne: false
+            referencedRelation: "custom_deduction_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_deduction_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_deduction_group: {
+        Row: {
+          company_id: string
+          employee_id: string
+          group_id: string
+        }
+        Insert: {
+          company_id: string
+          employee_id: string
+          group_id: string
+        }
+        Update: {
+          company_id?: string
+          employee_id?: string
+          group_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_deduction_group_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_deduction_group_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_deduction_group_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "deduction_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_earning: {
+        Row: {
+          amount_override: number | null
+          company_id: string
+          custom_type_id: string
+          employee_id: string
+          enabled: boolean
+          id: string
+        }
+        Insert: {
+          amount_override?: number | null
+          company_id: string
+          custom_type_id: string
+          employee_id: string
+          enabled?: boolean
+          id?: string
+        }
+        Update: {
+          amount_override?: number | null
+          company_id?: string
+          custom_type_id?: string
+          employee_id?: string
+          enabled?: boolean
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_earning_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_earning_custom_type_id_fkey"
+            columns: ["custom_type_id"]
+            isOneToOne: false
+            referencedRelation: "custom_earning_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_earning_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_earning_group: {
+        Row: {
+          company_id: string
+          employee_id: string
+          group_id: string
+        }
+        Insert: {
+          company_id: string
+          employee_id: string
+          group_id: string
+        }
+        Update: {
+          company_id?: string
+          employee_id?: string
+          group_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_earning_group_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_earning_group_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_earning_group_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "earning_groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       employee_loans: {
         Row: {
@@ -992,6 +1412,54 @@ export type Database = {
           },
           {
             foreignKeyName: "employee_loans_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_manual_deduction: {
+        Row: {
+          amount: number
+          company_id: string
+          created_at: string
+          created_by: string | null
+          date: string | null
+          employee_id: string
+          id: string
+          reason: string
+        }
+        Insert: {
+          amount: number
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          date?: string | null
+          employee_id: string
+          id?: string
+          reason: string
+        }
+        Update: {
+          amount?: number
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          date?: string | null
+          employee_id?: string
+          id?: string
+          reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_manual_deduction_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_manual_deduction_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "employees"
@@ -3093,9 +3561,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       application_stage: [
@@ -3138,4 +3603,3 @@ export const Constants = {
     },
   },
 } as const
-
