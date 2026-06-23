@@ -31,6 +31,21 @@ import { loadBulkManualDeductions, sumManualDeductionsForPeriod } from "./manual
 
 export type RunType = "monthly" | "thr";
 
+/**
+ * Thrown when the global rate reference (bpjs_config / ter_rates) can't be
+ * loaded for a run period — e.g. a transient PostgREST failure (schema-cache
+ * reload right after a migration) or a genuinely missing seed. Without this the
+ * failure surfaced deep inside the pure engine ("bpjs_config missing key …" /
+ * "No TER band …") as an opaque 500. Callers catch it and show a clear,
+ * retryable message instead of crashing the page/action.
+ */
+export class PayrollConfigError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "PayrollConfigError";
+  }
+}
+
 const PTKP_STATUSES = new Set<PtkpStatus>([
   "TK/0", "TK/1", "TK/2", "TK/3", "K/0", "K/1", "K/2", "K/3",
 ]);
@@ -59,15 +74,28 @@ export async function loadPayrollConfig(
   supabase: SupabaseClient<Database>,
   effectiveDate: string,
 ): Promise<PayrollConfig> {
-  const [{ data: bpjs }, { data: ter }] = await Promise.all([
+  const [{ data: bpjs, error: bpjsErr }, { data: ter, error: terErr }] = await Promise.all([
     supabase.from("bpjs_config").select("key, rate_bps, amount, effective_from, effective_to"),
     supabase.from("ter_rates").select("category, income_lower, rate_bps, effective_from, effective_to"),
   ]);
 
-  return buildPayrollConfig(
-    effectiveOn(bpjs ?? [], effectiveDate),
-    effectiveOn(ter ?? [], effectiveDate),
-  );
+  // Surface a load failure (or an empty reference set) as a clear, typed error
+  // instead of letting buildPayrollConfig throw a cryptic "missing key" / "No TER
+  // band" deep in the engine. Both are global seed tables, so an empty result on
+  // a non-erroring query means the data isn't there yet (or PostgREST is mid
+  // schema-cache reload) — a retryable condition, not a programming bug.
+  if (bpjsErr) throw new PayrollConfigError(`Gagal memuat konfigurasi BPJS: ${bpjsErr.message}`);
+  if (terErr) throw new PayrollConfigError(`Gagal memuat tarif PPh 21 (TER): ${terErr.message}`);
+
+  const bpjsRows = effectiveOn(bpjs ?? [], effectiveDate);
+  const terRows = effectiveOn(ter ?? [], effectiveDate);
+  if (bpjsRows.length === 0 || terRows.length === 0) {
+    throw new PayrollConfigError(
+      "Konfigurasi tarif (BPJS / PPh 21) belum tersedia untuk periode ini. Coba lagi sebentar.",
+    );
+  }
+
+  return buildPayrollConfig(bpjsRows, terRows);
 }
 
 /** A `fixed_allowances` JSON blob can be a number, an array of {amount}, or a map. */
@@ -445,7 +473,30 @@ export async function computeRunPreview(
       jhtEnrolled: comp.jht_enrolled,
       jpEnrolled: comp.jp_enrolled,
     };
-    const result = computeMonthlyPayroll(input, config);
+    // Isolate one employee's compute: a single pathological row (e.g. a value
+    // that rounds to NaN, or a TER gap) becomes a per-employee warning instead
+    // of throwing and 500-ing the whole run preview and the page that renders it.
+    let result: PayrollResult;
+    try {
+      result = computeMonthlyPayroll(input, config);
+    } catch (err) {
+      warnings.push(
+        `Gagal menghitung gaji karyawan ini: ${err instanceof Error ? err.message : "kesalahan tak terduga"}. Periksa data kompensasi/pajaknya.`,
+      );
+      lines.push({
+        employeeId: emp.id,
+        name: emp.full_name,
+        ptkpStatus,
+        terCategory: ptkpCategory(ptkpStatus),
+        hasNpwp,
+        baseSalary: earnedBase,
+        daysWorked,
+        expectedDays: usesDays ? expectedDays : null,
+        earnings,
+        warnings,
+      });
+      continue;
+    }
 
     // Manual/absence deductions dated in this period reduce net pay.
     const manualDeductions = sumManualDeductionsForPeriod(
