@@ -260,19 +260,23 @@ app.post("/process", async (req, res) => {
   console.log(`[Worker] Received process request for run: ${runId}`);
 
   try {
-    // 1. Atomically transition run from queued/draft to processing
+    // 1. Atomically transition run to processing. `processing` is included so a
+    // run left stuck there by a previous attempt that crashed/timed out mid-job
+    // (the container was killed before it could finalize) can be recovered by a
+    // retry — otherwise it would 409 forever and never complete. Re-processing is
+    // idempotent: step 3 clears any payroll_items the prior attempt wrote.
     const { data: run, error: runError } = await supabase
       .from("payroll_runs")
       .update({ status: "processing" })
       .eq("id", runId)
-      .in("status", ["queued", "draft"])
+      .in("status", ["queued", "draft", "processing"])
       .select("*, companies(name)")
       .single();
 
     if (runError || !run) {
       console.error(`[Worker] Failed to transition run ${runId}:`, runError?.message);
       return res.status(409).json({
-        error: "Run not found or not in queued/draft state. Possible concurrent run processing.",
+        error: "Run not found or already completed/cancelled. Possible concurrent run processing.",
       });
     }
 
@@ -472,9 +476,14 @@ app.post("/process", async (req, res) => {
     await supabase.from("payroll_items").delete().eq("payroll_run_id", runId);
 
     const processedResults = [];
-    
+    // Per-employee failures are isolated (below) so one bad row can't abort the
+    // whole run. Collected here to report at the end without losing the rest.
+    const itemFailures: string[] = [];
+    const payslipFailures: string[] = [];
+
     // 4. Iterate and compute each employee
     for (const emp of employees) {
+     try {
       const comp = compByEmployee.get(emp.id);
       const tax = taxByEmployee.get(emp.id);
 
@@ -657,7 +666,21 @@ app.post("/process", async (req, res) => {
         throw new Error(`Failed to write payroll_item for ${emp.full_name}: ${itemErr?.message}`);
       }
 
-      // 6. Generate Payslip PDF
+      // The financial item is the source of truth — count it toward the run
+      // totals now, so a best-effort payslip-PDF failure below never drops an
+      // employee from the payroll or its summary.
+      processedResults.push({
+        gross: itemResult.gross,
+        netPay: itemResult.netPay,
+        pph21: itemResult.pph21,
+        bpjsEmployee: itemResult.bpjsKesEmployee + itemResult.jhtEmployee + itemResult.jpEmployee,
+        bpjsEmployer: itemResult.bpjsKesEmployer + itemResult.jhtEmployer + itemResult.jpEmployer + itemResult.jkkEmployer + itemResult.jkmEmployer,
+      });
+
+      // 6. Generate + store the Payslip PDF (best-effort). The PDF is regenerable
+      // from the item, so a PDF/storage failure must not fail the employee's pay
+      // or the run — log it and move on; it can be re-created on a re-run.
+     try {
       const pdfData = {
         companyName,
         employeeName: emp.full_name,
@@ -721,14 +744,28 @@ app.post("/process", async (req, res) => {
       if (slipErr) {
         throw new Error(`Failed to create payslip record for ${emp.full_name}: ${slipErr.message}`);
       }
+     } catch (pdfErr) {
+       console.error(
+         `[Worker] Payslip PDF failed for ${emp.full_name} (item kept):`,
+         pdfErr instanceof Error ? pdfErr.message : pdfErr,
+       );
+       payslipFailures.push(emp.full_name);
+     }
+     } catch (empErr) {
+       // One employee's failure must not abort the whole run — record and skip.
+       console.error(
+         `[Worker] Skipping employee ${emp.full_name} after error:`,
+         empErr instanceof Error ? empErr.message : empErr,
+       );
+       itemFailures.push(emp.full_name);
+       continue;
+     }
+    }
 
-      processedResults.push({
-        gross: itemResult.gross,
-        netPay: itemResult.netPay,
-        pph21: itemResult.pph21,
-        bpjsEmployee: itemResult.bpjsKesEmployee + itemResult.jhtEmployee + itemResult.jpEmployee,
-        bpjsEmployer: itemResult.bpjsKesEmployer + itemResult.jhtEmployer + itemResult.jpEmployer + itemResult.jkkEmployer + itemResult.jkmEmployer,
-      });
+    if (itemFailures.length > 0 || payslipFailures.length > 0) {
+      console.warn(
+        `[Worker] Run ${runId} completed with issues — item failures: [${itemFailures.join(", ") || "none"}], payslip failures: [${payslipFailures.join(", ") || "none"}]`,
+      );
     }
 
     // 8. Update run status and sum authoritatively
@@ -798,7 +835,12 @@ app.post("/process", async (req, res) => {
     }
 
     console.log(`[Worker] Successfully completed run: ${runId}`);
-    return res.status(200).json({ success: true, message: "Payroll processed successfully." });
+    return res.status(200).json({
+      success: true,
+      message: "Payroll processed successfully.",
+      itemFailures,
+      payslipFailures,
+    });
 
   } catch (error: any) {
     console.error(`[Worker] Error processing run ${runId}:`, error);
