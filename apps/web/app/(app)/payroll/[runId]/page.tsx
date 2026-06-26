@@ -136,6 +136,25 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
     absenceByEmployee.set(r.employee_id, list);
   }
 
+  // Persisted payroll_items + payslips exist once the worker has processed the
+  // run. We surface them whenever they exist — not only for completed/paid runs —
+  // so payslips already generated for a run that's still stuck in queued/processing
+  // (e.g. the worker wrote the items + PDFs but never flipped the run status) stay
+  // visible and downloadable instead of being hidden behind a live estimate.
+  const { data: persistedItems } = await supabase
+    .from("payroll_items")
+    .select(
+      "id, paid_at, paid_method, days_worked, employee_id, gross_pay, bpjs_kes_employee, bpjs_kes_employer, jht_employee, jht_employer, jp_employee, jp_employer, jkk_employer, jkm_employer, pph21, net_pay, ter_category, ter_rate_bps",
+    )
+    .eq("payroll_run_id", run.id)
+    .eq("company_id", active.id);
+
+  const hasPersistedItems = (persistedItems?.length ?? 0) > 0;
+  // A run is "official" only when completed/paid; when items exist on a not-yet-
+  // completed run we still show them, with a banner explaining the run is pending.
+  const showPersisted = isPersisted || hasPersistedItems;
+  const pendingPayslips = hasPersistedItems && !isPersisted;
+
   let lines: DisplayLine[] = [];
   let notices: string[] = [];
   let previewError: string | null = null;
@@ -147,15 +166,7 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
     net: run.total_net,
   };
 
-  if (isPersisted) {
-    const { data: items } = await supabase
-      .from("payroll_items")
-      .select(
-        "id, paid_at, paid_method, days_worked, employee_id, gross_pay, bpjs_kes_employee, bpjs_kes_employer, jht_employee, jht_employer, jp_employee, jp_employer, jkk_employer, jkm_employer, pph21, net_pay, ter_category, ter_rate_bps",
-      )
-      .eq("payroll_run_id", run.id)
-      .eq("company_id", active.id);
-
+  if (showPersisted) {
     const { data: employees } = await supabase
       .from("employees")
       .select("id, full_name")
@@ -172,7 +183,7 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
       (payslips ?? []).map((p) => [p.employee_id, p.id]),
     );
 
-    lines = (items ?? []).map((it) => ({
+    lines = (persistedItems ?? []).map((it) => ({
       employeeId: it.employee_id,
       name: nameById.get(it.employee_id) ?? it.employee_id,
       itemId: it.id,
@@ -196,6 +207,22 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
       net: it.net_pay,
       warnings: [],
     }));
+
+    // Sum the authoritative item figures. For a completed/paid run this equals the
+    // worker-written run totals, but for a run still pending (queued/processing
+    // with items already generated) the run row only holds the stale draft
+    // estimate — so derive the summary from the items to match the rows shown.
+    totals = lines.reduce(
+      (acc, l) => ({
+        gross: acc.gross + l.gross,
+        bpjsEmployee: acc.bpjsEmployee + l.bpjsKesEmployee + l.jhtEmployee + l.jpEmployee,
+        bpjsEmployer:
+          acc.bpjsEmployer + l.bpjsKesEmployer + l.jhtEmployer + l.jpEmployer + l.jkkEmployer + l.jkmEmployer,
+        pph21: acc.pph21 + l.pph21,
+        net: acc.net + l.net,
+      }),
+      { gross: 0, bpjsEmployee: 0, bpjsEmployer: 0, pph21: 0, net: 0 },
+    );
   } else {
     // Live "dry run" estimate (run not yet processed by the worker).
     const snapshotRunType =
@@ -261,10 +288,14 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
           </h1>
           <RunStatusStream runId={run.id} initialStatus={run.status} />
         </div>
-        {!isPersisted && <p className="mt-1 text-sm text-muted">{t("estimateNote")}</p>}
+        {!showPersisted && <p className="mt-1 text-sm text-muted">{t("estimateNote")}</p>}
       </div>
 
-      {run.status === "queued" && <Alert variant="info">{t("queuedNote")}</Alert>}
+      {/* Run is queued and nothing has been generated yet — genuinely waiting. */}
+      {run.status === "queued" && !hasPersistedItems && <Alert variant="info">{t("queuedNote")}</Alert>}
+
+      {/* Items/payslips exist but the run hasn't been finalized to completed/paid. */}
+      {pendingPayslips && <Alert variant="info">{t("detail.pendingPayslipsNote")}</Alert>}
 
       {previewError && <Alert variant="destructive">{previewError}</Alert>}
 
@@ -281,7 +312,7 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
 
       <ActionBar runId={run.id} status={run.status} />
 
-      {isPersisted && isAdmin && (
+      {showPersisted && isAdmin && (
         <CashPaymentPanel
           runId={run.id}
           lines={lines
