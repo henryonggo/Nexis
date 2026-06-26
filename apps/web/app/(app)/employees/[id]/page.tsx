@@ -6,7 +6,6 @@ import { getActiveCompany } from "@/lib/company";
 import {
   listCustomDeductions,
   listDeductionGroups,
-  newTables,
   resolveEmployeeDeductions,
 } from "@/lib/deductions";
 import {
@@ -35,9 +34,7 @@ export default async function EmployeeDetailPage({ params }: { params: { id: str
 
   if (!employee) notFound();
 
-  // `daily_rate` and `working_days_override` are not yet in the generated types
-  // (TODO(db)), so this read is routed through the untyped cast.
-  const { data: comp } = await newTables(supabase)
+  const { data: comp } = await supabase
     .from("compensation")
     .select("base_salary, daily_rate, work_days, payment_method, pay_frequency")
     .eq("employee_id", params.id)

@@ -25,7 +25,6 @@ import {
   sumTaxableEarnings,
   type EarningLine,
 } from "./earnings";
-import { newTables } from "./deductions";
 import { normalizeWorkDays, expectedWorkdaysInMonth } from "./work-schedule";
 import { loadBulkManualDeductions, sumManualDeductionsForPeriod } from "./manual-deductions";
 
@@ -95,7 +94,13 @@ export async function loadPayrollConfig(
     );
   }
 
-  return buildPayrollConfig(bpjsRows, terRows);
+  try {
+    return buildPayrollConfig(bpjsRows, terRows);
+  } catch (err) {
+    throw new PayrollConfigError(
+      `Gagal menyusun konfigurasi payroll: ${err instanceof Error ? err.message : "kesalahan tak terduga"}`,
+    );
+  }
 }
 
 /** A `fixed_allowances` JSON blob can be a number, an array of {amount}, or a map. */
@@ -120,7 +125,6 @@ interface CompensationRow {
   employee_id: string;
   base_salary: number;
   pay_frequency: string;
-  // New columns (TODO(db) — not yet in generated types). Read via untyped cast.
   daily_rate: number | null;
   /** Per-employee weekly schedule (ISO weekdays) or null to follow the company default. */
   work_days: number[] | null;
@@ -239,14 +243,12 @@ export async function computeRunPreview(
         .eq("company_id", companyId)
         .eq("status", "active")
         .order("full_name", { ascending: true }),
-      // `work_days` is a new column (TODO(db)); read via untyped cast.
-      newTables(supabase)
+      supabase
         .from("company_settings")
         .select("jkk_risk_class, region, workweek_days, work_days")
         .eq("company_id", companyId)
         .maybeSingle(),
-      // `daily_rate` / `work_days` are new columns (TODO(db)); untyped cast.
-      newTables(supabase)
+      supabase
         .from("compensation")
         .select("employee_id, base_salary, pay_frequency, daily_rate, work_days, fixed_allowances, bpjs_kes_enrolled, jht_enrolled, jp_enrolled, effective_from")
         .eq("company_id", companyId),
@@ -422,64 +424,75 @@ export async function computeRunPreview(
     //  - daily   → daily rate × unique attendance days.
     //  - mixed   → monthly base + daily rate × unique attendance days.
     // The daily rate is `daily_rate` when set, else `base_salary` (legacy daily).
-    const frequency = (["monthly", "daily", "mixed"].includes(comp.pay_frequency)
-      ? comp.pay_frequency
-      : "monthly") as PayFrequency;
-    const usesDays = frequency === "daily" || frequency === "mixed";
-    // The employee's expected weekly schedule (own override, else company default)
-    // → expected workdays this month. Pay days are the attended days capped at the
-    // expected days, so a daily/mixed employee is never paid beyond their roster.
-    const schedule =
-      comp.work_days && comp.work_days.length > 0
-        ? normalizeWorkDays(comp.work_days)
-        : companyWorkDays;
-    const expectedDays = usesDays ? expectedWorkdaysInMonth(schedule, year, month) : 0;
-    const attendedDays = usesDays ? daysWorkedByEmployee.get(emp.id)?.size ?? 0 : 0;
-    const daysWorked = usesDays ? Math.min(attendedDays, expectedDays) : null;
-    const dailyRate = comp.daily_rate ?? baseSalary;
-    const monthlyBase = frequency === "daily" ? 0 : baseSalary;
-    const earnedBase = computeEarnedBase({
-      payFrequency: frequency,
-      monthlyBase,
-      dailyRate,
-      daysWorked: daysWorked ?? 0,
-    });
-    if (usesDays && daysWorked === 0) {
-      warnings.push("Belum ada kehadiran tercatat periode ini — porsi harian dihitung 0.");
-    }
-
-    // Configurable earnings (allowances): resolved set → rupiah lines. Taxable
-    // lines flow into gross via fixedAllowances; the worker adds any non-taxable
-    // lines post-tax (TODO handoff). Percentage earnings use the earned base.
-    const earnings = computeEarningLines(resolveFromBulk(bulkEarnings, emp.id), {
-      gross: earnedBase + sumFixedAllowances(comp.fixed_allowances),
-      baseSalary: earnedBase,
-    });
-    const fixedAllowances = sumFixedAllowances(comp.fixed_allowances) + sumTaxableEarnings(earnings);
-
-    const input: EmployeePayrollInput = {
-      baseSalary: earnedBase,
-      fixedAllowances,
-      overtimePay: computeOvertimePayFromEntries({
-        entries: otByEmployee.get(emp.id) ?? [],
-        monthlyWage: baseSalary,
-        holidayDates,
-        workweekDays,
-      }),
-      ptkpStatus,
-      hasNpwp,
-      jkkRiskClass: companyRisk,
-      bpjsKesEnrolled: comp.bpjs_kes_enrolled,
-      jhtEnrolled: comp.jht_enrolled,
-      jpEnrolled: comp.jp_enrolled,
-    };
-    // Isolate one employee's compute: a single pathological row (e.g. a value
-    // that rounds to NaN, or a TER gap) becomes a per-employee warning instead
-    // of throwing and 500-ing the whole run preview and the page that renders it.
+    let frequency: PayFrequency;
+    let usesDays: boolean;
+    let expectedDays: number;
+    let attendedDays: number;
+    let daysWorked: number | null;
+    let earnedBase: Rupiah;
+    let earnings: EarningLine[];
     let result: PayrollResult;
+
     try {
+      frequency = (["monthly", "daily", "mixed"].includes(comp.pay_frequency)
+        ? comp.pay_frequency
+        : "monthly") as PayFrequency;
+      usesDays = frequency === "daily" || frequency === "mixed";
+      // The employee's expected weekly schedule (own override, else company default)
+      // → expected workdays this month. Pay days are the attended days capped at the
+      // expected days, so a daily/mixed employee is never paid beyond their roster.
+      const schedule =
+        comp.work_days && comp.work_days.length > 0
+          ? normalizeWorkDays(comp.work_days)
+          : companyWorkDays;
+      expectedDays = usesDays ? expectedWorkdaysInMonth(schedule, year, month) : 0;
+      attendedDays = usesDays ? daysWorkedByEmployee.get(emp.id)?.size ?? 0 : 0;
+      daysWorked = usesDays ? Math.min(attendedDays, expectedDays) : null;
+      const dailyRate = comp.daily_rate ?? baseSalary;
+      const monthlyBase = frequency === "daily" ? 0 : baseSalary;
+      earnedBase = computeEarnedBase({
+        payFrequency: frequency,
+        monthlyBase,
+        dailyRate,
+        daysWorked: daysWorked ?? 0,
+      });
+      if (usesDays && daysWorked === 0) {
+        warnings.push("Belum ada kehadiran tercatat periode ini — porsi harian dihitung 0.");
+      }
+
+      // Configurable earnings (allowances): resolved set → rupiah lines. Taxable
+      // lines flow into gross via fixedAllowances; the worker adds any non-taxable
+      // lines post-tax (TODO handoff). Percentage earnings use the earned base.
+      earnings = computeEarningLines(resolveFromBulk(bulkEarnings, emp.id), {
+        gross: earnedBase + sumFixedAllowances(comp.fixed_allowances),
+        baseSalary: earnedBase,
+      });
+      const fixedAllowances = sumFixedAllowances(comp.fixed_allowances) + sumTaxableEarnings(earnings);
+
+      const input: EmployeePayrollInput = {
+        baseSalary: earnedBase,
+        fixedAllowances,
+        overtimePay: computeOvertimePayFromEntries({
+          entries: otByEmployee.get(emp.id) ?? [],
+          monthlyWage: baseSalary,
+          holidayDates,
+          workweekDays,
+        }),
+        ptkpStatus,
+        hasNpwp,
+        jkkRiskClass: companyRisk,
+        bpjsKesEnrolled: comp.bpjs_kes_enrolled,
+        jhtEnrolled: comp.jht_enrolled,
+        jpEnrolled: comp.jp_enrolled,
+      };
+      // Isolate one employee's compute: a single pathological row (e.g. a value
+      // that rounds to NaN, or a TER gap) becomes a per-employee warning instead
+      // of throwing and 500-ing the whole run preview and the page that renders it.
       result = computeMonthlyPayroll(input, config);
     } catch (err) {
+      // Failure in Stage 7 helpers (work schedule normalization, earning resolution,
+      // overtime/earning computation, etc.) or computeMonthlyPayroll becomes a
+      // per-employee warning instead of crashing the preview.
       warnings.push(
         `Gagal menghitung gaji karyawan ini: ${err instanceof Error ? err.message : "kesalahan tak terduga"}. Periksa data kompensasi/pajaknya.`,
       );
@@ -489,10 +502,7 @@ export async function computeRunPreview(
         ptkpStatus,
         terCategory: ptkpCategory(ptkpStatus),
         hasNpwp,
-        baseSalary: earnedBase,
-        daysWorked,
-        expectedDays: usesDays ? expectedDays : null,
-        earnings,
+        baseSalary: 0,
         warnings,
       });
       continue;

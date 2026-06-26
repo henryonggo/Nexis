@@ -5,7 +5,6 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
-import { newTables } from "@/lib/deductions";
 
 export type EarningState = { error?: string; ok?: boolean };
 
@@ -67,7 +66,7 @@ export async function createCustomEarning(
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Data tidak valid." };
 
   const supabase = createClient();
-  const { error } = await newTables(supabase)
+  const { error } = await supabase
     .from("custom_earning_types")
     .insert({ ...customRow(parsed.data, active.id), active: true });
   if (error) return { error: error.message };
@@ -88,7 +87,7 @@ export async function updateCustomEarning(
   if (!parsed.data.id) return { error: "Tunjangan tidak ditemukan." };
 
   const supabase = createClient();
-  const { error } = await newTables(supabase)
+  const { error } = await supabase
     .from("custom_earning_types")
     .update(customRow(parsed.data, active.id))
     .eq("id", parsed.data.id)
@@ -107,7 +106,7 @@ export async function deleteCustomEarning(formData: FormData): Promise<void> {
 
   const supabase = createClient();
   // Soft-delete: keep history intact, drop it from selection lists.
-  await newTables(supabase)
+  await supabase
     .from("custom_earning_types")
     .update({ active: false })
     .eq("id", id)
@@ -131,7 +130,7 @@ async function writeGroupItems(
   groupId: string,
   customIds: string[],
 ): Promise<string | null> {
-  const db = newTables(supabase);
+  const db = supabase;
   const { error: delErr } = await db
     .from("earning_group_items")
     .delete()
@@ -161,7 +160,7 @@ export async function createEarningGroup(
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Data tidak valid." };
 
   const supabase = createClient();
-  const { data, error } = await newTables(supabase)
+  const { data, error } = await supabase
     .from("earning_groups")
     .insert({
       company_id: active.id,
@@ -197,7 +196,7 @@ export async function updateEarningGroup(
   if (!parsed.data.id) return { error: "Grup tidak ditemukan." };
 
   const supabase = createClient();
-  const { error } = await newTables(supabase)
+  const { error } = await supabase
     .from("earning_groups")
     .update({ name: parsed.data.name, description: parsed.data.description || null })
     .eq("id", parsed.data.id)
@@ -225,7 +224,7 @@ export async function deleteEarningGroup(formData: FormData): Promise<void> {
   if (!id) return;
 
   const supabase = createClient();
-  const db = newTables(supabase);
+  const db = supabase;
   await db.from("earning_group_items").delete().eq("group_id", id).eq("company_id", active.id);
   await db.from("employee_earning_group").delete().eq("group_id", id).eq("company_id", active.id);
   await db.from("earning_groups").delete().eq("id", id).eq("company_id", active.id);

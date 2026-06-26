@@ -1,9 +1,11 @@
 # Handoff — Working days, daily/mixed salary & configurable earnings (allowances)
 
-> **Status:** 🟡 **App layer built, awaiting DB.** Branch:
-> `claude/pensive-hopper-vp10yb`. This doc is the `TODO(db)` tracking item per the
-> handoff protocol in `docs/08-agent-boundaries.md`. It is the income-side mirror
-> of `docs/handoff/stage-07-salary-deductions.md`.
+> **Status:** ✅ **COMPLETE.** Schema landed and `packages/types` regenerated; the
+> app layer now reads/writes the Stage 7 tables and the new compensation/
+> company_settings columns (`daily_rate`, `work_days`, `pph21_enrolled`) through
+> generated types. The `newTables` quarantine cast and all `TODO(db)` markers for
+> this feature are removed; `pnpm --filter @nexis/web typecheck` is clean. It is
+> the income-side mirror of `docs/handoff/stage-07-salary-deductions.md`.
 
 ## What it does
 

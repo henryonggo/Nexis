@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
-import { isStatutoryCode, newTables } from "@/lib/deductions";
+import { isStatutoryCode } from "@/lib/deductions";
 
 export type DeductionState = { error?: string; ok?: boolean };
 
@@ -60,7 +60,7 @@ export async function createCustomDeduction(
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Data tidak valid." };
 
   const supabase = createClient();
-  const { error } = await newTables(supabase)
+  const { error } = await supabase
     .from("custom_deduction_types")
     .insert({ ...customRow(parsed.data, active.id), active: true });
   if (error) return { error: error.message };
@@ -81,7 +81,7 @@ export async function updateCustomDeduction(
   if (!parsed.data.id) return { error: "Potongan tidak ditemukan." };
 
   const supabase = createClient();
-  const { error } = await newTables(supabase)
+  const { error } = await supabase
     .from("custom_deduction_types")
     .update(customRow(parsed.data, active.id))
     .eq("id", parsed.data.id)
@@ -100,7 +100,7 @@ export async function deleteCustomDeduction(formData: FormData): Promise<void> {
 
   const supabase = createClient();
   // Soft-delete: keep history intact, drop it from selection lists.
-  await newTables(supabase)
+  await supabase
     .from("custom_deduction_types")
     .update({ active: false })
     .eq("id", id)
@@ -125,7 +125,7 @@ async function writeGroupItems(
   statutory: string[],
   customIds: string[],
 ): Promise<string | null> {
-  const db = newTables(supabase);
+  const db = supabase;
   const { error: delErr } = await db
     .from("deduction_group_items")
     .delete()
@@ -156,7 +156,7 @@ export async function createGroup(
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Data tidak valid." };
 
   const supabase = createClient();
-  const { data, error } = await newTables(supabase)
+  const { data, error } = await supabase
     .from("deduction_groups")
     .insert({
       company_id: active.id,
@@ -193,7 +193,7 @@ export async function updateGroup(
   if (!parsed.data.id) return { error: "Grup tidak ditemukan." };
 
   const supabase = createClient();
-  const { error } = await newTables(supabase)
+  const { error } = await supabase
     .from("deduction_groups")
     .update({ name: parsed.data.name, description: parsed.data.description || null })
     .eq("id", parsed.data.id)
@@ -222,7 +222,7 @@ export async function deleteGroup(formData: FormData): Promise<void> {
   if (!id) return;
 
   const supabase = createClient();
-  const db = newTables(supabase);
+  const db = supabase;
   await db.from("deduction_group_items").delete().eq("group_id", id).eq("company_id", active.id);
   await db.from("employee_deduction_group").delete().eq("group_id", id).eq("company_id", active.id);
   await db.from("deduction_groups").delete().eq("id", id).eq("company_id", active.id);

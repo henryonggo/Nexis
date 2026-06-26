@@ -52,17 +52,50 @@ curl -X POST http://localhost:3001/process-report \
 
 ## Cloud Run Deployment
 
-To deploy this worker to Google Cloud Run:
+To deploy this worker to Google Cloud Run, you can use the provided deployment script `deploy.sh` or Terraform configurations in `infra/gcp/`.
 
-1. Build a Docker container of this service.
-2. Push the image to GCP Artifact Registry.
-3. Deploy to Cloud Run:
+### Method A: Using the Deployment Script
+
+A helper script [deploy.sh](file:///c:/GIT/nexis/services/payroll-worker/deploy.sh) is provided to build the Docker image, push it to GCR, and deploy to Cloud Run.
+
+#### Option 1: Beta Mode (Public Cloud Run / Direct POST)
+In Beta mode, the Cloud Run worker is public, and the app connects directly via a POST request, bypassing Cloud Tasks.
+```bash
+# Set variables and run in beta mode
+export SUPABASE_URL="https://your-project.supabase.co"
+export SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
+export MODE="beta"
+
+./services/payroll-worker/deploy.sh
+```
+*Note:* After deploying, configure `PAYROLL_WORKER_URL` on Vercel and ensure the other 4 vars are unset.
+
+#### Option 2: Production Mode (Private Cloud Run / Cloud Tasks)
+In Production mode, the worker is secure (private) and requests are routed through a Cloud Tasks queue using OIDC authentication.
+```bash
+export SUPABASE_URL="https://your-project.supabase.co"
+export SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
+export MODE="prod"
+
+./services/payroll-worker/deploy.sh
+```
+*Note:* Configure all 5 environment variables on Vercel as shown in the script output.
+
+---
+
+### Method B: Using Terraform (Production Mode)
+
+Terraform configurations are located in [infra/gcp/](file:///c:/GIT/nexis/infra/gcp/).
+
+1. Initialize Terraform:
    ```bash
-   gcloud run deploy nexis-payroll-worker \
-     --image=gcr.io/your-project-id/payroll-worker:latest \
-     --platform=managed \
-     --region=asia-southeast1 \
-     --set-env-vars="NEXT_PUBLIC_SUPABASE_URL=...,SUPABASE_SERVICE_ROLE_KEY=..." \
-     --no-allow-unauthenticated
+   cd infra/gcp
+   terraform init
    ```
-4. Configure GCP Cloud Tasks with a service account containing the permission `run.routes.invoke` to trigger the worker URL securely.
+2. Apply the configuration:
+   ```bash
+   terraform apply \
+     -var="supabase_url=https://your-project.supabase.co" \
+     -var="supabase_service_role_key=your-service-role-key"
+   ```
+3. Set all 5 outputs as environment variables on Vercel.

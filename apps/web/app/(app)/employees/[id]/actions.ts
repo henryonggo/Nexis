@@ -6,7 +6,6 @@ import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 import {
   isStatutoryCode,
-  newTables,
   resolveEmployeeDeductions,
   statutoryEnrollment,
 } from "@/lib/deductions";
@@ -104,11 +103,6 @@ export async function updateEmployee(_prev: EditState, formData: FormData): Prom
     .limit(1)
     .maybeSingle();
 
-  // `daily_rate` and `working_days_override` are new columns not yet in the
-  // generated types (TODO(db) — see docs/handoff/stage-07-salary-earnings.md), so
-  // the compensation write is routed through the untyped cast used for the other
-  // not-yet-migrated tables. The "mixed" pay_frequency value likewise needs the
-  // check constraint widened before it persists.
   // Per-employee weekly schedule: when "custom schedule" is on, store the checked
   // ISO weekdays; otherwise null = follow the company default schedule.
   const workDaysOverride =
@@ -126,11 +120,10 @@ export async function updateEmployee(_prev: EditState, formData: FormData): Prom
     payment_method: d.paymentMethod,
     pay_frequency: d.payFrequency,
   };
-  const compDb = newTables(supabase);
   if (comp) {
-    await compDb.from("compensation").update(compPayload).eq("id", comp.id);
+    await supabase.from("compensation").update(compPayload).eq("id", comp.id);
   } else {
-    await compDb.from("compensation").insert({
+    await supabase.from("compensation").insert({
       company_id: active.id,
       employee_id: d.id,
       ...compPayload,
@@ -174,7 +167,7 @@ export async function updateEmployeeDeductions(
   }
 
   const supabase = createClient();
-  const db = newTables(supabase);
+  const db = supabase;
   const mode = formData.get("mode") === "group" ? "group" : "manual";
 
   if (mode === "group") {
@@ -234,9 +227,7 @@ export async function updateEmployeeDeductions(
         bpjs_tk_enrolled: enr.jht_enrolled || enr.jp_enrolled,
         jht_enrolled: enr.jht_enrolled,
         jp_enrolled: enr.jp_enrolled,
-        // TODO(db): also write pph21_enrolled once the column exists on
-        // `compensation` — until then PPh 21 selection lives only in the
-        // deduction config tables. — Antigravity
+        pph21_enrolled: enr.pph21_enrolled,
       })
       .eq("id", comp.id);
   }
@@ -264,7 +255,7 @@ export async function updateEmployeeEarnings(
   }
 
   const supabase = createClient();
-  const db = newTables(supabase);
+  const db = supabase;
   const mode = formData.get("mode") === "group" ? "group" : "manual";
 
   if (mode === "group") {
@@ -332,7 +323,7 @@ export async function createManualDeduction(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const { error } = await newTables(supabase).from("employee_manual_deduction").insert({
+  const { error } = await supabase.from("employee_manual_deduction").insert({
     company_id: active.id,
     employee_id: parsed.data.employeeId,
     amount: parsed.data.amount,
@@ -355,7 +346,7 @@ export async function deleteManualDeduction(formData: FormData): Promise<void> {
   if (!active || (active.role !== "owner" && active.role !== "admin")) return;
 
   const supabase = createClient();
-  await newTables(supabase)
+  await supabase
     .from("employee_manual_deduction")
     .delete()
     .eq("id", id)

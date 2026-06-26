@@ -1,7 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
-import { newTables } from "@/lib/deductions";
 import { normalizeWorkDays } from "@/lib/work-schedule";
 import { DeactivateSection } from "./deactivate-section";
 import { NotificationsForm } from "./notifications-form";
@@ -24,12 +23,11 @@ export default async function SettingsPage() {
     .eq("id", user?.id ?? "")
     .maybeSingle();
 
-  // Company-level payroll settings (owner/admin only). `working_days_per_month`
-  // is not yet in the generated types (TODO(db)), so the read uses the untyped cast.
+  // Company-level payroll settings (owner/admin only).
   const active = await getActiveCompany();
   const canManageCompany = active?.role === "owner" || active?.role === "admin";
   const { data: companySettings } = canManageCompany
-    ? await newTables(supabase)
+    ? await supabase
         .from("company_settings")
         .select("workweek_days, work_days")
         .eq("company_id", active!.id)
