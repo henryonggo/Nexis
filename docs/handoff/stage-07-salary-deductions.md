@@ -1,8 +1,9 @@
 # Handoff — Configurable Salary Deductions (selection + groups)
 
-> **Status:** 🟡 **App layer built, awaiting DB.** Branch:
-> `claude/salary-deduction-config-y5uv9e`. This doc is the `TODO(db)` tracking
-> item per the handoff protocol in `docs/08-agent-boundaries.md`.
+> **Status:** ✅ **COMPLETE.** Schema landed and `packages/types` regenerated; the
+> app layer now reads/writes the deduction tables and the `compensation.pph21_enrolled`
+> column through generated types. The `newTables` quarantine cast and all `TODO(db)`
+> markers for this feature are removed; `pnpm --filter @nexis/web typecheck` is clean.
 
 ## What it does
 

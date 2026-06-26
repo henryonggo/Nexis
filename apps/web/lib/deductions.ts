@@ -12,13 +12,6 @@ import type { Database } from "@nexis/types";
  *
  * Deductions are either STATUTORY (BPJS Kesehatan, JHT, JP, PPh 21 — computed by
  * the payroll engine) or CUSTOM (admin-defined fixed-rupiah or percentage).
- *
- * TODO(db): the tables below — `custom_deduction_types`, `deduction_groups`,
- * `deduction_group_items`, `employee_deduction_group`, `employee_deduction` — and
- * the `compensation.pph21_enrolled` column are not yet in the generated schema.
- * Antigravity lands the migration + regenerates `packages/types`; until then we
- * reach them through an untyped view of the client (`newTables`) and drop the
- * cast once the types exist. See docs/handoff/stage-07-salary-deductions.md.
  */
 
 export type StatutoryCode = "bpjs_kes" | "jht" | "jp" | "pph21";
@@ -89,18 +82,12 @@ export interface StatutoryEnrollment {
   pph21_enrolled: boolean;
 }
 
-/** Untyped view of the client for tables not yet in the generated schema. */
-type AnyDb = { from: (table: string) => any };
-export function newTables(supabase: SupabaseClient<Database>): AnyDb {
-  return supabase as unknown as AnyDb;
-}
-
 /** All custom deduction types for the company, active first then by name. */
 export async function listCustomDeductions(
   supabase: SupabaseClient<Database>,
   companyId: string,
 ): Promise<CustomDeductionType[]> {
-  const { data } = await newTables(supabase)
+  const { data } = await supabase
     .from("custom_deduction_types")
     .select("id, name, calc, amount, rate_bps, base, active")
     .eq("company_id", companyId)
@@ -127,7 +114,7 @@ export async function listDeductionGroups(
   supabase: SupabaseClient<Database>,
   companyId: string,
 ): Promise<DeductionGroup[]> {
-  const { data: groups } = await newTables(supabase)
+  const { data: groups } = await supabase
     .from("deduction_groups")
     .select("id, name, description, active")
     .eq("company_id", companyId)
@@ -136,7 +123,7 @@ export async function listDeductionGroups(
   const list = (groups as any[] | null) ?? [];
   if (list.length === 0) return [];
 
-  const { data: items } = await newTables(supabase)
+  const { data: items } = await supabase
     .from("deduction_group_items")
     .select("group_id, statutory_code, custom_type_id")
     .eq("company_id", companyId);
@@ -173,7 +160,7 @@ export async function resolveEmployeeDeductions(
   const customById = new Map(customs.map((c) => [c.id, c]));
 
   // Group assignment wins when present.
-  const { data: assignment } = await newTables(supabase)
+  const { data: assignment } = await supabase
     .from("employee_deduction_group")
     .select("group_id")
     .eq("company_id", companyId)
@@ -193,7 +180,7 @@ export async function resolveEmployeeDeductions(
   }
 
   // Otherwise, manual per-employee selections.
-  const { data: manual } = await newTables(supabase)
+  const { data: manual } = await supabase
     .from("employee_deduction")
     .select("statutory_code, custom_type_id, enabled")
     .eq("company_id", companyId)

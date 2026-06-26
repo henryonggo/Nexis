@@ -1,7 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@nexis/types";
 import { percentBps, sum, type Rupiah } from "@nexis/money";
-import { newTables } from "./deductions";
 
 /**
  * Configurable salary earnings (allowances / tunjangan) — the mirror of
@@ -20,13 +19,6 @@ import { newTables } from "./deductions";
  * base salary. `taxable` records whether the component is part of taxable gross
  * (most allowances are; some reimbursive ones are not) — the payroll engine
  * consumes this when it lands.
- *
- * TODO(db): the tables below — `custom_earning_types`, `earning_groups`,
- * `earning_group_items`, `employee_earning_group`, `employee_earning` — are not
- * yet in the generated schema. Until Antigravity lands the migration + regenerates
- * `packages/types`, all access goes through the same quarantined untyped cast the
- * deductions feature uses (`newTables`). Delete the cast and wire generated types
- * once the migration lands. See docs/handoff/stage-07-salary-earnings.md.
  */
 
 export type EarningCalc = "fixed" | "percent";
@@ -84,7 +76,7 @@ export async function listCustomEarnings(
   supabase: SupabaseClient<Database>,
   companyId: string,
 ): Promise<CustomEarningType[]> {
-  const { data } = await newTables(supabase)
+  const { data } = await supabase
     .from("custom_earning_types")
     .select("id, name, calc, amount, rate_bps, base, taxable, active")
     .eq("company_id", companyId)
@@ -112,7 +104,7 @@ export async function listEarningGroups(
   supabase: SupabaseClient<Database>,
   companyId: string,
 ): Promise<EarningGroup[]> {
-  const { data: groups } = await newTables(supabase)
+  const { data: groups } = await supabase
     .from("earning_groups")
     .select("id, name, description, active")
     .eq("company_id", companyId)
@@ -121,7 +113,7 @@ export async function listEarningGroups(
   const list = (groups as any[] | null) ?? [];
   if (list.length === 0) return [];
 
-  const { data: items } = await newTables(supabase)
+  const { data: items } = await supabase
     .from("earning_group_items")
     .select("group_id, custom_type_id")
     .eq("company_id", companyId);
@@ -159,7 +151,7 @@ export async function resolveEmployeeEarnings(
   const customById = new Map(customs.map((c) => [c.id, c]));
 
   // Group assignment wins when present.
-  const { data: assignment } = await newTables(supabase)
+  const { data: assignment } = await supabase
     .from("employee_earning_group")
     .select("group_id")
     .eq("company_id", companyId)
@@ -180,7 +172,7 @@ export async function resolveEmployeeEarnings(
   }
 
   // Otherwise, manual per-employee selections (with optional amount override).
-  const { data: manual } = await newTables(supabase)
+  const { data: manual } = await supabase
     .from("employee_earning")
     .select("custom_type_id, amount_override, enabled")
     .eq("company_id", companyId)
@@ -253,7 +245,7 @@ export async function loadBulkEarnings(
   supabase: SupabaseClient<Database>,
   companyId: string,
 ): Promise<BulkEarnings> {
-  const db = newTables(supabase);
+  const db = supabase;
   const [{ data: types }, { data: items }, { data: groups }, { data: manual }] = await Promise.all([
     db.from("custom_earning_types").select("id, name, calc, amount, rate_bps, base, taxable, active").eq("company_id", companyId),
     db.from("earning_group_items").select("group_id, custom_type_id").eq("company_id", companyId),

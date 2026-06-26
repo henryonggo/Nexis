@@ -25,7 +25,6 @@ import {
   sumTaxableEarnings,
   type EarningLine,
 } from "./earnings";
-import { newTables } from "./deductions";
 import { normalizeWorkDays, expectedWorkdaysInMonth } from "./work-schedule";
 import { loadBulkManualDeductions, sumManualDeductionsForPeriod } from "./manual-deductions";
 
@@ -120,7 +119,6 @@ interface CompensationRow {
   employee_id: string;
   base_salary: number;
   pay_frequency: string;
-  // New columns (TODO(db) — not yet in generated types). Read via untyped cast.
   daily_rate: number | null;
   /** Per-employee weekly schedule (ISO weekdays) or null to follow the company default. */
   work_days: number[] | null;
@@ -239,14 +237,12 @@ export async function computeRunPreview(
         .eq("company_id", companyId)
         .eq("status", "active")
         .order("full_name", { ascending: true }),
-      // `work_days` is a new column (TODO(db)); read via untyped cast.
-      newTables(supabase)
+      supabase
         .from("company_settings")
         .select("jkk_risk_class, region, workweek_days, work_days")
         .eq("company_id", companyId)
         .maybeSingle(),
-      // `daily_rate` / `work_days` are new columns (TODO(db)); untyped cast.
-      newTables(supabase)
+      supabase
         .from("compensation")
         .select("employee_id, base_salary, pay_frequency, daily_rate, work_days, fixed_allowances, bpjs_kes_enrolled, jht_enrolled, jp_enrolled, effective_from")
         .eq("company_id", companyId),

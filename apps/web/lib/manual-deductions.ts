@@ -1,7 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@nexis/types";
 import { sum, type Rupiah } from "@nexis/money";
-import { newTables } from "./deductions";
 
 /**
  * Manual (ad-hoc) deductions — one-off amounts an admin/owner subtracts from a
@@ -12,10 +11,6 @@ import { newTables } from "./deductions";
  * Unlike the reusable `custom_deduction_types`, these are per-employee, per-event
  * rows: an amount, a reason, and the date it applies to. The payroll run subtracts
  * the entries whose date falls in the run period.
- *
- * TODO(db): table `employee_manual_deduction` is not yet in the generated schema —
- * access goes through the same quarantined `newTables` cast as the other pending
- * tables. See docs/handoff/stage-07-salary-earnings.md.
  */
 
 export interface ManualDeduction {
@@ -45,7 +40,7 @@ export async function listManualDeductions(
   companyId: string,
   employeeId: string,
 ): Promise<ManualDeduction[]> {
-  const { data } = await newTables(supabase)
+  const { data } = await supabase
     .from("employee_manual_deduction")
     .select("id, employee_id, amount, reason, date, created_at")
     .eq("company_id", companyId)
@@ -61,7 +56,7 @@ export async function loadBulkManualDeductions(
   supabase: SupabaseClient<Database>,
   companyId: string,
 ): Promise<Map<string, ManualDeduction[]>> {
-  const { data } = await newTables(supabase)
+  const { data } = await supabase
     .from("employee_manual_deduction")
     .select("id, employee_id, amount, reason, date, created_at")
     .eq("company_id", companyId);

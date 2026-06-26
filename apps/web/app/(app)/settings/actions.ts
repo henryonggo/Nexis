@@ -5,7 +5,6 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
-import { newTables } from "@/lib/deductions";
 import { normalizeWorkDays } from "@/lib/work-schedule";
 
 export type SettingsState = { error?: string };
@@ -68,12 +67,8 @@ const payrollSettingsSchema = z.object({
  * Save company-level payroll/working-days settings: the workweek length (for
  * overtime) and the default weekly work schedule (which weekdays staff are
  * expected to work), which scales daily/mixed pay and defines absences. Owner/
- * admin only.
- *
- * TODO(db): `company_settings.work_days int[] not null default '{1,2,3,4,5}'`
- * (ISO weekdays, 1=Mon…7=Sun) is not yet in the generated schema — the write is
- * routed through the untyped cast until Antigravity lands the column. See
- * docs/handoff/stage-07-salary-earnings.md.
+ * admin only. `company_settings.work_days` is an `int[]` of ISO weekdays
+ * (1=Mon…7=Sun).
  */
 export async function updatePayrollSettings(
   _prev: PayrollSettingsState,
@@ -91,7 +86,7 @@ export async function updatePayrollSettings(
   const workDays = normalizeWorkDays(formData.getAll("workDays").map((v) => Number(v)));
 
   const supabase = createClient();
-  const { error } = await newTables(supabase)
+  const { error } = await supabase
     .from("company_settings")
     .update({
       workweek_days: parsed.data.workweekDays,
