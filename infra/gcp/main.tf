@@ -75,8 +75,8 @@ resource "google_cloud_run_v2_service" "payroll_worker" {
     service_account = google_service_account.worker_runtime.email
 
     containers {
-      # Default image path on Container Registry / Artifact Registry
-      image = "gcr.io/${var.project_id}/payroll-worker:latest"
+      # Default image path on Artifact Registry
+      image = "${var.region}-docker.pkg.dev/${var.project_id}/nexis-repo/payroll-worker:latest"
 
       env {
         name  = "NEXT_PUBLIC_SUPABASE_URL"
