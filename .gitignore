@@ -46,5 +46,5 @@ playwright/.auth/
 # agent & scratch directories
 .agent/
 .claude/
-.gemini/
-scratch/
+!.claude/agents/
+.c
