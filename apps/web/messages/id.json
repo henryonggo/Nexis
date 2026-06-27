@@ -12,13 +12,41 @@
     "passwordHint": "Minimal 8 karakter, 1 huruf besar, 1 angka.",
     "exportCsv": "Ekspor CSV",
     "processing": "Memproses…",
-    "addCompany": "+ Tambah perusahaan"
+    "addCompany": "+ Tambah perusahaan",
+    "allCompanies": "Semua perusahaan"
   },
   "roles": {
     "owner": "Pemilik",
     "admin": "Admin",
     "manager": "Manajer",
-    "employee": "Karyawan"
+    "employee": "Karyawan",
+    "accountant": "Akuntan"
+  },
+  "portal": {
+    "title": "Portal",
+    "subtitle": "Semua perusahaan Anda dalam satu tampilan",
+    "asOf": "Per {time} WIB",
+    "companyCount": "{count} perusahaan",
+    "searchPlaceholder": "Cari perusahaan…",
+    "noMatches": "Tidak ada perusahaan yang cocok.",
+    "kpi": {
+      "companies": "Perusahaan",
+      "employees": "Total karyawan",
+      "needsAction": "Perlu tindakan",
+      "needsActionHint": "{count} perusahaan",
+      "payrollTotal": "Payroll terakhir",
+      "payrollTotalHint": "Total bersih semua perusahaan"
+    },
+    "card": {
+      "seats": "{used} / {limit} kursi",
+      "headcount": "{count} karyawan",
+      "lastPayroll": "Payroll terakhir",
+      "noPayroll": "Belum ada payroll",
+      "pendingApprovals": "Persetujuan tertunda",
+      "noPending": "Tidak ada",
+      "open": "Buka",
+      "loadError": "Gagal memuat data"
+    }
   },
   "nav": {
     "overview": "Ikhtisar",
