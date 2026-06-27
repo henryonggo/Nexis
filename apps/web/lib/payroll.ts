@@ -299,13 +299,8 @@ export async function computeRunPreview(
   const daysWorkedByEmployee = new Map<string, Set<string>>();
   for (const r of (attendanceRecords as { employee_id: string; event_at: string }[] | null) ?? []) {
     if (!r.employee_id || !r.event_at) continue;
-    // A malformed/legacy event_at would make jakartaDateFmt.format throw a
-    // RangeError ("Invalid time value") here — outside the per-employee guard
-    // below — and 500 the whole preview. Skip the bad row instead.
-    const eventDate = new Date(r.event_at);
-    if (Number.isNaN(eventDate.getTime())) continue;
     const set = daysWorkedByEmployee.get(r.employee_id) ?? new Set<string>();
-    set.add(jakartaDateFmt.format(eventDate));
+    set.add(jakartaDateFmt.format(new Date(r.event_at)));
     daysWorkedByEmployee.set(r.employee_id, set);
   }
 
