@@ -9,15 +9,35 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        brand: { DEFAULT: "#2452E6", dark: "#1A3FC0", light: "#EAF0FF" },
-        accent: "#0EA5A4",
+        brand: {
+          DEFAULT: "#2452E6",
+          dark: "#1A3FC0",
+          light: "#EAF0FF",
+          700: "var(--brand-700)",
+          100: "var(--brand-100)",
+          "050": "var(--brand-050)",
+        },
+        accent: "#0E9F90",
         success: "#16A34A",
         danger: "#DC2626",
         warning: "#F59E0B",
         info: "#0EA5E9",
-        ink: "#0B1220",
+        ink: { DEFAULT: "#0B1220", 2: "var(--ink-2)" },
         muted: "#5B6675",
-        surface: { DEFAULT: "#FFFFFF", 2: "#F1F4F9" },
+        faint: "var(--faint)",
+        hairline: { DEFAULT: "var(--hairline)", strong: "var(--hairline-strong)" },
+        surface: { DEFAULT: "#FFFFFF", 2: "#F1F4F9", sunken: "var(--surface-sunken)", raised: "var(--surface-raised)" },
+        flow: { in: "var(--flow-in)", out: "var(--flow-out)" },
+        chart: {
+          1: "var(--chart-1)",
+          2: "var(--chart-2)",
+          3: "var(--chart-3)",
+          4: "var(--chart-4)",
+          5: "var(--chart-5)",
+          6: "var(--chart-6)",
+          in: "var(--chart-in)",
+          out: "var(--chart-out)",
+        },
 
         // shadcn/ui semantic tokens (HSL vars from globals.css).
         // Note: legacy flat `accent`/`muted` kept above; our primitives use
@@ -37,13 +57,30 @@ const config: Config = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        card: "var(--radius-card)",
+        control: "var(--radius-control)",
+        pill: "var(--radius-pill)",
       },
       boxShadow: {
         "elev-1": "var(--elev-1)",
         "elev-2": "var(--elev-2)",
         "elev-3": "var(--elev-3)",
         "elev-4": "var(--elev-4)",
+        "elev-pop": "var(--elev-pop)",
+        "inset-hi": "var(--inset-hi)",
       },
+      transitionDuration: {
+        fast: "var(--dur-fast)",
+        base: "var(--dur-base)",
+        slow: "var(--dur-slow)",
+      },
+      transitionTimingFunction: {
+        standard: "var(--ease-standard)",
+        out: "var(--ease-out)",
+        in: "var(--ease-in)",
+        spring: "var(--ease-spring)",
+      },
+      height: { row: "var(--row-h)" },
       fontFamily: { sans: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"] },
       keyframes: {
         aurora: {

@@ -3,69 +3,213 @@
 @tailwind utilities;
 
 :root {
-  /* Nexis v2 tokens — Soft-UI Evolution Default Theme */
-  --bg: #f7f9fa;
-  --surface: #ffffff;
-  --surface-2: #eff2f5;
-  --ink: #0b1220;
-  --muted: #5b6675;
-  --brand: #203cd5;
-  --brand-dark: #172ea2;
-  --brand-light: #eef1fd;
-  --accent-teal: #209f59;
+  /* ── Nexis v3 "Ledger Instrument" — light (default) ──────────────────────── */
+  /* Brand: a single cobalt (resolves the v2 #203cd5/#2452E6 drift). */
+  --brand: #2452e6;
+  --brand-700: #1a3fc0; /* hover / active */
+  --brand-dark: #1a3fc0; /* legacy alias */
+  --brand-100: #eaf0ff; /* tint badges */
+  --brand-light: #eaf0ff; /* legacy alias */
+  --brand-050: #f4f7ff; /* row-select wash */
+
+  /* Money / state. Teal = money-in, distinct from the green success STATE. */
+  --accent-teal: #0e9f90; /* legacy alias → true teal */
   --success: #16a34a;
   --warning: #f59e0b;
   --danger: #dc2626;
   --info: #0ea5e9;
-  --radius: 12px;
-  --elev-1: 0 1px 3px rgba(11, 18, 32, 0.02), 0 8px 16px -4px rgba(11, 18, 32, 0.04);
-  --elev-2: 0 1px 3px rgba(11, 18, 32, 0.02), 0 16px 24px -6px rgba(11, 18, 32, 0.06);
-  --elev-3: 0 2px 8px rgba(11, 18, 32, 0.03), 0 24px 36px -8px rgba(11, 18, 32, 0.08);
-  --elev-4: 0 4px 16px rgba(11, 18, 32, 0.04), 0 32px 48px -12px rgba(11, 18, 32, 0.10);
+  --flow-in: #0e9f90;
+  --flow-out: #dc2626;
 
-  /* shadcn/ui semantic vars (HSL) — Soft-UI Evolution */
-  --background: 210 20% 98%;
-  --foreground: 220 49% 8%;
+  /* Neutrals + hairlines */
+  --ink: #0a0f1c;
+  --ink-2: #313a4b;
+  --muted: #59636f;
+  --faint: #8a93a1;
+  --hairline: #e6eaf1;
+  --hairline-strong: #d5dbe6;
+
+  /* Surface ladder (light-first) */
+  --bg: #f6f8fb;
+  --surface-sunken: #f2f5f9;
+  --surface: #ffffff;
+  --surface-2: #f2f5f9;
+  --surface-raised: #ffffff;
+
+  /* Radius re-tier (child = parent − padding) */
+  --radius: 10px;
+  --radius-card: 14px;
+  --radius-control: 8px;
+  --radius-sm: 6px;
+  --radius-pill: 999px;
+
+  /* Elevation — border-led depth; always pair with a 1px hairline. */
+  --elev-1: 0 1px 2px rgba(11, 18, 32, 0.04), 0 8px 16px -6px rgba(11, 18, 32, 0.06);
+  --elev-2: 0 1px 3px rgba(11, 18, 32, 0.05), 0 16px 24px -8px rgba(11, 18, 32, 0.08);
+  --elev-3: 0 2px 8px rgba(11, 18, 32, 0.06), 0 24px 36px -10px rgba(11, 18, 32, 0.10);
+  --elev-4: 0 4px 16px rgba(11, 18, 32, 0.08), 0 32px 48px -14px rgba(11, 18, 32, 0.12);
+  --elev-pop: 0 8px 28px -6px rgba(11, 18, 32, 0.16), 0 2px 6px rgba(11, 18, 32, 0.06);
+  --inset-hi: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+
+  /* Motion — durations + easings + composites (transform/opacity only). */
+  --dur-instant: 80ms;
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
+  --dur-page: 480ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out: cubic-bezier(0, 0, 0, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --motion-press: transform var(--dur-fast) var(--ease-spring);
+  --motion-pop: opacity var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out);
+  --motion-fade: opacity var(--dur-base) var(--ease-standard);
+  --motion-slide: transform var(--dur-slow) var(--ease-out);
+
+  /* Density — repointed by [data-density]; no per-utility !important. */
+  --row-h: 36px;
+  --cell-x: 12px;
+  --cell-y: 8px;
+  --gap-section: 24px;
+
+  /* Focus + glass */
+  --ring-width: 2px;
+  --brand-ring: 226 79% 52%;
+  --glass: rgba(255, 255, 255, 0.7);
+
+  /* Chart palette (token-driven; sweep off hardcoded hex). */
+  --chart-1: var(--brand);
+  --chart-2: var(--accent-teal);
+  --chart-3: #6366f1;
+  --chart-4: #f59e0b;
+  --chart-5: #f43f5e;
+  --chart-6: #0ea5e9;
+  --chart-in: var(--flow-in);
+  --chart-out: var(--flow-out);
+
+  /* shadcn/ui semantic vars (HSL) — cobalt-derived. */
+  --background: 210 33% 98%;
+  --foreground: 222 47% 8%;
   --card: 0 0% 100%;
-  --card-foreground: 220 49% 8%;
+  --card-foreground: 222 47% 8%;
   --popover: 0 0% 100%;
-  --popover-foreground: 220 49% 8%;
-  --primary: 234 74% 48%;
+  --popover-foreground: 222 47% 8%;
+  --primary: 226 79% 52%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 210 13% 95%;
-  --secondary-foreground: 220 49% 8%;
-  --muted-bg: 210 13% 95%;
-  --muted-foreground: 216 12% 41%;
-  --accent: 234 74% 96%;
-  --accent-foreground: 234 74% 48%;
+  --secondary: 213 27% 96%;
+  --secondary-foreground: 222 47% 8%;
+  --muted-bg: 213 27% 96%;
+  --muted-foreground: 214 11% 39%;
+  --accent: 226 79% 96%;
+  --accent-foreground: 226 79% 52%;
   --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 100%;
-  --border: 210 13% 95%;
-  --ring: 234 74% 48%;
+  --border: 220 26% 92%;
+  --ring: 226 79% 52%;
+}
+
+[data-density="compact"] {
+  --row-h: 32px;
+  --cell-x: 10px;
+  --cell-y: 6px;
+  --gap-section: 16px;
+}
+
+[data-density="comfortable"] {
+  --row-h: 44px;
+  --cell-x: 14px;
+  --cell-y: 12px;
+  --gap-section: 32px;
+}
+
+/* Dark token block — REDEFINES the same names (darkMode: ['class']). Ready, not
+   shipped: tailwind color utilities are still static hex, so flipping `.dark`
+   needs the color→var migration first. Wire only after an AA contrast audit. */
+.dark {
+  --bg: #0a0e16;
+  --surface-sunken: #11161f;
+  --surface: #151b26;
+  --surface-raised: #1b2230;
+  --ink: #eef1f6;
+  --ink-2: #c2c9d4;
+  --muted: #9aa4b2;
+  --faint: #6b7480;
+  --hairline: rgba(255, 255, 255, 0.08);
+  --hairline-strong: rgba(255, 255, 255, 0.14);
+  --brand: #5b7bff;
+  --brand-100: rgba(91, 123, 255, 0.16);
+  --accent-teal: #2dd4bf;
+  --success: #34d399;
+  --warning: #fbbf24;
+  --danger: #f87171;
+  --flow-in: #2dd4bf;
+  --flow-out: #f87171;
+  --glass: rgba(21, 27, 38, 0.7);
+  --chart-3: #818cf8;
+  --chart-4: #fbbf24;
+  --chart-5: #fb7185;
+  --chart-6: #38bdf8;
+
+  --background: 222 38% 6%;
+  --foreground: 222 20% 95%;
+  --card: 222 26% 12%;
+  --card-foreground: 222 20% 95%;
+  --popover: 222 26% 12%;
+  --popover-foreground: 222 20% 95%;
+  --primary: 226 100% 68%;
+  --secondary: 222 20% 18%;
+  --secondary-foreground: 222 20% 95%;
+  --muted-bg: 222 20% 18%;
+  --muted-foreground: 218 14% 65%;
+  --border: 222 20% 20%;
+  --ring: 226 100% 68%;
 }
 
 .theme-mono {
-  /* Nexis v2 tokens — Swiss Minimalist / Mono-Accent Theme */
-  --bg: #ffffff;
-  --surface: #ffffff;
-  --surface-2: #f8fafc;
-  --ink: #000000;
-  --muted: #555555;
+  /* Swiss Minimalist / Mono-Accent — mirrors every v3 var name. */
   --brand: #000000;
+  --brand-700: #000000;
   --brand-dark: #000000;
+  --brand-100: #f1f5f9;
   --brand-light: #f1f5f9;
+  --brand-050: #f8fafc;
   --accent-teal: #002fa7; /* International Klein Blue */
   --success: #000000;
   --warning: #000000;
   --danger: #000000;
   --info: #000000;
+  --flow-in: #002fa7;
+  --flow-out: #000000;
+  --ink: #000000;
+  --ink-2: #1a1a1a;
+  --muted: #555555;
+  --faint: #777777;
+  --hairline: #e5e5e5;
+  --hairline-strong: #cccccc;
+  --bg: #ffffff;
+  --surface-sunken: #f8fafc;
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --surface-raised: #ffffff;
   --radius: 0px;
+  --radius-card: 0px;
+  --radius-control: 0px;
+  --radius-sm: 0px;
+  --radius-pill: 0px;
   --elev-1: none;
   --elev-2: none;
   --elev-3: none;
   --elev-4: none;
+  --elev-pop: 0 0 0 1px #000000;
+  --inset-hi: none;
+  --glass: #ffffff;
+  --chart-1: #000000;
+  --chart-2: #002fa7;
+  --chart-3: #555555;
+  --chart-4: #888888;
+  --chart-5: #aaaaaa;
+  --chart-6: #002fa7;
 
-  /* shadcn/ui semantic vars (HSL) — Swiss Minimalist */
   --background: 0 0% 100%;
   --foreground: 0 0% 0%;
   --card: 0 0% 100%;
@@ -78,69 +222,12 @@
   --secondary-foreground: 0 0% 0%;
   --muted-bg: 210 40% 98%;
   --muted-foreground: 0 0% 33%;
-  --accent: 223 100% 33%; /* HSL Klein Blue */
+  --accent: 223 100% 33%;
   --accent-foreground: 0 0% 100%;
   --destructive: 0 0% 0%;
   --destructive-foreground: 0 0% 100%;
   --border: 0 0% 90%;
   --ring: 0 0% 0%;
-}
-
-/* ---- Layout Density Overrides ---- */
-.density-compact table th,
-.density-compact table td {
-  padding-top: 0.375rem !important; /* 6px (py-1.5) */
-  padding-bottom: 0.375rem !important;
-  padding-left: 0.75rem !important; /* 12px (px-3) */
-  padding-right: 0.75rem !important;
-}
-
-.density-compact .py-4 {
-  padding-top: 0.5rem !important; /* py-2 */
-  padding-bottom: 0.5rem !important;
-}
-
-.density-compact .py-6 {
-  padding-top: 0.75rem !important; /* py-3 */
-  padding-bottom: 0.75rem !important;
-}
-
-.density-compact .py-8 {
-  padding-top: 1rem !important; /* py-4 */
-  padding-bottom: 1rem !important;
-}
-
-.density-compact .py-12 {
-  padding-top: 1.5rem !important;
-  padding-bottom: 1.5rem !important;
-}
-
-.density-compact .space-y-6 > :not([hidden]) ~ :not([hidden]) {
-  margin-top: 1rem !important; /* space-y-4 */
-}
-
-.density-compact .space-y-8 > :not([hidden]) ~ :not([hidden]) {
-  margin-top: 1.5rem !important; /* space-y-6 */
-}
-
-.density-compact .space-y-4 > :not([hidden]) ~ :not([hidden]) {
-  margin-top: 0.5rem !important; /* space-y-2 */
-}
-
-.density-compact .gap-6 {
-  gap: 1rem !important;
-}
-
-.density-compact .gap-8 {
-  gap: 1.5rem !important;
-}
-
-.density-compact .p-8 {
-  padding: 1.5rem !important; /* p-6 */
-}
-
-.density-compact .p-6 {
-  padding: 1rem !important; /* p-4 */
 }
 
 html {
@@ -155,15 +242,43 @@ body {
   font-family: var(--font-inter), Inter, system-ui, sans-serif;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
+/* Ledger numeric voice: tabular figures + slashed zero on data/money surfaces. */
+table,
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "zero" 1, "ss01" 1;
+}
+
+/* Single focus identity: two-layer brand ring, :focus-visible only. */
+.focus-ring {
+  outline: none;
+}
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 var(--ring-width) hsl(var(--brand-ring)), 0 0 0 calc(var(--ring-width) + 1px) var(--surface);
+}
+
+/* Glass: a deliberate accent for the floating layer only (topbar, Cmd+K,
+   popovers) — token-driven, no !important so it stays opt-in. */
+.glass-panel {
+  background: var(--glass);
+  backdrop-filter: blur(16px) saturate(120%);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--elev-1);
+}
+
+.theme-mono .glass-panel {
+  background: #ffffff;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid #e5e5e5;
+  box-shadow: none;
 }
 
 /* ---- Landing page helpers ---- */
 .lp-gradient-text {
-  background-image: linear-gradient(110deg, #2452e6 0%, #0ea5a4 55%, #1a3fc0 100%);
+  background-image: linear-gradient(110deg, #2452e6 0%, #0e9f90 55%, #1a3fc0 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -189,91 +304,24 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lp-blob {
+  html {
+    scroll-behavior: auto;
+  }
+  /* Collapse every motion composite + disable transform animations. */
+  :root {
+    --motion-press: none;
+    --motion-pop: none;
+    --motion-fade: none;
+    --motion-slide: none;
+    --dur-instant: 1ms;
+    --dur-fast: 1ms;
+    --dur-base: 1ms;
+    --dur-slow: 1ms;
+    --dur-page: 1ms;
+  }
+  .lp-blob,
+  *[class*="aurora"],
+  *[class*="marquee"] {
     animation: none !important;
   }
-}
-
-/* ---- Glassmorphism Utility ---- */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.45) !important;
-  backdrop-filter: blur(16px) saturate(120%) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(120%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-  box-shadow: 0 8px 32px 0 rgba(11, 18, 32, 0.03), 0 1px 3px rgba(0, 0, 0, 0.01) !important;
-}
-
-.theme-mono .glass-panel {
-  background: #ffffff !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  border: 1px solid #e5e5e5 !important;
-  box-shadow: none !important;
-}
-
-/* ---- Tabular Numerics ---- */
-table,
-.tabular-nums {
-  font-variant-numeric: tabular-nums;
-}
-
-/* ---- Clickable Glass Panel Animations ---- */
-.cursor-pointer.glass-panel {
-  transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 200ms ease, border-color 200ms ease !important;
-}
-.cursor-pointer.glass-panel:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 12px 40px 0 rgba(11, 18, 32, 0.06), 0 1px 3px rgba(0, 0, 0, 0.01) !important;
-  border-color: rgba(255, 255, 255, 0.5) !important;
-}
-.cursor-pointer.glass-panel:active {
-  transform: scale(0.98) !important;
-}
-
-/* ---- Global Glass Input Overrides ---- */
-input:not([type="checkbox"]):not([type="radio"]),
-select,
-textarea,
-button[role="combobox"],
-[data-radix-select-trigger] {
-  background-color: rgba(255, 255, 255, 0.45) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02) !important;
-  transition: all 0.2s ease !important;
-}
-
-input:not([type="checkbox"]):not([type="radio"]):focus,
-select:focus,
-textarea:focus,
-button[role="combobox"]:focus,
-[data-radix-select-trigger]:focus {
-  background-color: rgba(255, 255, 255, 0.6) !important;
-  border-color: rgba(32, 60, 213, 0.35) !important;
-  box-shadow: 0 0 0 2px rgba(32, 60, 213, 0.1) !important;
-  outline: none !important;
-}
-
-/* Fallback under Swiss Minimalist (Mono) Theme */
-.theme-mono input:not([type="checkbox"]):not([type="radio"]),
-.theme-mono select,
-.theme-mono textarea,
-.theme-mono button[role="combobox"],
-.theme-mono [data-radix-select-trigger] {
-  background-color: #ffffff !important;
-  border: 1px solid #e5e5e5 !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  border-radius: 0px !important;
-  box-shadow: none !important;
-}
-
-.theme-mono input:not([type="checkbox"]):not([type="radio"]):focus,
-.theme-mono select:focus,
-.theme-mono textarea:focus,
-.theme-mono button[role="combobox"]:focus,
-.theme-mono [data-radix-select-trigger]:focus {
-  border-color: #000000 !important;
-  box-shadow: none !important;
 }

@@ -4,13 +4,21 @@ import { cn } from "@/lib/utils";
 
 const Card = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & { asChild?: boolean }
->(({ className, asChild = false, ...props }, ref) => {
+  React.HTMLAttributes<HTMLDivElement> & { asChild?: boolean; variant?: "default" | "glass" }
+>(({ className, asChild = false, variant = "default", ...props }, ref) => {
   const Comp = asChild ? Slot : "div";
   return (
     <Comp
       ref={ref}
-      className={cn("rounded-lg glass-panel text-ink", className)}
+      className={cn(
+        "rounded-card text-ink",
+        // v3 default: flat surface + hairline + soft elevation. Glass is reserved
+        // for the floating layer (opt-in via variant="glass").
+        variant === "glass"
+          ? "glass-panel"
+          : "border border-hairline bg-surface-raised shadow-elev-1",
+        className,
+      )}
       {...props}
     />
   );
