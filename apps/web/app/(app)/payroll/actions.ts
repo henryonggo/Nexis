@@ -91,7 +91,11 @@ export async function createDraftRun(
     // A reference-config load failure (e.g. PostgREST mid schema-cache reload)
     // is transient/retryable — surface a clear message instead of a 500.
     if (err instanceof PayrollConfigError) return { error: err.message };
-    throw err;
+    // Any other preview failure (e.g. a bad row that throws before the
+    // per-employee guard) must not 500 the action — degrade to a retryable
+    // message so the form shows it instead of the error boundary.
+    console.error("createDraftRun preview failed", err);
+    return { error: "Gagal menghitung pratinjau payroll. Coba lagi sebentar lagi." };
   }
 
   const runFields = {
