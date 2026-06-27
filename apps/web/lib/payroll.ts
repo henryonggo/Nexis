@@ -299,8 +299,13 @@ export async function computeRunPreview(
   const daysWorkedByEmployee = new Map<string, Set<string>>();
   for (const r of (attendanceRecords as { employee_id: string; event_at: string }[] | null) ?? []) {
     if (!r.employee_id || !r.event_at) continue;
+    // A malformed/legacy event_at would make jakartaDateFmt.format throw a
+    // RangeError ("Invalid time value") here — outside the per-employee guard
+    // below — and 500 the whole preview. Skip the bad row instead.
+    const eventDate = new Date(r.event_at);
+    if (Number.isNaN(eventDate.getTime())) continue;
     const set = daysWorkedByEmployee.get(r.employee_id) ?? new Set<string>();
-    set.add(jakartaDateFmt.format(new Date(r.event_at)));
+    set.add(jakartaDateFmt.format(eventDate));
     daysWorkedByEmployee.set(r.employee_id, set);
   }
 
@@ -403,19 +408,36 @@ export async function computeRunPreview(
     const baseSalary = Math.round(comp.base_salary);
 
     if (runType === "thr") {
-      const months = monthsOfService(emp.join_date, year, month);
-      if (!emp.join_date) warnings.push("Tanggal bergabung kosong — THR dihitung penuh.");
-      const thrAmount = computeThr(baseSalary, months);
-      lines.push({
-        employeeId: emp.id,
-        name: emp.full_name,
-        ptkpStatus,
-        terCategory: ptkpCategory(ptkpStatus),
-        hasNpwp,
-        baseSalary,
-        thrAmount,
-        warnings,
-      });
+      // Same isolation as the monthly branch below: a bad row must degrade to a
+      // per-employee warning, not throw and 500 the whole preview.
+      try {
+        const months = monthsOfService(emp.join_date, year, month);
+        if (!emp.join_date) warnings.push("Tanggal bergabung kosong — THR dihitung penuh.");
+        const thrAmount = computeThr(baseSalary, months);
+        lines.push({
+          employeeId: emp.id,
+          name: emp.full_name,
+          ptkpStatus,
+          terCategory: ptkpCategory(ptkpStatus),
+          hasNpwp,
+          baseSalary,
+          thrAmount,
+          warnings,
+        });
+      } catch (err) {
+        warnings.push(
+          `Gagal menghitung THR karyawan ini: ${err instanceof Error ? err.message : "kesalahan tak terduga"}. Periksa data kompensasi/pajaknya.`,
+        );
+        lines.push({
+          employeeId: emp.id,
+          name: emp.full_name,
+          ptkpStatus,
+          terCategory: ptkpCategory(ptkpStatus),
+          hasNpwp,
+          baseSalary: 0,
+          warnings,
+        });
+      }
       continue;
     }
 
