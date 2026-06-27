@@ -129,10 +129,10 @@ export default async function GlancePage() {
   }).format(now);
 
   const segments = [
-    { value: mix.active, color: "#16A34A", label: tw("active") },
-    { value: mix.probation, color: "#F59E0B", label: tw("probation") },
-    { value: mix.inactive, color: "#5B6675", label: tw("inactive") },
-    { value: mix.terminated, color: "#DC2626", label: tw("terminated") },
+    { value: mix.active, color: "var(--success)", label: tw("active") },
+    { value: mix.probation, color: "var(--warning)", label: tw("probation") },
+    { value: mix.inactive, color: "var(--muted)", label: tw("inactive") },
+    { value: mix.terminated, color: "var(--danger)", label: tw("terminated") },
   ].filter((s) => s.value > 0);
   const segTotal = segments.reduce((sum, s) => sum + s.value, 0) || 1;
 

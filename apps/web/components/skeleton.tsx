@@ -11,7 +11,7 @@ function Skeleton({ className = "" }: { className?: string }) {
   return (
     <div
       aria-hidden
-      className={`animate-pulse rounded bg-slate-200/70 motion-reduce:animate-none ${className}`}
+      className={`animate-pulse rounded bg-muted/15 motion-reduce:animate-none ${className}`}
     />
   );
 }

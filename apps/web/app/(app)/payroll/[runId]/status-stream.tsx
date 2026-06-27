@@ -60,7 +60,7 @@ export function RunStatusStream({
       <StatusBadge status={status} />
       {transient && (
         <span className="inline-flex items-center gap-1 text-xs text-muted">
-          <span className={`h-1.5 w-1.5 rounded-full ${live ? "animate-pulse bg-emerald-500" : "bg-gray-300"}`} />
+          <span className={`h-1.5 w-1.5 rounded-full ${live ? "animate-pulse bg-success" : "bg-faint"}`} />
           {live ? t("monitoring") : t("connecting")}
         </span>
       )}
