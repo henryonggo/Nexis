@@ -12,13 +12,41 @@
     "passwordHint": "At least 8 characters, 1 uppercase letter, 1 number.",
     "exportCsv": "Export CSV",
     "processing": "Processing…",
-    "addCompany": "+ Add company"
+    "addCompany": "+ Add company",
+    "allCompanies": "All companies"
   },
   "roles": {
     "owner": "Owner",
     "admin": "Admin",
     "manager": "Manager",
-    "employee": "Employee"
+    "employee": "Employee",
+    "accountant": "Accountant"
+  },
+  "portal": {
+    "title": "Portal",
+    "subtitle": "All your companies at a glance",
+    "asOf": "As of {time} WIB",
+    "companyCount": "{count, plural, one {# company} other {# companies}}",
+    "searchPlaceholder": "Search companies…",
+    "noMatches": "No companies match.",
+    "kpi": {
+      "companies": "Companies",
+      "employees": "Total employees",
+      "needsAction": "Needs attention",
+      "needsActionHint": "{count} companies",
+      "payrollTotal": "Last payroll total",
+      "payrollTotalHint": "Net across all companies"
+    },
+    "card": {
+      "seats": "{used} / {limit} seats",
+      "headcount": "{count, plural, one {# employee} other {# employees}}",
+      "lastPayroll": "Last payroll",
+      "noPayroll": "No payroll yet",
+      "pendingApprovals": "Pending approvals",
+      "noPending": "None",
+      "open": "Open",
+      "loadError": "Couldn’t load data"
+    }
   },
   "nav": {
     "overview": "Overview",
