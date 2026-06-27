@@ -1,6 +1,11 @@
 import "server-only";
 
-import { CloudTasksClient } from "@google-cloud/tasks";
+// Type-only import: erased at compile, so the gRPC client is NOT in any route's
+// static module graph. It loads lazily inside enqueueWorkerTask (below) — the
+// package's runtime require() of cloud_tasks_client_config.json that Vercel's
+// tracer misses would otherwise crash every route that imports this file with
+// MODULE_NOT_FOUND, even when the queue is never used (e.g. /payroll/new).
+import type { CloudTasksClient } from "@google-cloud/tasks";
 
 /**
  * Cloud Tasks enqueue helper for the payroll/report worker
@@ -70,9 +75,14 @@ export function cloudTasksConfig(): CloudTasksConfig | null {
 }
 
 // Reuse one client across warm serverless invocations (it holds a gRPC channel).
+// Created via a lazy dynamic import so the heavy gRPC package (and its runtime
+// JSON config) only loads when the queue is actually used.
 let client: CloudTasksClient | null = null;
-function tasksClient(): CloudTasksClient {
-  if (!client) client = new CloudTasksClient();
+async function tasksClient(): Promise<CloudTasksClient> {
+  if (!client) {
+    const { CloudTasksClient: Ctor } = await import("@google-cloud/tasks");
+    client = new Ctor();
+  }
   return client;
 }
 
@@ -95,12 +105,15 @@ export async function enqueueWorkerTask(params: {
   dedupeKey: string;
 }): Promise<EnqueueResult> {
   const { config, path, body, dedupeKey } = params;
-  const tasks = tasksClient();
-  const parent = tasks.queuePath(config.projectId, config.location, config.queue);
-  const url = `${config.workerUrl}${path}`;
-  const name = `${parent}/tasks/${safeTaskId(dedupeKey)}`;
 
   try {
+    // Acquire (lazy-import) the client inside the try: if the package fails to
+    // load — e.g. the JSON-config tracing gap on Vercel — it degrades to a soft,
+    // retryable error instead of crashing the calling route.
+    const tasks = await tasksClient();
+    const parent = tasks.queuePath(config.projectId, config.location, config.queue);
+    const url = `${config.workerUrl}${path}`;
+    const name = `${parent}/tasks/${safeTaskId(dedupeKey)}`;
     await tasks.createTask({
       parent,
       task: {
