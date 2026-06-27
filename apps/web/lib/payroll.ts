@@ -403,19 +403,36 @@ export async function computeRunPreview(
     const baseSalary = Math.round(comp.base_salary);
 
     if (runType === "thr") {
-      const months = monthsOfService(emp.join_date, year, month);
-      if (!emp.join_date) warnings.push("Tanggal bergabung kosong — THR dihitung penuh.");
-      const thrAmount = computeThr(baseSalary, months);
-      lines.push({
-        employeeId: emp.id,
-        name: emp.full_name,
-        ptkpStatus,
-        terCategory: ptkpCategory(ptkpStatus),
-        hasNpwp,
-        baseSalary,
-        thrAmount,
-        warnings,
-      });
+      // Same isolation as the monthly branch below: a bad row must degrade to a
+      // per-employee warning, not throw and 500 the whole preview.
+      try {
+        const months = monthsOfService(emp.join_date, year, month);
+        if (!emp.join_date) warnings.push("Tanggal bergabung kosong — THR dihitung penuh.");
+        const thrAmount = computeThr(baseSalary, months);
+        lines.push({
+          employeeId: emp.id,
+          name: emp.full_name,
+          ptkpStatus,
+          terCategory: ptkpCategory(ptkpStatus),
+          hasNpwp,
+          baseSalary,
+          thrAmount,
+          warnings,
+        });
+      } catch (err) {
+        warnings.push(
+          `Gagal menghitung THR karyawan ini: ${err instanceof Error ? err.message : "kesalahan tak terduga"}. Periksa data kompensasi/pajaknya.`,
+        );
+        lines.push({
+          employeeId: emp.id,
+          name: emp.full_name,
+          ptkpStatus,
+          terCategory: ptkpCategory(ptkpStatus),
+          hasNpwp,
+          baseSalary: 0,
+          warnings,
+        });
+      }
       continue;
     }
 

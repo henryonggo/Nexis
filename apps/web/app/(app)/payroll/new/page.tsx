@@ -19,8 +19,17 @@ export default async function NewPayrollRunPage() {
   }
 
   const { year, month } = previousMonth();
-  const supabase = createClient();
-  const readiness = await computeRunReadiness(supabase, active.id, { year, month });
+  // A readiness-fetch failure (e.g. a rejected query promise) must not take down
+  // the whole page render — fall back to no blockers/warnings and let the form
+  // load. createDraftRun re-checks readiness server-side before drafting, so an
+  // empty gate here can't produce a bad run.
+  let readiness;
+  try {
+    readiness = await computeRunReadiness(createClient(), active.id, { year, month });
+  } catch (err) {
+    console.error("computeRunReadiness failed", err);
+    readiness = { ready: false, blockers: [], warnings: [] };
+  }
 
   return (
     <NewRunForm

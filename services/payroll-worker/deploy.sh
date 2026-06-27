@@ -49,12 +49,20 @@ if [ "$CURRENT_PROJECT" != "$GCP_PROJECT_ID" ]; then
     gcloud config set project "$GCP_PROJECT_ID"
 fi
 
-IMAGE_TAG="gcr.io/$GCP_PROJECT_ID/payroll-worker:latest"
+IMAGE_TAG="$GCP_REGION-docker.pkg.dev/$GCP_PROJECT_ID/nexis-repo/payroll-worker:latest"
 
 # 1. Build the Docker container (must run from monorepo root)
 # Locate monorepo root (where Dockerfile resides)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+# Ensure Artifact Registry repository exists
+echo "📦 Ensuring Artifact Registry repository 'nexis-repo' exists in '$GCP_REGION'..."
+gcloud artifacts repositories create nexis-repo \
+  --repository-format=docker \
+  --location="$GCP_REGION" \
+  --description="Nexis Container Repository" \
+  --quiet 2>/dev/null || echo "ℹ️ Repository 'nexis-repo' already exists or creation skipped."
 
 echo "📦 Building Docker image from monorepo root: $ROOT_DIR"
 docker build -t "$SERVICE_NAME:latest" -f "$ROOT_DIR/Dockerfile" "$ROOT_DIR"
@@ -62,11 +70,11 @@ docker build -t "$SERVICE_NAME:latest" -f "$ROOT_DIR/Dockerfile" "$ROOT_DIR"
 echo "🏷️ Tagging image as $IMAGE_TAG..."
 docker tag "$SERVICE_NAME:latest" "$IMAGE_TAG"
 
-# Configure docker credential helper for gcr.io
-echo "🐳 Authenticating Docker with Google Container Registry..."
-gcloud auth configure-docker gcr.io --quiet
+# Configure docker credential helper for Artifact Registry
+echo "🐳 Authenticating Docker with Artifact Registry..."
+gcloud auth configure-docker "$GCP_REGION-docker.pkg.dev" --quiet
 
-echo "🚀 Pushing image to GCR..."
+echo "🚀 Pushing image to Artifact Registry..."
 docker push "$IMAGE_TAG"
 
 if [ "$MODE" = "beta" ]; then
