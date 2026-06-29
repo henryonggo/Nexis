@@ -158,7 +158,7 @@ export function PendingClaimsList({
             : "translate-y-12 opacity-0 pointer-events-none"
         }`}
       >
-        <div className="glass-panel border-white/20 dark:border-slate-800/40 shadow-elev-4 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/45 dark:bg-slate-900/60 backdrop-blur-md">
+        <div className="glass-panel border-white/20 shadow-elev-pop rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/45 backdrop-blur-md">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-brand animate-pulse" />
             <span className="text-sm font-semibold text-ink">

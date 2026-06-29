@@ -27,8 +27,8 @@ export function DeactivateSection() {
   }
 
   return (
-    <div className="rounded-lg border border-red-200 bg-red-50/40 p-4">
-      <h2 className="text-sm font-semibold text-red-700">{t("title")}</h2>
+    <div className="rounded-lg border border-danger/30 bg-danger/5 p-4">
+      <h2 className="text-sm font-semibold text-danger">{t("title")}</h2>
       <p className="mt-1 text-sm text-muted">{t("description")}</p>
 
       {error && <Alert variant="destructive" className="mt-3">{error}</Alert>}

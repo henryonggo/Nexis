@@ -9,9 +9,9 @@ import { useTranslations } from "next-intl";
 export function SecretReveal({ label, secret }: { label: string; secret: string }) {
   const t = useTranslations("developer.secret");
   return (
-    <div className="mb-4 rounded-md border border-amber-300 bg-amber-50 p-3">
-      <p className="mb-1 text-sm font-semibold text-amber-800">{label}</p>
-      <p className="mb-2 text-xs text-amber-700">{t("copyNow")}</p>
+    <div className="mb-4 rounded-md border border-warning/40 bg-warning/10 p-3">
+      <p className="mb-1 text-sm font-semibold text-warning">{label}</p>
+      <p className="mb-2 text-xs text-warning">{t("copyNow")}</p>
       <code className="block w-full overflow-x-auto rounded bg-white px-2 py-1.5 font-mono text-sm text-ink">
         {secret}
       </code>

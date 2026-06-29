@@ -31,7 +31,7 @@ export default function GeofenceMap({
   const hasPin = lat != null && lng != null && Number.isFinite(lat) && Number.isFinite(lng);
   // Default view: central Jakarta (Monas) until the admin drops a pin.
   const center: [number, number] = hasPin ? [lat, lng] : [-6.1754, 106.8272];
-  const blue = { color: "#2452E6", fillColor: "#2452E6" };
+  const blue = { color: "var(--brand)", fillColor: "var(--brand)" };
 
   return (
     <div className="overflow-hidden rounded-md border border-border" style={{ height: 240 }}>
