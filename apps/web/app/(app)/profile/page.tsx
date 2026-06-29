@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { formatRupiah } from "@nexis/money";
 import { PersonalInfoForm } from "./personal-info-form";
-import { UserCircle } from "lucide-react";
+import { ICONS } from "@/lib/nav";
 
 export default async function ProfilePage() {
   const supabase = createClient();
@@ -76,7 +76,7 @@ export default async function ProfilePage() {
   return (
     <div className="max-w-3xl space-y-6">
       <PageHeader
-        icon={UserCircle}
+        icon={ICONS.profile}
         title={t("title")}
         description={t("subtitle")}
       />
