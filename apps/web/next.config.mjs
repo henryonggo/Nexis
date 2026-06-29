@@ -1,6 +1,10 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -10,14 +14,12 @@ const nextConfig = {
     // Keep the GCP client external so the (now lazy) dynamic import resolves from
     // node_modules instead of a webpack chunk.
     serverComponentsExternalPackages: ["@google-cloud/tasks"],
-    // Best-effort: force-trace the package's runtime JSON config (loaded via a
-    // computed require() the tracer can't follow) into the function bundle, so
-    // the queue path works when Cloud Tasks is configured. The lazy import in
-    // lib/cloud-tasks.ts is the real guard — if this trace still misses, the
-    // enqueue degrades to a soft, retryable error rather than a 500.
-    outputFileTracingIncludes: {
-      "/**": ["./node_modules/@google-cloud/tasks/build/**/*.json"],
-    },
+    // pnpm symlinks apps/web/node_modules/* into the monorepo .pnpm store. With
+    // the default tracing root (apps/web) Next leaves that symlinked dir in the
+    // serverless function output, which Vercel rejects ("invalid deployment
+    // package ... symlinked directories"). Rooting tracing at the repo root makes
+    // Next copy the real .pnpm files instead of the symlink.
+    outputFileTracingRoot: path.join(__dirname, "../../"),
   },
 };
 
