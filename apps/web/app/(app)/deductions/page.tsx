@@ -59,7 +59,7 @@ export default async function DeductionsPage() {
                   <form action={deleteCustomDeduction} className="inline-block">
                     <input type="hidden" name="id" value={c.id} />
                     <IconButton
-                      icon={Trash2}
+                      icon={<Trash2 className="h-[18px] w-[18px]" />}
                       label={t("custom.delete")}
                       type="submit"
                       variant="ghost"
@@ -102,7 +102,7 @@ export default async function DeductionsPage() {
                   <form action={deleteGroup} className="inline-block">
                     <input type="hidden" name="id" value={g.id} />
                     <IconButton
-                      icon={Trash2}
+                      icon={<Trash2 className="h-[18px] w-[18px]" />}
                       label={t("group.delete")}
                       type="submit"
                       variant="ghost"

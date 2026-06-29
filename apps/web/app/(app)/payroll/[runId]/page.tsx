@@ -291,7 +291,7 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
       />
       <div className="flex items-center">
         <IconButton
-          icon={ArrowLeft}
+          icon={<ArrowLeft className="h-[18px] w-[18px]" />}
           label={t("detail.back")}
           href="/payroll"
           variant="ghost"
@@ -432,7 +432,7 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
                       {line.payslipId && (
                         <div className="mt-2">
                           <IconButton
-                            icon={Download}
+                            icon={<Download className="h-[18px] w-[18px]" />}
                             label={t("detail.downloadPayslip")}
                             href={`/payroll/${run.id}/payslip/${line.payslipId}`}
                             variant="ghost"
