@@ -146,7 +146,7 @@ export function SalaryBreakdownCard({
     <Card className="p-5">
       <h2 className="text-sm font-semibold text-ink">{title}</h2>
       <div className="mt-4 flex items-center gap-4">
-        <Donut percent={pct} centerTop={`${pct}%`} centerBottom={takeHomeLabel} color="#2452E6" />
+        <Donut percent={pct} centerTop={`${pct}%`} centerBottom={takeHomeLabel} color="var(--brand)" />
         <div className="min-w-0 flex-1 space-y-1.5">
           {earnings.map((e) => (
             <div key={e.label} className="flex items-center justify-between gap-2 text-xs">
@@ -205,9 +205,9 @@ export function LeaveCard({
   legend: { approved: string; pending: string; rejected: string };
 }) {
   const segments = [
-    { value: approved, color: "#16A34A", label: legend.approved },
-    { value: pending, color: "#F59E0B", label: legend.pending },
-    { value: rejected, color: "#DC2626", label: legend.rejected },
+    { value: approved, color: "var(--success)", label: legend.approved },
+    { value: pending, color: "var(--warning)", label: legend.pending },
+    { value: rejected, color: "var(--danger)", label: legend.rejected },
   ];
 
   return (
@@ -313,7 +313,7 @@ function Donut({
   return (
     <svg viewBox="0 0 42 42" className="h-24 w-24 shrink-0">
       <g transform="rotate(-90 21 21)">
-        <circle cx="21" cy="21" r={r} fill="none" stroke="#F1F4F9" strokeWidth="5" />
+        <circle cx="21" cy="21" r={r} fill="none" stroke="var(--surface-2)" strokeWidth="5" />
         <circle
           cx="21"
           cy="21"
@@ -352,7 +352,7 @@ function SegmentDonut({
   return (
     <svg viewBox="0 0 42 42" className="h-24 w-24 shrink-0">
       <g transform="rotate(-90 21 21)">
-        <circle cx="21" cy="21" r={r} fill="none" stroke="#F1F4F9" strokeWidth="5" />
+        <circle cx="21" cy="21" r={r} fill="none" stroke="var(--surface-2)" strokeWidth="5" />
         {total > 0 &&
           segments.map((seg, i) => {
             const len = (seg.value / total) * 100;

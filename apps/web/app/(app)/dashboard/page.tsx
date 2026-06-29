@@ -285,9 +285,9 @@ async function EmployeeDashboard({ companyId }: { companyId: string }) {
               { label: t("employee.earnOvertime"), value: breakdown.overtime },
             ].filter((e) => e.value > 0)}
             deductions={[
-              { label: t("employee.dedTax"), value: breakdown.tax, color: "#DC2626" },
-              { label: t("employee.dedBpjs"), value: breakdown.bpjs, color: "#F59E0B" },
-              { label: t("employee.dedLoan"), value: breakdown.loan, color: "#5B6675" },
+              { label: t("employee.dedTax"), value: breakdown.tax, color: "var(--danger)" },
+              { label: t("employee.dedBpjs"), value: breakdown.bpjs, color: "var(--warning)" },
+              { label: t("employee.dedLoan"), value: breakdown.loan, color: "var(--muted)" },
             ]}
             estimateNote={breakdown.fromPayslip ? undefined : t("employee.breakdownEstimate")}
           />
@@ -524,10 +524,10 @@ export default async function DashboardPage() {
           centerTop={String(employeeCount)}
           centerBottom={t("workforce.totalWord")}
           segments={[
-            { value: statusCounts.active, color: "#16A34A", label: t("workforce.active") },
-            { value: statusCounts.probation, color: "#F59E0B", label: t("workforce.probation") },
-            { value: statusCounts.inactive, color: "#5B6675", label: t("workforce.inactive") },
-            { value: statusCounts.terminated, color: "#DC2626", label: t("workforce.terminated") },
+            { value: statusCounts.active, color: "var(--success)", label: t("workforce.active") },
+            { value: statusCounts.probation, color: "var(--warning)", label: t("workforce.probation") },
+            { value: statusCounts.inactive, color: "var(--muted)", label: t("workforce.inactive") },
+            { value: statusCounts.terminated, color: "var(--danger)", label: t("workforce.terminated") },
           ]}
         />
 
@@ -536,10 +536,10 @@ export default async function DashboardPage() {
           centerTop={String(presentToday)}
           centerBottom={t("attendanceMix.presentWord")}
           segments={[
-            { value: presentToday, color: "#16A34A", label: t("attendanceMix.present") },
+            { value: presentToday, color: "var(--success)", label: t("attendanceMix.present") },
             {
               value: Math.max(0, employeeCount - presentToday),
-              color: "#5B6675",
+              color: "var(--muted)",
               label: t("attendanceMix.absent"),
             },
           ]}

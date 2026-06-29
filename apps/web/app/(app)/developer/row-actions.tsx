@@ -53,7 +53,7 @@ export function DeleteWebhookButton({ webhookId }: { webhookId: string }) {
   return (
     <form action={action}>
       <input type="hidden" name="webhookId" value={webhookId} />
-      <button type="submit" className={`${ghostBtn} text-red-600`}>
+      <button type="submit" className={`${ghostBtn} text-danger`}>
         {t("delete")}
       </button>
     </form>

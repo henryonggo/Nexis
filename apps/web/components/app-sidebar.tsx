@@ -32,7 +32,7 @@ function NavList({
             className={cn(
               "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
               active
-                ? "bg-brand/10 text-brand"
+                ? "bg-brand-050 text-brand font-semibold"
                 : "text-muted hover:bg-white/10 hover:text-ink",
               collapsed && "justify-center px-2",
             )}

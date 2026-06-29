@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Download } from "lucide-react";
+import { Download, AlertTriangle } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import type { Database } from "@nexis/types";
 import { createClient } from "@/lib/supabase/server";
@@ -366,7 +366,7 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
                           </span>
                         )}
                         {isNew && (
-                          <span className="inline-flex items-center rounded-full bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                          <span className="inline-flex items-center rounded-full bg-info/10 px-1.5 py-0.5 text-[10px] font-semibold text-info border border-info/20">
                             {t("detail.newBadge")}
                           </span>
                         )}
@@ -374,12 +374,15 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
                       {line.warnings.map((w) => (
                         <div
                           key={w}
-                          className="mt-1 text-[11px] font-medium bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded flex items-center gap-1.5 w-fit"
+                          className="mt-1 text-[11px] font-medium bg-warning/10 border border-warning/20 text-warning px-2 py-0.5 rounded flex items-center gap-1.5 w-fit"
                         >
-                          <span>⚠ {w}</span>
+                          <span className="inline-flex items-center gap-1">
+                            <AlertTriangle className="h-3 w-3 shrink-0" aria-hidden />
+                            {w}
+                          </span>
                           <Link
                             href={`/employees/${line.employeeId}`}
-                            className="underline hover:text-amber-900 dark:hover:text-amber-200 ml-1 font-semibold"
+                            className="underline hover:text-warning/80 ml-1 font-semibold"
                           >
                             {t("detail.updateProfile")}
                           </Link>
@@ -405,7 +408,7 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
                         const totalDays = absences.reduce((s, a) => s + a.days, 0);
                         return (
                           <details className="mt-1">
-                            <summary className="cursor-pointer text-xs font-medium text-amber-700 hover:underline dark:text-amber-400">
+                            <summary className="cursor-pointer text-xs font-medium text-warning hover:underline">
                               {t("detail.absence", { days: totalDays })}
                             </summary>
                             <ul className="mt-1 space-y-0.5 text-xs text-muted">
@@ -439,7 +442,7 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
                       {grossDiff !== 0 && (
                         <div
                           className={`text-[10px] font-semibold mt-0.5 ${
-                            grossDiff > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+                            grossDiff > 0 ? "text-flow-in" : "text-flow-out"
                           }`}
                         >
                           {grossDiff > 0 ? "▲ +" : "▼ -"}{formatRupiah(Math.abs(grossDiff), { withSymbol: false })}
@@ -452,7 +455,7 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
                       {netDiff !== 0 && (
                         <div
                           className={`text-[10px] font-semibold mt-0.5 ${
-                            netDiff > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+                            netDiff > 0 ? "text-flow-in" : "text-flow-out"
                           }`}
                         >
                           {netDiff > 0 ? "▲ +" : "▼ -"}{formatRupiah(Math.abs(netDiff), { withSymbol: false })}
@@ -489,7 +492,7 @@ function SummaryCard({
         {diff != null && diff !== 0 && (
           <span
             className={`text-xs font-semibold ${
-              diff > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+              diff > 0 ? "text-flow-in" : "text-flow-out"
             }`}
           >
             {diff > 0 ? "▲ +" : "▼ "}{formatRupiah(Math.abs(diff), { withSymbol: false })}
