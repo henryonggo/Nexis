@@ -117,7 +117,7 @@ export default async function ReportsPage() {
                     <TableCell className="text-right">
                       {job.status === "completed" && downloadUrls.has(job.id) ? (
                         <IconButton
-                          icon={Download}
+                          icon={<Download className="h-[18px] w-[18px]" />}
                           label={t("download")}
                           href={downloadUrls.get(job.id)!}
                           tooltipSide="left"
