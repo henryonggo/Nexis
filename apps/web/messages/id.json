@@ -724,7 +724,7 @@
     "review": "Tinjau",
     "estimateNote": "Estimasi langsung — angka final ditulis saat run diproses.",
     "queuedNote": "Run sudah diantre. Pemrosesan otomatis (perhitungan & slip gaji) akan berjalan saat worker payroll aktif.",
-    "actions": { "approve": "Setujui & proses", "markPaid": "Tandai sudah dibayar", "cancel": "Batalkan run", "reopen": "Buka kembali ke draf" },
+    "actions": { "approve": "Setujui & proses", "markPaid": "Tandai sudah dibayar", "markPaidBlocked": "Konfirmasi semua karyawan dibayar dahulu", "cancel": "Batalkan run", "reopen": "Buka kembali ke draf" },
     "cash": { "title": "Pembayaran tunai", "paidOf": "{paid} dari {total} dibayar", "confirm": "Konfirmasi tunai dibayar ({count})", "selectAllUnpaid": "Pilih semua yang belum dibayar", "paidCash": "Dibayar (tunai)", "paidBank": "Dibayar (transfer)", "unpaid": "Belum dibayar" },
     "breakdown": "Rincian",
     "noNpwp": "(+20% tanpa NPWP)",

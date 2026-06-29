@@ -724,7 +724,7 @@
     "review": "Review",
     "estimateNote": "Live estimate — final figures are written when the run is processed.",
     "queuedNote": "Run is queued. Automatic processing (calculation & payslips) will run once the payroll worker is active.",
-    "actions": { "approve": "Approve & process", "markPaid": "Mark as paid", "cancel": "Cancel run", "reopen": "Reopen to draft" },
+    "actions": { "approve": "Approve & process", "markPaid": "Mark as paid", "markPaidBlocked": "Confirm all employees paid first", "cancel": "Cancel run", "reopen": "Reopen to draft" },
     "cash": { "title": "Cash payment", "paidOf": "{paid} of {total} paid", "confirm": "Confirm cash paid ({count})", "selectAllUnpaid": "Select all unpaid", "paidCash": "Paid (cash)", "paidBank": "Paid (bank)", "unpaid": "Unpaid" },
     "breakdown": "Breakdown",
     "noNpwp": "(+20% without NPWP)",

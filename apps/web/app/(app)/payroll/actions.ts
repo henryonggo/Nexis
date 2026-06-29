@@ -218,6 +218,20 @@ export async function markRunPaid(
   if (!isAdmin(active.role)) return { error: "Hanya admin/pemilik yang dapat menandai dibayar." };
 
   const supabase = createClient();
+
+  // Guard: a run can only be closed to "paid" once every employee's item is
+  // confirmed disbursed. The UI disables the button, but enforce it here too
+  // since this is the money path.
+  const { count, error: unpaidErr } = await supabase
+    .from("payroll_items")
+    .select("id", { count: "exact", head: true })
+    .eq("payroll_run_id", runId.data)
+    .is("paid_at", null);
+  if (unpaidErr) return { error: unpaidErr.message };
+  if ((count ?? 0) > 0) {
+    return { error: "Konfirmasi semua karyawan dibayar sebelum menutup run." };
+  }
+
   const { error } = await supabase
     .from("payroll_runs")
     .update({ status: "paid" })
