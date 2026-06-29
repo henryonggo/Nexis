@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Check, ChevronsUpDown, Plus } from "lucide-react";
+import { Check, ChevronsUpDown, Plus, Building2 } from "lucide-react";
 import type { ActiveCompany } from "@nexis/types";
 import { setActiveCompany } from "@/app/(app)/actions";
 import { Button } from "@/components/ui/button";
@@ -56,6 +56,17 @@ export function CompanySwitcher({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-64">
+        {companies.length > 1 && (
+          <>
+            <DropdownMenuItem asChild>
+              <Link href="/portal" className="font-medium text-brand">
+                <Building2 className="h-4 w-4" />
+                {tc("allCompanies")}
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        )}
         {companies.map((c) => (
           <DropdownMenuItem key={c.id} onSelect={() => select(c.id)} className="justify-between">
             <span className="flex items-center gap-2 truncate">
