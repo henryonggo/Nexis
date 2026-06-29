@@ -14,6 +14,7 @@ import { PILLARS, PILLAR_ITEMS, type NavItem } from "@/lib/nav";
 import { TopNav } from "@/components/top-nav";
 import { CommandCenter } from "@/components/command-center";
 import { Button } from "@/components/ui/button";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 type Role = "owner" | "admin" | "manager" | "employee";
 
@@ -89,38 +90,42 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   ).map((p) => p.key);
 
   return (
-    <div className="min-h-screen">
-      <IdleTimeout />
-      <header className="sticky top-0 z-40 flex h-14 items-center justify-between glass-panel border-t-0 border-x-0 rounded-none px-4 sm:px-6">
-        <div className="flex items-center gap-3">
-          <MobileNav items={navItems} pillarKeys={pillarKeys} flat={flat} />
-          <span className="text-lg font-bold text-brand">Nexis</span>
-          <CompanySwitcher companies={memberships} activeId={active!.id} />
+    <TooltipProvider>
+      <div className="min-h-screen">
+        <IdleTimeout />
+        <header className="sticky top-0 z-40 flex h-14 items-center justify-between glass-panel border-t-0 border-x-0 rounded-none px-4 sm:px-6">
+          <div className="flex items-center gap-3">
+            <MobileNav items={navItems} pillarKeys={pillarKeys} flat={flat} />
+            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-brand text-white font-bold text-sm shrink-0">
+              N
+            </div>
+            <CompanySwitcher companies={memberships} activeId={active!.id} />
+          </div>
+
+          <TopNav items={navItems} pillarKeys={pillarKeys} flat={flat} />
+
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link href="/profile" className="hidden text-sm text-muted hover:text-brand sm:inline transition-colors font-medium">
+              {user.email}
+            </Link>
+            <LocaleSwitcher />
+            <form action={signOut}>
+              <Button type="submit" variant="outline" size="sm">
+                {tc("signOut")}
+              </Button>
+            </form>
+          </div>
+        </header>
+
+        <div className="flex">
+          {/* Flat nav has no sidebar; pillar roles (and pillar-mode employees) do. */}
+          {!flat && <DesktopSidebar items={navItems} />}
+          <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-7xl">{children}</div>
+          </main>
         </div>
-
-        <TopNav items={navItems} pillarKeys={pillarKeys} flat={flat} />
-
-        <div className="flex items-center gap-2 sm:gap-3">
-          <Link href="/profile" className="hidden text-sm text-muted hover:text-brand sm:inline transition-colors font-medium">
-            {user.email}
-          </Link>
-          <LocaleSwitcher />
-          <form action={signOut}>
-            <Button type="submit" variant="outline" size="sm">
-              {tc("signOut")}
-            </Button>
-          </form>
-        </div>
-      </header>
-
-      <div className="flex">
-        {/* Flat nav has no sidebar; pillar roles (and pillar-mode employees) do. */}
-        {!flat && <DesktopSidebar items={navItems} />}
-        <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-7xl">{children}</div>
-        </main>
+        <CommandCenter />
       </div>
-      <CommandCenter />
-    </div>
+    </TooltipProvider>
   );
 }

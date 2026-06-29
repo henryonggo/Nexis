@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { useTranslations } from "next-intl";
+import { Check, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@nexis/types";
 import { correctRecord, type CorrectionState } from "./actions";
@@ -219,9 +220,18 @@ function CorrectionForm({ record }: { record: AttendanceRecord }) {
 function CorrectionButton({ invalidating }: { invalidating: boolean }) {
   const t = useTranslations("attendance");
   const { pending } = useFormStatus();
+  const Icon = invalidating ? AlertCircle : Check;
+  const label = invalidating ? t("markInvalid") : t("approve");
   return (
-    <Button type="submit" variant="outline" size="sm" disabled={pending}>
-      {invalidating ? t("markInvalid") : t("approve")}
+    <Button
+      type="submit"
+      variant={invalidating ? "outline" : "default"}
+      size="icon"
+      disabled={pending}
+      aria-label={label}
+      title={label}
+    >
+      <Icon className="h-4 w-4" />
     </Button>
   );
 }

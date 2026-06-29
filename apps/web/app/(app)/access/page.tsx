@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { getActiveCompany } from "@/lib/company";
 import { getEmployeeAccess } from "@/lib/access";
+import { ICONS } from "@/lib/nav";
+import { PageHeader } from "@/components/page-header";
 import { AccessForm } from "./access-form";
 
 export default async function AccessPage() {
@@ -14,10 +16,11 @@ export default async function AccessPage() {
 
   return (
     <div className="max-w-xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
-        <p className="text-sm text-muted">{t("subtitle")}</p>
-      </div>
+      <PageHeader
+        icon={ICONS["access"]}
+        title={t("title")}
+        description={t("subtitle")}
+      />
       <AccessForm defaults={access} />
     </div>
   );

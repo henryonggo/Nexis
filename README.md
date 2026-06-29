@@ -109,6 +109,9 @@ list below reflects what's implemented today.
   historical runs. Money is integer rupiah end to end.
 - **Plan / NPWP gate:** tax-affecting monthly runs are blocked at approval on the free plan or
   without a company NPWP (set standalone in Billing), with a clear upgrade path.
+- **Configurable salary deductions** — manage deduction groups (e.g. insurance, loans, savings),
+  per-employee amounts/rates, and automatic payroll integration.
+- **Worker enqueue via Cloud Tasks** with OIDC auth for secure, auditable run processing.
 
 **Leave & reimbursement claims (Stage 5)**
 - Leave types, balances, request → manager approval → balance update.
@@ -134,10 +137,42 @@ list below reflects what's implemented today.
 **Platform & UX (recent enhancements)**
 - **Bilingual UI** — Bahasa Indonesia (default) + English via `next-intl`, with an in-app
   locale switcher; all user-facing strings in `apps/web/messages/{id,en}.json`.
+- **v3 Design System** — unified token-driven theming across all routes (brand, surface ladder,
+  focus layers, motion composites, dark-mode ready); icon-rail sidebar nav with collapsible state;
+  floating-layer elevation for dropdowns/modals (glass-panel opt-in).
 - Loading skeletons on every route, a global 404, and per-section error boundaries.
 - **WhatsApp notification opt-in** (phone capture + opt-in in Settings).
 - Playwright e2e: unauthenticated route guards (run unattended) plus signed-in happy-path
   money flows (payroll approve, leave approval).
+
+---
+
+## Recent Changes (June 2026)
+
+The following features and improvements have shipped since the last README update:
+
+**UI Design System v3** — Complete restyle with token-driven theming (brand, surface ladder,
+elevation, motion, density). All hardcoded colors migrated to CSS custom properties; dark mode
+ready. Icon-rail sidebar nav with collapse toggle; floating-layer elevation system for dropdowns
+and modals (glass-panel opt-in). All routes now inherit the v3 look without per-file rewrites.
+
+**Multi-company portal** — Accountant/owner view at `/portal` showing summaries across all
+managed companies (headcount, payroll status, active seats); powered by `portal_company_summaries()` RPC.
+
+**Cloud Tasks worker integration** — Payroll run enqueue now uses Google Cloud Tasks with OIDC
+auth (OpenID Connect service-account sign), replacing direct HTTP calls. Lazy-loaded to prevent
+startup failures; marked as server-external package.
+
+**Configurable salary deductions** — Admin UI for managing deduction groups (insurance, loans,
+savings, etc.) with per-employee amounts/rates; automatic deduction in payroll runs.
+
+**Weekly work schedules & absence deductions** — Per-employee weekly schedule grids; daily/mixed
+salary calculation; absence-triggered deductions (e.g. unpaid leave, half-day absence).
+
+**Vercel deploy fix** — Root `output-file-tracing` configuration resolves symlink issues on
+Vercel (`.nft.json` collection during build).
+
+See `docs/ROADMAP-NOTES.md` for the full living handoff notes and open items.
 
 ---
 

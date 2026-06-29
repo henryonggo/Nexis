@@ -1,6 +1,8 @@
+import { Download } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { ICONS } from "@/lib/nav";
 import {
   getBilling,
   getInvoices,
@@ -11,6 +13,7 @@ import {
 } from "@/lib/billing";
 import { UpgradeForm } from "./upgrade-form";
 import { TaxDetailsForm } from "./tax-details-form";
+import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
 import {
@@ -41,10 +44,12 @@ export default async function BillingPage() {
   const isOwner = active.role === "owner";
   if (!isAdmin) {
     return (
-      <Card className="max-w-lg p-8">
-        <h1 className="mb-1 text-xl font-bold text-ink">{t("title")}</h1>
-        <p className="text-sm text-muted">{t("adminOnly")}</p>
-      </Card>
+      <div className="space-y-6">
+        <PageHeader icon={ICONS.billing} title={t("title")} description={t("subtitle", { name: active.name })} />
+        <Card className="max-w-lg p-8">
+          <p className="text-sm text-muted">{t("adminOnly")}</p>
+        </Card>
+      </div>
     );
   }
 
@@ -62,10 +67,7 @@ export default async function BillingPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
-        <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
-      </div>
+      <PageHeader icon={ICONS.billing} title={t("title")} description={t("subtitle", { name: active.name })} />
 
       {/* Current plan summary */}
       <Card className="p-8">
@@ -179,8 +181,9 @@ export default async function BillingPage() {
                           href={inv.pdf_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="font-medium text-brand hover:underline"
+                          className="inline-flex items-center gap-1.5 text-xs font-medium text-brand hover:underline"
                         >
+                          <Download className="h-3.5 w-3.5" />
                           {t("viewPdf")}
                         </a>
                       ) : (

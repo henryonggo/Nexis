@@ -6,6 +6,8 @@ import { getCompanyLeaveRequests } from "@/lib/leave";
 import { Card } from "@/components/ui/card";
 import { StatusBadge } from "../payroll/status-badge";
 import { formatPeriod, formatRupiah, MONTH_NAMES_ID } from "@/lib/payroll-format";
+import { PageHeader } from "@/components/page-header";
+import { ICONS } from "@/lib/nav";
 import type { Database } from "@nexis/types";
 
 type Status = Database["public"]["Enums"]["pay_period_status"];

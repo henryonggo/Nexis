@@ -8,6 +8,8 @@ import {
   type LeaveRequestView,
 } from "@/lib/leave";
 import { formatDateRange } from "@/lib/date";
+import { ICONS } from "@/lib/nav";
+import { PageHeader } from "@/components/page-header";
 import { LeaveStatusBadge } from "./status-badge";
 import { PendingLeavesList } from "./pending-leaves-list";
 import { LeaveRequestForm } from "./leave-request-form";
@@ -46,10 +48,11 @@ export default async function LeavePage() {
 
     return (
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
-          <p className="text-sm text-muted">{t("selfSubtitle")}</p>
-        </div>
+        <PageHeader
+          icon={ICONS["leave"]}
+          title={t("title")}
+          description={t("selfSubtitle")}
+        />
         <LeaveRequestForm leaveTypes={(leaveTypes as { id: string; name: string }[] | null) ?? []} />
         <section className="space-y-3">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
@@ -74,10 +77,11 @@ export default async function LeavePage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
-        <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
-      </div>
+      <PageHeader
+        icon={ICONS["leave"]}
+        title={t("title")}
+        description={t("subtitle", { name: active.name })}
+      />
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">

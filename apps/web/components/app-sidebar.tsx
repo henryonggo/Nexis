@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { LayoutDashboard, PanelLeftClose, PanelLeft, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ICONS, PILLARS, PILLAR_ITEMS, getActivePillar, type NavItem } from "@/lib/nav";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
 function NavList({
   items,
@@ -23,32 +24,43 @@ function NavList({
       {items.map((item) => {
         const Icon = ICONS[item.key] ?? LayoutDashboard;
         const active = pathname === item.href || pathname.startsWith(item.href + "/");
-        return (
+        const navItem = (
           <Link
-            key={item.href}
             href={item.href}
             onClick={onNavigate}
-            title={collapsed ? item.label : undefined}
             className={cn(
-              "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+              "relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
               active
-                ? "bg-brand-050 text-brand font-semibold"
+                ? "bg-brand-050 text-brand font-semibold before:absolute before:left-0 before:top-0 before:bottom-0 before:w-0.5 before:bg-brand before:rounded-r-sm"
                 : "text-muted hover:bg-white/10 hover:text-ink",
               collapsed && "justify-center px-2",
             )}
+            aria-label={item.label}
           >
             <Icon className="h-[18px] w-[18px] shrink-0" />
             {!collapsed && <span className="truncate">{item.label}</span>}
           </Link>
         );
+
+        if (collapsed) {
+          return (
+            <Tooltip key={item.href}>
+              <TooltipTrigger asChild>{navItem}</TooltipTrigger>
+              <TooltipContent side="right">{item.label}</TooltipContent>
+            </Tooltip>
+          );
+        }
+
+        return <div key={item.href}>{navItem}</div>;
       })}
     </nav>
   );
 }
 
 export function DesktopSidebar({ items }: { items: NavItem[] }) {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const pathname = usePathname();
+  const tc = useTranslations("common");
   const activePillar = getActivePillar(pathname);
   const allowedKeys = PILLAR_ITEMS[activePillar] ?? [];
   const filteredItems = items.filter((item) => allowedKeys.includes(item.key));
@@ -56,17 +68,27 @@ export function DesktopSidebar({ items }: { items: NavItem[] }) {
   return (
     <aside
       className={cn(
-        "sticky top-14 hidden h-[calc(100vh-3.5rem)] shrink-0 glass-panel transition-[width] md:block z-10",
+        "sticky top-14 hidden h-[calc(100vh-3.5rem)] shrink-0 glass-panel transition-[width] duration-base md:block z-10",
         collapsed ? "w-16" : "w-60",
       )}
     >
       <div className="flex h-full flex-col justify-between">
+        {/* Brand monogram */}
+        <div className="flex items-center justify-center py-3 px-2">
+          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-brand text-white font-bold text-sm">
+            N
+          </div>
+        </div>
+
+        {/* Nav items */}
         <NavList items={filteredItems} collapsed={collapsed} />
+
+        {/* Expand/collapse toggle */}
         <button
           type="button"
           onClick={() => setCollapsed((v) => !v)}
-          className="m-2 flex items-center justify-center rounded-md px-3 py-2 text-muted hover:bg-white/10 hover:text-ink"
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          className="m-2 flex items-center justify-center rounded-md px-3 py-2 text-muted hover:bg-white/10 hover:text-ink transition-colors"
+          aria-label={collapsed ? tc("expandSidebar") : tc("collapseSidebar")}
         >
           {collapsed ? <PanelLeft className="h-[18px] w-[18px]" /> : <PanelLeftClose className="h-[18px] w-[18px]" />}
         </button>
