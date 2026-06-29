@@ -9,10 +9,10 @@ import { PILLARS, ICONS, getActivePillar, type NavItem } from "@/lib/nav";
 
 const linkClass = (active: boolean) =>
   cn(
-    "flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer",
+    "relative flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors cursor-pointer",
     active
-      ? "bg-brand/10 text-brand font-semibold shadow-sm"
-      : "text-muted hover:bg-white/10 hover:text-ink",
+      ? "text-brand font-semibold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-brand"
+      : "text-muted hover:text-ink",
   );
 
 export function TopNav({

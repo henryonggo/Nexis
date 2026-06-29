@@ -3,9 +3,12 @@ import { formatRupiah } from "@nexis/money";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 import { getCompanyLoans, type LoanView } from "@/lib/loans";
+import { ICONS } from "@/lib/nav";
 import { LoanStatusBadge } from "./status-badge";
 import { LoanDecisionButtons } from "./decision-buttons";
 import { LoanRequestForm, type EmployeeOption } from "./request-form";
+import { PageHeader } from "@/components/page-header";
+import { EmptyState } from "@/components/empty-state";
 import { Card } from "@/components/ui/card";
 import {
   Table,
@@ -52,10 +55,11 @@ export default async function LoansPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
-        <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
-      </div>
+      <PageHeader
+        icon={ICONS["loans"]!}
+        title={t("title")}
+        description={t("subtitle", { name: active.name })}
+      />
 
       <LoanRequestForm employees={employees} />
 
@@ -64,7 +68,7 @@ export default async function LoansPage() {
           {t("pending", { count: pending.length })}
         </h2>
         {pending.length === 0 ? (
-          <Card className="px-4 py-6 text-center text-sm text-muted">{t("noPending")}</Card>
+          <EmptyState icon={ICONS["loans"]!} title={t("noPending")} />
         ) : (
           <div className="space-y-3">
             {pending.map((l) => (
@@ -73,10 +77,11 @@ export default async function LoansPage() {
                   <div className="min-w-0">
                     <p className="font-semibold text-ink">{l.employeeName}</p>
                     <p className="text-sm text-muted">
-                      <span className="font-medium text-ink">{formatRupiah(l.principal)}</span> ·{" "}
-                      {l.installments}× {formatRupiah(l.installmentAmount)}{t("perMonth")}
+                      <span className="font-medium text-ink">{formatRupiah(l.principal)}</span>{" "}
+                      {l.installments}x {formatRupiah(l.installmentAmount)}
+                      {t("perMonth")}
                     </p>
-                    {l.reason && <p className="mt-1 text-sm text-ink">“{l.reason}”</p>}
+                    {l.reason && <p className="mt-1 text-sm text-ink">"{l.reason}"</p>}
                   </div>
                   <LoanDecisionButtons loanId={l.id} />
                 </div>
@@ -87,7 +92,9 @@ export default async function LoansPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t("history")}</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
+          {t("history")}
+        </h2>
         <HistoryTable rows={decided} />
       </section>
     </div>
@@ -96,6 +103,9 @@ export default async function LoansPage() {
 
 async function HistoryTable({ rows }: { rows: LoanView[] }) {
   const t = await getTranslations("loans");
+  if (rows.length === 0) {
+    return <EmptyState icon={ICONS["loans"]!} title={t("noHistory")} />;
+  }
   return (
     <Card className="overflow-hidden p-0">
       <Table>
@@ -109,29 +119,21 @@ async function HistoryTable({ rows }: { rows: LoanView[] }) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {rows.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={5} className="py-8 text-center text-muted">
-                {t("noHistory")}
+          {rows.map((l) => (
+            <TableRow key={l.id}>
+              <TableCell className="font-medium text-ink">{l.employeeName}</TableCell>
+              <TableCell className="text-right tabular-nums text-ink">
+                {formatRupiah(l.principal)}
+              </TableCell>
+              <TableCell className="text-ink">
+                {l.installments}x {formatRupiah(l.installmentAmount)}
+              </TableCell>
+              <TableCell className="text-muted">{l.nextDuePeriod ?? "—"}</TableCell>
+              <TableCell>
+                <LoanStatusBadge status={l.status} />
               </TableCell>
             </TableRow>
-          ) : (
-            rows.map((l) => (
-              <TableRow key={l.id}>
-                <TableCell className="font-medium text-ink">{l.employeeName}</TableCell>
-                <TableCell className="text-right tabular-nums text-ink">
-                  {formatRupiah(l.principal)}
-                </TableCell>
-                <TableCell className="text-ink">
-                  {l.installments}× {formatRupiah(l.installmentAmount)}
-                </TableCell>
-                <TableCell className="text-muted">{l.nextDuePeriod ?? "—"}</TableCell>
-                <TableCell>
-                  <LoanStatusBadge status={l.status} />
-                </TableCell>
-              </TableRow>
-            ))
-          )}
+          ))}
         </TableBody>
       </Table>
     </Card>

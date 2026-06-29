@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { ICONS } from "@/lib/nav";
+import { PageHeader } from "@/components/page-header";
 import {
   listCustomDeductions,
   listDeductionGroups,
@@ -19,6 +21,8 @@ import { EditEmployeeForm } from "./form";
 import { EmployeeDeductionsForm } from "./deductions-form";
 import { EmployeeEarningsForm } from "./earnings-form";
 import { ManualDeductionsForm } from "./manual-deductions-form";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 export default async function EmployeeDetailPage({ params }: { params: { id: string } }) {
   const supabase = createClient();
@@ -114,30 +118,36 @@ export default async function EmployeeDetailPage({ params }: { params: { id: str
 
   return (
     <div className="max-w-xl space-y-5">
-      <div>
-        <Link href="/employees" className="text-sm font-medium text-brand hover:underline">{t("back")}</Link>
-        <div className="mt-1 flex items-center justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold text-ink">{employee.full_name}</h1>
-            <p className="text-sm text-muted">{employee.position ?? "—"}</p>
-          </div>
-          {employee.user_id ? (
+      <div className="flex items-center gap-2 -mx-2 -mt-2 mb-4">
+        <Button asChild variant="ghost" size="sm">
+          <Link href="/employees" className="flex items-center gap-2 px-2">
+            <ArrowLeft className="h-4 w-4" />
+            <span className="sr-only">{t("back")}</span>
+          </Link>
+        </Button>
+      </div>
+
+      <PageHeader
+        icon={ICONS["employees"]}
+        title={employee.full_name}
+        description={employee.position ?? undefined}
+        actions={
+          employee.user_id ? (
             <span className="rounded-full bg-success/10 px-3 py-1 text-xs font-medium text-success">
               {t("appLinked")}
             </span>
           ) : (
             canEdit &&
             employee.email && (
-              <Link
-                href={`/members?email=${encodeURIComponent(employee.email)}&role=employee`}
-                className="rounded-md border border-brand px-3 py-1.5 text-sm font-medium text-brand hover:bg-brand-light"
-              >
-                {t("inviteToApp")}
-              </Link>
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/members?email=${encodeURIComponent(employee.email)}&role=employee`}>
+                  {t("inviteToApp")}
+                </Link>
+              </Button>
             )
-          )}
-        </div>
-      </div>
+          )
+        }
+      />
 
       <EditEmployeeForm
         canEdit={canEdit}

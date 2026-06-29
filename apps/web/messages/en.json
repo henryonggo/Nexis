@@ -13,7 +13,9 @@
     "exportCsv": "Export CSV",
     "processing": "Processing…",
     "addCompany": "+ Add company",
-    "allCompanies": "All companies"
+    "allCompanies": "All companies",
+    "expandSidebar": "Expand sidebar",
+    "collapseSidebar": "Collapse sidebar"
   },
   "roles": {
     "owner": "Owner",

@@ -1,11 +1,15 @@
 import Link from "next/link";
+import { Plus, Eye, Download } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import type { Database } from "@nexis/types";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 import { formatPeriod, formatRupiah } from "@/lib/payroll";
+import { ICONS } from "@/lib/nav";
 import { ExportCsvButton } from "@/components/export-csv-button";
 import { StatusBadge } from "./status-badge";
+import { PageHeader } from "@/components/page-header";
+import { IconButton } from "@/components/ui/icon-button";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -41,29 +45,31 @@ export default async function PayrollPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
-          <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <ExportCsvButton
-            filename={`payroll-${active.name}`}
-            headers={["Periode", "Status", "Bruto", "Neto"]}
-            rows={rows.map((run) => [
-              formatPeriod(run.period_year, run.period_month),
-              run.status,
-              run.total_gross,
-              run.total_net,
-            ])}
-          />
-          {isAdmin && (
-            <Button asChild>
-              <Link href="/payroll/new">+ {t("runPayroll")}</Link>
-            </Button>
-          )}
-        </div>
-      </div>
+      <PageHeader
+        icon={ICONS.payroll}
+        title={t("title")}
+        description={t("subtitle", { name: active.name })}
+        actions={
+          <div className="flex items-center gap-2">
+            <ExportCsvButton
+              filename={`payroll-${active.name}`}
+              headers={["Periode", "Status", "Bruto", "Neto"]}
+              rows={rows.map((run) => [
+                formatPeriod(run.period_year, run.period_month),
+                run.status,
+                run.total_gross,
+                run.total_net,
+              ])}
+              icon={Download}
+            />
+            {isAdmin && (
+              <Button asChild>
+                <Link href="/payroll/new"><Plus className="w-4 h-4 mr-2" />{t("runPayroll")}</Link>
+              </Button>
+            )}
+          </div>
+        }
+      />
 
       <Card className="overflow-hidden p-0">
         <Table>
@@ -106,9 +112,7 @@ export default async function PayrollPage() {
                     {formatRupiah(run.total_net)}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Link href={`/payroll/${run.id}`} className="font-medium text-brand hover:underline">
-                      {t("review")}
-                    </Link>
+                    <IconButton icon={Eye} label={t("review")} href={`/payroll/${run.id}`} variant="ghost" />
                   </TableCell>
                 </TableRow>
               ))

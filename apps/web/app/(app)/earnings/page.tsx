@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { Trash2 } from "lucide-react";
 import { formatRupiah } from "@nexis/money";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
@@ -8,8 +9,11 @@ import {
   listEarningGroups,
   type CustomEarningType,
 } from "@/lib/earnings";
+import { ICONS } from "@/lib/nav";
 import { Card } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
+import { PageHeader } from "@/components/page-header";
+import { IconButton } from "@/components/ui/icon-button";
 import { EarningForm } from "./earning-form";
 import { GroupForm } from "./group-form";
 import { deleteCustomEarning, deleteEarningGroup } from "./actions";
@@ -29,10 +33,7 @@ export default async function EarningsPage() {
 
   return (
     <div className="max-w-2xl space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
-        <p className="text-sm text-muted">{t("subtitle")}</p>
-      </div>
+      <PageHeader icon={ICONS["earnings"]!} title={t("title")} description={t("subtitle")} />
 
       <Alert variant="default">{t("intro")}</Alert>
 
@@ -55,11 +56,15 @@ export default async function EarningsPage() {
                 </summary>
                 <div className="mt-4 space-y-4">
                   <EarningForm earning={c} />
-                  <form action={deleteCustomEarning}>
+                  <form action={deleteCustomEarning} className="inline-block">
                     <input type="hidden" name="id" value={c.id} />
-                    <button type="submit" className="text-xs font-medium text-danger hover:underline">
-                      {t("custom.delete")}
-                    </button>
+                    <IconButton
+                      icon={Trash2}
+                      label={t("custom.delete")}
+                      type="submit"
+                      variant="ghost"
+                      tooltipSide="bottom"
+                    />
                   </form>
                 </div>
               </details>
@@ -94,11 +99,15 @@ export default async function EarningsPage() {
                 </summary>
                 <div className="mt-4 space-y-4">
                   <GroupForm group={g} customs={activeCustoms} />
-                  <form action={deleteEarningGroup}>
+                  <form action={deleteEarningGroup} className="inline-block">
                     <input type="hidden" name="id" value={g.id} />
-                    <button type="submit" className="text-xs font-medium text-danger hover:underline">
-                      {t("group.delete")}
-                    </button>
+                    <IconButton
+                      icon={Trash2}
+                      label={t("group.delete")}
+                      type="submit"
+                      variant="ghost"
+                      tooltipSide="bottom"
+                    />
                   </form>
                 </div>
               </details>

@@ -25,6 +25,7 @@ import {
   ShieldAlert,
   Settings,
   SlidersHorizontal,
+  UserCircle,
   type LucideIcon,
 } from "lucide-react";
 
@@ -33,6 +34,7 @@ export type NavItem = { href: string; key: string; label: string };
 /** Per-nav-item icon, keyed by the item `key`. */
 export const ICONS: Record<string, LucideIcon> = {
   dashboard: LayoutDashboard,
+  profile: UserCircle,
   employees: Users,
   attendance: Clock,
   leave: CalendarDays,

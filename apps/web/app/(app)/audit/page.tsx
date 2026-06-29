@@ -6,6 +6,8 @@ import { ExportCsvButton } from "@/components/export-csv-button";
 import { getAuditLog, actionTone, AUDIT_ENTITIES } from "@/lib/audit";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/page-header";
+import { ICONS } from "@/lib/nav";
 import {
   Table,
   TableHeader,
@@ -66,10 +68,12 @@ export default async function AuditPage({
   const isAdmin = active.role === "owner" || active.role === "admin";
   if (!isAdmin) {
     return (
-      <Card className="max-w-lg p-8">
-        <h1 className="mb-1 text-xl font-bold text-ink">{t("title")}</h1>
-        <p className="text-sm text-muted">{t("noAccess")}</p>
-      </Card>
+      <div className="space-y-6">
+        <PageHeader icon={ICONS["audit"]} title={t("title")} />
+        <Card className="max-w-lg p-8">
+          <p className="text-sm text-muted">{t("noAccess")}</p>
+        </Card>
+      </div>
     );
   }
 
@@ -82,23 +86,24 @@ export default async function AuditPage({
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
-          <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
-        </div>
-        <ExportCsvButton
-          filename={`audit-${active.name}`}
-          headers={["Waktu", "Tindakan", "Objek", "Oleh", "Detail"]}
-          rows={entries.map((entry) => [
-            entry.createdAt,
-            actLabel(entry.action),
-            entLabel(entry.entity),
-            entry.actorName,
-            summarizeMetadata(entry.metadata) ?? "",
-          ])}
-        />
-      </div>
+      <PageHeader
+        icon={ICONS["audit"]}
+        title={t("title")}
+        description={t("subtitle", { name: active.name })}
+        actions={
+          <ExportCsvButton
+            filename={`audit-${active.name}`}
+            headers={["Waktu", "Tindakan", "Objek", "Oleh", "Detail"]}
+            rows={entries.map((entry) => [
+              entry.createdAt,
+              actLabel(entry.action),
+              entLabel(entry.entity),
+              entry.actorName,
+              summarizeMetadata(entry.metadata) ?? "",
+            ])}
+          />
+        }
+      />
 
       {/* Entity filter chips */}
       <div className="flex flex-wrap gap-2">

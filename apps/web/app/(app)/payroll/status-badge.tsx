@@ -18,5 +18,5 @@ const VARIANT: Record<Status, "default" | "secondary" | "success" | "warning" | 
 
 export function StatusBadge({ status }: { status: Status }) {
   const t = useTranslations("payroll.status");
-  return <Badge variant={VARIANT[status]}>{t(status)}</Badge>;
+  return <Badge variant={VARIANT[status]} dot>{t(status)}</Badge>;
 }

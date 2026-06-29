@@ -3,6 +3,8 @@ import { getTranslations } from "next-intl/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSuperadmin } from "@/lib/superadmin";
 import { planMeta } from "@/lib/billing-plans";
+import { ICONS } from "@/lib/nav";
+import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
 import { FreePassButton } from "./free-pass-button";
@@ -53,10 +55,11 @@ export default async function SuperadminPage() {
 
   return (
     <div className="max-w-2xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
-        <p className="text-sm text-muted">{t("subtitle")}</p>
-      </div>
+      <PageHeader
+        icon={ICONS["superadmin"]}
+        title={t("title")}
+        description={t("subtitle")}
+      />
 
       <Alert variant="default">{t("intro")}</Alert>
 
