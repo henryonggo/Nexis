@@ -1,6 +1,6 @@
 "use client";
 
-import { type LucideIcon } from "lucide-react";
+import { Download } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { buildCsv, type CsvCell } from "@/lib/csv";
 
@@ -14,13 +14,11 @@ export function ExportCsvButton({
   headers,
   rows,
   label,
-  icon: Icon,
 }: {
   filename: string;
   headers: string[];
   rows: CsvCell[][];
   label?: string;
-  icon?: LucideIcon;
 }) {
   const t = useTranslations("common");
   const disabled = rows.length === 0;
@@ -38,21 +36,15 @@ export function ExportCsvButton({
     URL.revokeObjectURL(url);
   }
 
-  const buttonContent = (
-    <>
-      {Icon && <Icon className="w-4 h-4" />}
-      <span>{label ?? t("exportCsv")}</span>
-    </>
-  );
-
   return (
     <button
       type="button"
       onClick={handleExport}
       disabled={disabled}
-      className={`rounded-md border border-border px-4 py-2 text-sm font-semibold text-ink hover:bg-brand-light disabled:cursor-not-allowed disabled:opacity-50 ${Icon ? "flex items-center gap-2" : ""}`}
+      className="flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm font-semibold text-ink hover:bg-brand-light disabled:cursor-not-allowed disabled:opacity-50"
     >
-      {buttonContent}
+      <Download className="w-4 h-4" />
+      <span>{label ?? t("exportCsv")}</span>
     </button>
   );
 }

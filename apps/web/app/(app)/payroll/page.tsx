@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, Eye, Download } from "lucide-react";
+import { Plus, Eye } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import type { Database } from "@nexis/types";
 import { createClient } from "@/lib/supabase/server";
@@ -60,7 +60,6 @@ export default async function PayrollPage() {
                 run.total_gross,
                 run.total_net,
               ])}
-              icon={Download}
             />
             {isAdmin && (
               <Button asChild>
@@ -112,7 +111,7 @@ export default async function PayrollPage() {
                     {formatRupiah(run.total_net)}
                   </TableCell>
                   <TableCell className="text-right">
-                    <IconButton icon={Eye} label={t("review")} href={`/payroll/${run.id}`} variant="ghost" />
+                    <IconButton icon={<Eye className="h-[18px] w-[18px]" />} label={t("review")} href={`/payroll/${run.id}`} variant="ghost" />
                   </TableCell>
                 </TableRow>
               ))

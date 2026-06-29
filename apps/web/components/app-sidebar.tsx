@@ -72,7 +72,7 @@ export function DesktopSidebar({ items }: { items: NavItem[] }) {
         collapsed ? "w-16" : "w-60",
       )}
     >
-      <div className="flex h-full flex-col justify-between">
+      <div className="flex h-full flex-col">
         {/* Brand monogram */}
         <div className="flex items-center justify-center py-3 px-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-md bg-brand text-white font-bold text-sm">
@@ -80,14 +80,14 @@ export function DesktopSidebar({ items }: { items: NavItem[] }) {
           </div>
         </div>
 
-        {/* Nav items */}
+        {/* Nav items — anchored to the top */}
         <NavList items={filteredItems} collapsed={collapsed} />
 
-        {/* Expand/collapse toggle */}
+        {/* Expand/collapse toggle pinned to the bottom */}
         <button
           type="button"
           onClick={() => setCollapsed((v) => !v)}
-          className="m-2 flex items-center justify-center rounded-md px-3 py-2 text-muted hover:bg-white/10 hover:text-ink transition-colors"
+          className="mt-auto m-2 flex items-center justify-center rounded-md px-3 py-2 text-muted hover:bg-white/10 hover:text-ink transition-colors"
           aria-label={collapsed ? tc("expandSidebar") : tc("collapseSidebar")}
         >
           {collapsed ? <PanelLeft className="h-[18px] w-[18px]" /> : <PanelLeftClose className="h-[18px] w-[18px]" />}

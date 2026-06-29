@@ -79,7 +79,7 @@ export default async function AttendancePage() {
         description={t("subtitle", { name: active.name })}
         actions={
           canConfigure && (
-            <IconButton icon={Settings} label={t("configure")} href="/attendance/config" />
+            <IconButton icon={<Settings className="h-[18px] w-[18px]" />} label={t("configure")} href="/attendance/config" />
           )
         }
       />
