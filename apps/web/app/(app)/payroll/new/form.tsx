@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { createDraftRun, type RunActionState } from "../actions";
 import type { EmployeeBlocker, EmployeeWarning } from "@/lib/payroll";
 import { SubmitButton } from "@/components/submit-button";
+import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
 import { fieldClasses } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,9 +31,12 @@ export function NewRunForm({
   const years = [defaultYear + 1, defaultYear, defaultYear - 1, defaultYear - 2];
 
   return (
-    <Card className="max-w-lg p-8">
-      <h1 className="mb-1 text-xl font-bold text-ink">{t("title")}</h1>
-      <p className="mb-5 text-sm text-muted">{t("subtitle")}</p>
+    <div className="space-y-6">
+      <PageHeader
+        title={t("title")}
+        description={t("subtitle")}
+      />
+      <Card className="max-w-lg p-8">
 
       {blockers.length > 0 && (
         <Alert variant="destructive" className="mb-4">
@@ -102,6 +106,7 @@ export function NewRunForm({
           <Link href="/payroll" className="text-sm text-muted hover:underline">{t("cancel")}</Link>
         </div>
       </form>
-    </Card>
+      </Card>
+    </div>
   );
 }

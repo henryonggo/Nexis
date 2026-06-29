@@ -22,6 +22,8 @@ import { planMeta } from "@/lib/billing-plans";
 import type { CompanyBillingRow } from "@nexis/types";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/page-header";
+import { ICONS } from "@/lib/nav";
 
 /** Start of "today" in Asia/Jakarta (WIB, UTC+7, no DST), as a UTC ISO string. */
 function startOfTodayJakartaIso(): string {
@@ -82,7 +84,7 @@ async function EmployeeDashboard({ companyId }: { companyId: string }) {
   if (!employee) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
+        <PageHeader icon={ICONS["dashboard"]} title={t("title")} />
         <Card className="p-5 text-center text-sm text-muted">{t("employee.noProfile")}</Card>
       </div>
     );
@@ -212,10 +214,11 @@ async function EmployeeDashboard({ companyId }: { companyId: string }) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
-        <p className="text-sm text-muted">{t("employee.greeting", { name: employee.full_name })}</p>
-      </div>
+      <PageHeader
+        icon={ICONS["dashboard"]}
+        title={t("title")}
+        description={t("employee.greeting", { name: employee.full_name })}
+      />
 
       <div className="grid gap-4 sm:grid-cols-3">
         {access.salary && (
@@ -419,15 +422,16 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
-          <p className="text-sm text-muted">{t("company", { name: active.name })}</p>
-        </div>
-        <Button asChild variant="outline" size="sm" className="shrink-0">
-          <Link href="/glance">{tGlance("open")} →</Link>
-        </Button>
-      </div>
+      <PageHeader
+        icon={ICONS["dashboard"]}
+        title={t("title")}
+        description={t("company", { name: active.name })}
+        actions={
+          <Button asChild variant="outline" size="sm">
+            <Link href="/glance">{tGlance("open")} →</Link>
+          </Button>
+        }
+      />
 
       {isAdmin && (
         <SetupChecklist

@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { getActiveCompany } from "@/lib/company";
+import { ICONS } from "@/lib/nav";
+import { PageHeader } from "@/components/page-header";
 import { NewEmployeeForm } from "./form";
 
 export default async function NewEmployeePage() {
@@ -11,10 +13,11 @@ export default async function NewEmployeePage() {
 
   return (
     <div className="max-w-xl space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold text-ink">{t("newTitle")}</h1>
-        <p className="text-sm text-muted">{t("companyLabel", { name: active.name })}</p>
-      </div>
+      <PageHeader
+        icon={ICONS["employees"]}
+        title={t("newTitle")}
+        description={t("companyLabel", { name: active.name })}
+      />
       <NewEmployeeForm />
     </div>
   );

@@ -15,6 +15,8 @@ import { BarList, TrendChart } from "./charts";
 import { PeriodFilter } from "./period-filter";
 import { ExportButton, type ExportRow } from "./export-button";
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
+import { ICONS } from "@/lib/nav";
 
 const PERIOD_OPTIONS = [3, 6, 12];
 
@@ -35,10 +37,12 @@ export default async function AnalyticsPage({
   const isAdmin = active.role === "owner" || active.role === "admin";
   if (!isAdmin) {
     return (
-      <Card className="max-w-lg p-8">
-        <h1 className="mb-1 text-xl font-bold text-ink">{t("title")}</h1>
-        <p className="text-sm text-muted">{t("noAccess")}</p>
-      </Card>
+      <div className="space-y-6">
+        <PageHeader icon={ICONS["analytics"]} title={t("title")} />
+        <Card className="max-w-lg p-8">
+          <p className="text-sm text-muted">{t("noAccess")}</p>
+        </Card>
+      </div>
     );
   }
 
@@ -69,16 +73,17 @@ export default async function AnalyticsPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
-          <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <PeriodFilter value={months} />
-          <ExportButton rows={exportRows} filename={`analytics-${active.id}-${months}m.csv`} />
-        </div>
-      </div>
+      <PageHeader
+        icon={ICONS["analytics"]}
+        title={t("title")}
+        description={t("subtitle", { name: active.name })}
+        actions={
+          <div className="flex shrink-0 items-center gap-2">
+            <PeriodFilter value={months} />
+            <ExportButton rows={exportRows} filename={`analytics-${active.id}-${months}m.csv`} />
+          </div>
+        }
+      />
 
       {/* KPI strip */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

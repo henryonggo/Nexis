@@ -3,6 +3,8 @@ import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 import { computeEmployeeReadiness, readinessStatus, type ReadinessStatus } from "@/lib/payroll";
+import { ICONS } from "@/lib/nav";
+import { PageHeader } from "@/components/page-header";
 import { ExportCsvButton } from "@/components/export-csv-button";
 import type { EmployeeRow, CompanyBillingRow } from "@nexis/types";
 import { Button } from "@/components/ui/button";
@@ -17,6 +19,8 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table";
+import { Plus, Upload } from "lucide-react";
+import { EmptyState } from "@/components/empty-state";
 
 const STATUS_VARIANT: Record<string, "success" | "warning" | "secondary" | "destructive"> = {
   active: "success",
@@ -61,38 +65,41 @@ export default async function EmployeesPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
-          {billing?.plan === "free" && (
-            <p className="text-sm text-muted">{t("seatsUsed", { used: seatsUsed, limit })}</p>
-          )}
-        </div>
-        {isAdmin && (
-          <div className="flex items-center gap-2">
-            <ExportCsvButton
-              filename={`karyawan-${active.name}`}
-              headers={["Nama", "Nomor", "Posisi", "Departemen", "Tipe", "Status"]}
-              rows={rows.map((e) => [
-                e.full_name ?? "",
-                e.employee_no ?? "",
-                e.position ?? "",
-                e.department ?? "",
-                e.employment_type ?? "",
-                e.status ?? "",
-              ])}
-            />
-            <Button asChild variant="outline">
-              <Link href="/employees/import">{t("import")}</Link>
-            </Button>
-            <Button asChild className={atLimit ? "pointer-events-none opacity-60" : ""}>
-              <Link href="/employees/new" aria-disabled={atLimit}>
-                {t("add")}
-              </Link>
-            </Button>
-          </div>
-        )}
-      </div>
+      <PageHeader
+        icon={ICONS["employees"]}
+        title={t("title")}
+        description={billing?.plan === "free" ? t("seatsUsed", { used: seatsUsed, limit }) : undefined}
+        actions={
+          isAdmin && (
+            <div className="flex items-center gap-2">
+              <ExportCsvButton
+                filename={`karyawan-${active.name}`}
+                headers={["Nama", "Nomor", "Posisi", "Departemen", "Tipe", "Status"]}
+                rows={rows.map((e) => [
+                  e.full_name ?? "",
+                  e.employee_no ?? "",
+                  e.position ?? "",
+                  e.department ?? "",
+                  e.employment_type ?? "",
+                  e.status ?? "",
+                ])}
+              />
+              <Button asChild variant="outline" size="sm">
+                <Link href="/employees/import" className="flex items-center gap-2">
+                  <Upload className="h-4 w-4" />
+                  {t("import")}
+                </Link>
+              </Button>
+              <Button asChild size="sm" className={atLimit ? "pointer-events-none opacity-60" : ""}>
+                <Link href="/employees/new" aria-disabled={atLimit} className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  {t("add")}
+                </Link>
+              </Button>
+            </div>
+          )
+        }
+      />
 
       {atLimit && (
         <Alert variant="warning">
@@ -104,27 +111,37 @@ export default async function EmployeesPage() {
         </Alert>
       )}
 
-      <Card className="overflow-hidden p-0">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t("columns.name")}</TableHead>
-              <TableHead>{t("columns.no")}</TableHead>
-              <TableHead>{t("columns.position")}</TableHead>
-              <TableHead>{t("columns.department")}</TableHead>
-              <TableHead>{t("columns.type")}</TableHead>
-              <TableHead>{t("columns.status")}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.length === 0 ? (
+      {rows.length === 0 ? (
+        <EmptyState
+          icon={ICONS["employees"]}
+          title={t("empty")}
+          description={isAdmin ? t("emptyAdmin") : undefined}
+          action={
+            isAdmin && (
+              <Button asChild>
+                <Link href="/employees/new" className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  {t("add")}
+                </Link>
+              </Button>
+            )
+          }
+        />
+      ) : (
+        <Card className="overflow-hidden p-0">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={6} className="py-10 text-center text-muted">
-                  {t("empty")} {isAdmin && t("emptyAdmin")}
-                </TableCell>
+                <TableHead>{t("columns.name")}</TableHead>
+                <TableHead>{t("columns.no")}</TableHead>
+                <TableHead>{t("columns.position")}</TableHead>
+                <TableHead>{t("columns.department")}</TableHead>
+                <TableHead>{t("columns.type")}</TableHead>
+                <TableHead>{t("columns.status")}</TableHead>
               </TableRow>
-            ) : (
-              rows.map((e) => (
+            </TableHeader>
+            <TableBody>
+              {rows.map((e) => (
                 <TableRow key={e.id}>
                   <TableCell className="text-ink">
                     <span className="flex items-center gap-2">
@@ -159,11 +176,11 @@ export default async function EmployeesPage() {
                     <Badge variant={STATUS_VARIANT[e.status ?? ""] ?? "secondary"}>{e.status}</Badge>
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </Card>
+              ))}
+            </TableBody>
+          </Table>
+        </Card>
+      )}
     </div>
   );
 }

@@ -1,17 +1,20 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Download, AlertTriangle } from "lucide-react";
+import { Download, AlertTriangle, ArrowLeft } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import type { Database } from "@nexis/types";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 import { computeRunPreview, PayrollConfigError, formatPeriod, formatRupiah } from "@/lib/payroll";
 import { formatDateRange } from "@/lib/date";
+import { ICONS } from "@/lib/nav";
 import { ActionBar } from "./actions-bar";
 import { CashPaymentPanel, type CashLine } from "./cash-payment-panel";
 import { RunStatusStream } from "./status-stream";
 import { Card } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
+import { PageHeader } from "@/components/page-header";
+import { IconButton } from "@/components/ui/icon-button";
 import {
   Table,
   TableHeader,
@@ -280,15 +283,20 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link href="/payroll" className="text-sm text-muted hover:underline">{t("detail.back")}</Link>
-        <div className="mt-2 flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-ink">
-            {t("detail.heading", { period: formatPeriod(run.period_year, run.period_month) })}
-          </h1>
-          <RunStatusStream runId={run.id} initialStatus={run.status} />
-        </div>
-        {!showPersisted && <p className="mt-1 text-sm text-muted">{t("estimateNote")}</p>}
+      <PageHeader
+        icon={ICONS.payroll}
+        title={t("detail.heading", { period: formatPeriod(run.period_year, run.period_month) })}
+        description={!showPersisted ? t("estimateNote") : undefined}
+        actions={<RunStatusStream runId={run.id} initialStatus={run.status} />}
+      />
+      <div className="flex items-center">
+        <IconButton
+          icon={ArrowLeft}
+          label={t("detail.back")}
+          href="/payroll"
+          variant="ghost"
+          tooltipSide="right"
+        />
       </div>
 
       {/* Run is queued and nothing has been generated yet — genuinely waiting. */}
@@ -422,15 +430,16 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
                         );
                       })()}
                       {line.payslipId && (
-                        <a
-                          href={`/payroll/${run.id}/payslip/${line.payslipId}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-brand hover:underline"
-                        >
-                          <Download className="h-3.5 w-3.5" />
-                          {t("detail.downloadPayslip")}
-                        </a>
+                        <div className="mt-2">
+                          <IconButton
+                            icon={Download}
+                            label={t("detail.downloadPayslip")}
+                            href={`/payroll/${run.id}/payslip/${line.payslipId}`}
+                            variant="ghost"
+                            size="sm"
+                            tooltipSide="top"
+                          />
+                        </div>
                       )}
                     </TableCell>
                     <TableCell className="text-xs text-muted">

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { ICONS } from "@/lib/nav";
+import { PageHeader } from "@/components/page-header";
 import { ConfigTabs } from "./config-tabs";
 
 export default async function AttendanceConfigPage() {
@@ -61,8 +63,11 @@ export default async function AttendanceConfigPage() {
           <ArrowLeft className="h-4 w-4" />
           {t("back")}
         </Link>
-        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
-        <p className="text-sm text-muted">{t("subtitle")}</p>
+        <PageHeader
+          icon={ICONS["attendance"]}
+          title={t("title")}
+          description={t("subtitle")}
+        />
       </div>
 
       <ConfigTabs

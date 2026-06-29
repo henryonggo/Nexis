@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useFormState } from "react-dom";
 import { useTranslations } from "next-intl";
+import { Check, X } from "lucide-react";
 import { approveLeave, rejectLeave, type DecisionState } from "./actions";
-import { SubmitButton } from "@/components/submit-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert } from "@/components/ui/alert";
@@ -25,20 +25,43 @@ export function LeaveDecisionButtons({ requestId }: { requestId: string }) {
       <div className="flex flex-wrap items-center gap-2">
         <form action={approve}>
           <input type="hidden" name="requestId" value={requestId} />
-          <SubmitButton>{t("approve")}</SubmitButton>
+          <Button
+            type="submit"
+            variant="default"
+            size="icon"
+            aria-label={t("approve")}
+            title={t("approve")}
+          >
+            <Check className="h-4 w-4" />
+          </Button>
         </form>
         {rejecting ? (
           <form action={reject} className="flex items-center gap-2">
             <input type="hidden" name="requestId" value={requestId} />
-            <Input type="text" name="note" placeholder={t("rejectReason")} className="w-40" />
-            <SubmitButton>{t("reject")}</SubmitButton>
+            <Input type="text" name="note" placeholder={t("rejectReason")} className="h-9 text-xs" />
+            <Button
+              type="submit"
+              variant="outline"
+              size="icon"
+              aria-label={t("reject")}
+              title={t("reject")}
+            >
+              <X className="h-4 w-4 text-danger" />
+            </Button>
             <Button type="button" variant="ghost" size="sm" onClick={() => setRejecting(false)}>
               {t("cancel")}
             </Button>
           </form>
         ) : (
-          <Button type="button" variant="outline" onClick={() => setRejecting(true)}>
-            {t("reject")}
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => setRejecting(true)}
+            aria-label={t("reject")}
+            title={t("reject")}
+          >
+            <X className="h-4 w-4 text-danger" />
           </Button>
         )}
       </div>

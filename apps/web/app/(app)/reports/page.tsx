@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { Download } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 import {
@@ -9,6 +10,9 @@ import {
 import { ReportForm } from "./report-form";
 import { ReportStatusBadge } from "./status-badge";
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
+import { IconButton } from "@/components/ui/icon-button";
+import { ICONS } from "@/lib/nav";
 import {
   Table,
   TableHeader,
@@ -37,10 +41,12 @@ export default async function ReportsPage() {
     active.role === "owner" || active.role === "admin" || active.role === "manager";
   if (!canExport) {
     return (
-      <Card className="max-w-lg p-8">
-        <h1 className="mb-1 text-xl font-bold text-ink">{t("title")}</h1>
-        <p className="text-sm text-muted">{t("noAccess")}</p>
-      </Card>
+      <div className="space-y-6">
+        <PageHeader icon={ICONS["reports"]} title={t("title")} />
+        <Card className="max-w-lg p-8">
+          <p className="text-sm text-muted">{t("noAccess")}</p>
+        </Card>
+      </div>
     );
   }
 
@@ -62,10 +68,11 @@ export default async function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
-        <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
-      </div>
+      <PageHeader
+        icon={ICONS["reports"]}
+        title={t("title")}
+        description={t("subtitle", { name: active.name })}
+      />
 
       <ReportForm runs={runs} />
 
@@ -109,13 +116,13 @@ export default async function ReportsPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       {job.status === "completed" && downloadUrls.has(job.id) ? (
-                        <a
-                          href={downloadUrls.get(job.id)}
-                          className="font-medium text-brand hover:underline"
-                          download
-                        >
-                          {t("download")}
-                        </a>
+                        <IconButton
+                          icon={Download}
+                          label={t("download")}
+                          href={downloadUrls.get(job.id)!}
+                          tooltipSide="left"
+                          variant="ghost"
+                        />
                       ) : (
                         <span className="text-xs text-muted">—</span>
                       )}

@@ -1,6 +1,8 @@
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { ICONS } from "@/lib/nav";
+import { PageHeader } from "@/components/page-header";
 import { revokeInvite, rotateJoinCode } from "./actions";
 import { InviteForm } from "./invite-form";
 import { JoinRequestsQueue, type JoinRequest } from "./join-requests";
@@ -16,6 +18,7 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table";
+import { Trash } from "lucide-react";
 
 interface MemberJoin {
   role: CompanyRole;
@@ -81,10 +84,11 @@ export default async function MembersPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
-        <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
-      </div>
+      <PageHeader
+        icon={ICONS["members"]}
+        title={t("title")}
+        description={t("subtitle", { name: active.name })}
+      />
 
       <Card className="overflow-hidden p-0">
         <Table>
@@ -168,8 +172,8 @@ export default async function MembersPage({
                         <TableCell className="text-right">
                           <form action={revokeInvite}>
                             <input type="hidden" name="id" value={i.id} />
-                            <Button type="submit" variant="ghost" size="sm" className="text-danger hover:text-danger">
-                              {t("revoke")}
+                            <Button type="submit" variant="ghost" size="icon" className="text-danger hover:text-danger" aria-label={t("revoke")}>
+                              <Trash className="h-4 w-4" />
                             </Button>
                           </form>
                         </TableCell>

@@ -1,6 +1,8 @@
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { ICONS } from "@/lib/nav";
+import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
 import { PayslipsList, type PayslipRow } from "./payslips-list";
 
@@ -31,7 +33,7 @@ export default async function PayslipsPage() {
   if (!employee) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
+        <PageHeader icon={ICONS.payslips} title={t("title")} description={t("subtitle")} />
         <Card className="p-5 text-center text-sm text-muted">{t("noProfile")}</Card>
       </div>
     );
@@ -74,10 +76,7 @@ export default async function PayslipsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
-        <p className="text-sm text-muted">{t("subtitle")}</p>
-      </div>
+      <PageHeader icon={ICONS.payslips} title={t("title")} description={t("subtitle")} />
 
       {rows.length === 0 ? (
         <Card className="p-5 text-center text-sm text-muted">{t("empty")}</Card>

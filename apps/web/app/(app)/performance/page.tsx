@@ -8,6 +8,9 @@ import {
   getCycleReviews,
   type GoalView,
 } from "@/lib/performance";
+import { ICONS } from "@/lib/nav";
+import { PageHeader } from "@/components/page-header";
+import { EmptyState } from "@/components/empty-state";
 import { CycleForm } from "./cycle-form";
 import { GoalForm, type EmployeeOption } from "./goal-form";
 import { GoalProgress } from "./goal-progress";
@@ -79,10 +82,11 @@ export default async function PerformancePage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
-        <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
-      </div>
+      <PageHeader
+        icon={ICONS["performance"]}
+        title={t("title")}
+        description={t("subtitle", { name: active.name })}
+      />
 
       <div className="grid gap-4 md:grid-cols-2">
         <CycleForm />

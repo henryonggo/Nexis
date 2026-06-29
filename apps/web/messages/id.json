@@ -13,7 +13,9 @@
     "exportCsv": "Ekspor CSV",
     "processing": "Memproses…",
     "addCompany": "+ Tambah perusahaan",
-    "allCompanies": "Semua perusahaan"
+    "allCompanies": "Semua perusahaan",
+    "expandSidebar": "Perluas bilah samping",
+    "collapseSidebar": "Tutup bilah samping"
   },
   "roles": {
     "owner": "Pemilik",

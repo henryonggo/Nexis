@@ -1,4 +1,5 @@
 import * as React from "react";
+import { type LucideIcon } from "lucide-react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
@@ -21,10 +22,19 @@ const badgeVariants = cva(
 
 export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {}
+    VariantProps<typeof badgeVariants> {
+  dot?: boolean;
+  icon?: LucideIcon;
+}
 
-function Badge({ className, variant, ...props }: BadgeProps) {
-  return <div className={cn(badgeVariants({ variant }), className)} {...props} />;
+function Badge({ className, variant, dot, icon: Icon, ...props }: BadgeProps) {
+  return (
+    <div className={cn(badgeVariants({ variant }), className)} {...props}>
+      {dot && <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-current" />}
+      {Icon && <Icon className="mr-1 h-3 w-3" />}
+      {props.children}
+    </div>
+  );
 }
 
 export { Badge, badgeVariants };

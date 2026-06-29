@@ -1,12 +1,14 @@
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { ICONS } from "@/lib/nav";
 import {
   getApiKeys,
   getWebhooks,
   getWebhookLogs,
   type WebhookLogView,
 } from "@/lib/developer";
+import { PageHeader } from "@/components/page-header";
 import { KeyForm } from "./key-form";
 import { WebhookForm } from "./webhook-form";
 import { RevokeKeyButton, ToggleWebhookButton, DeleteWebhookButton } from "./row-actions";
@@ -61,10 +63,11 @@ export default async function DeveloperPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
-        <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
-      </div>
+      <PageHeader
+        icon={ICONS["developer"]}
+        title={t("title")}
+        description={t("subtitle", { name: active.name })}
+      />
 
       {/* ── API keys ── */}
       <div className="grid gap-4 md:grid-cols-2">
@@ -168,7 +171,7 @@ async function DeliveryTable({ rows }: { rows: WebhookLogView[] }) {
                 <TableCell className="text-muted">{fmtDate(l.createdAt)}</TableCell>
                 <TableCell className="font-mono text-xs text-ink">{l.eventType}</TableCell>
                 <TableCell>
-                  <Badge variant={LOG_VARIANT[l.status] ?? "secondary"}>{l.status}</Badge>
+                  <Badge variant={LOG_VARIANT[l.status] ?? "secondary"} dot>{l.status}</Badge>
                 </TableCell>
                 <TableCell className="text-right tabular-nums text-ink">
                   {l.responseStatus ?? "—"}

@@ -4,9 +4,12 @@ import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 import { guardEmployeeAccess } from "@/lib/access";
 import { getCompanyClaims, getReceiptUrl, type ClaimView } from "@/lib/claims";
+import { ICONS } from "@/lib/nav";
 import { ClaimStatusBadge } from "./status-badge";
 import { PendingClaimsList } from "./pending-claims-list";
 import { ClaimRequestForm } from "./claim-request-form";
+import { PageHeader } from "@/components/page-header";
+import { EmptyState } from "@/components/empty-state";
 import { Card } from "@/components/ui/card";
 import {
   Table,
@@ -42,10 +45,7 @@ export default async function ClaimsPage() {
 
     return (
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
-          <p className="text-sm text-muted">{t("selfSubtitle")}</p>
-        </div>
+        <PageHeader icon={ICONS["claims"]!} title={t("title")} description={t("selfSubtitle")} />
         <ClaimRequestForm claimTypes={(claimTypes as { id: string; name: string }[] | null) ?? []} />
         <section className="space-y-3">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
@@ -69,10 +69,7 @@ export default async function ClaimsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
-        <p className="text-sm text-muted">{t("subtitle", { name: active.name })}</p>
-      </div>
+      <PageHeader icon={ICONS["claims"]!} title={t("title")} description={t("subtitle", { name: active.name })} />
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
@@ -95,6 +92,9 @@ export default async function ClaimsPage() {
 
 async function HistoryTable({ rows }: { rows: ClaimView[] }) {
   const t = await getTranslations("claims");
+  if (rows.length === 0) {
+    return <EmptyState icon={ICONS["claims"]!!} title={t("noHistory")} />;
+  }
   return (
     <Card className="overflow-hidden p-0">
       <Table>
@@ -107,26 +107,18 @@ async function HistoryTable({ rows }: { rows: ClaimView[] }) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {rows.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={4} className="py-8 text-center text-muted">
-                {t("noHistory")}
+          {rows.map((c) => (
+            <TableRow key={c.id}>
+              <TableCell className="font-medium text-ink">{c.employeeName}</TableCell>
+              <TableCell className="text-ink">{c.claimTypeName}</TableCell>
+              <TableCell className="text-right tabular-nums text-ink">
+                {formatRupiah(c.amount)}
+              </TableCell>
+              <TableCell>
+                <ClaimStatusBadge status={c.status} />
               </TableCell>
             </TableRow>
-          ) : (
-            rows.map((c) => (
-              <TableRow key={c.id}>
-                <TableCell className="font-medium text-ink">{c.employeeName}</TableCell>
-                <TableCell className="text-ink">{c.claimTypeName}</TableCell>
-                <TableCell className="text-right tabular-nums text-ink">
-                  {formatRupiah(c.amount)}
-                </TableCell>
-                <TableCell>
-                  <ClaimStatusBadge status={c.status} />
-                </TableCell>
-              </TableRow>
-            ))
-          )}
+          ))}
         </TableBody>
       </Table>
     </Card>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useFormState } from "react-dom";
+import { CheckCircle2, Download, RotateCcw, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { Database } from "@nexis/types";
 import { approveRun, cancelRun, markRunPaid, reopenRun, type RunActionState } from "../actions";
@@ -41,26 +42,26 @@ export function ActionBar({ runId, status }: { runId: string; status: Status }) 
         {canApprove && (
           <form action={approve}>
             <input type="hidden" name="runId" value={runId} />
-            <SubmitButton>{t("approve")}</SubmitButton>
+            <SubmitButton><CheckCircle2 className="w-4 h-4 mr-2" />{t("approve")}</SubmitButton>
           </form>
         )}
         {canMarkPaid && (
           <form action={markPaid}>
             <input type="hidden" name="runId" value={runId} />
-            <SubmitButton>{t("markPaid")}</SubmitButton>
+            <SubmitButton><Download className="w-4 h-4 mr-2" />{t("markPaid")}</SubmitButton>
           </form>
         )}
         {canReopen && (
           <form action={reopen}>
             <input type="hidden" name="runId" value={runId} />
-            <SubmitButton>{t("reopen")}</SubmitButton>
+            <SubmitButton><RotateCcw className="w-4 h-4 mr-2" />{t("reopen")}</SubmitButton>
           </form>
         )}
         {canCancel && (
           <form action={cancel}>
             <input type="hidden" name="runId" value={runId} />
             <Button type="submit" variant="outline">
-              {t("cancel")}
+              <X className="w-4 h-4 mr-2" />{t("cancel")}
             </Button>
           </form>
         )}
