@@ -133,6 +133,8 @@ interface CompensationRow {
   jht_enrolled: boolean;
   jp_enrolled: boolean;
   effective_from: string;
+  /** 'manual' or 'attendance' — how daily/mixed days are calculated. */
+  daily_calc_mode: string;
 }
 
 interface MinimumWageRow {
@@ -154,6 +156,8 @@ export interface PreviewLine {
   daysWorked?: number | null;
   /** Expected workdays this month per the employee's schedule (daily/mixed only). */
   expectedDays?: number | null;
+  /** 'manual' or 'attendance' — how this employee's daily/mixed days are calculated. Present for daily/mixed only. */
+  dailyCalcMode?: 'manual' | 'attendance';
   /** Configurable earnings (allowances) resolved for this employee. */
   earnings?: EarningLine[];
   /** Manual/absence deductions attributed to this period (subtracted from net). */
@@ -194,6 +198,29 @@ function periodEndDate(year: number, month: number): string {
   return `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
 }
 
+/** Load manually-entered days for a run (if it exists). Returns a map of employee_id → days_worked. TODO(db): type this against packages/types once regenerated. */
+async function loadRunManualDays(
+  supabase: SupabaseClient<Database>,
+  runId: string,
+): Promise<Map<string, number>> {
+  // TODO(db): type payroll_run_manual_days once packages/types is regenerated
+  const { data, error } = await supabase
+    .from("payroll_run_manual_days")
+    .select("employee_id, days_worked")
+    .eq("payroll_run_id", runId);
+
+  if (error) {
+    console.error(`Failed to load manual days for run ${runId}:`, error);
+    return new Map();
+  }
+
+  const map = new Map<string, number>();
+  for (const row of (data as { employee_id: string; days_worked: number }[] | null) ?? []) {
+    map.set(row.employee_id, row.days_worked);
+  }
+  return map;
+}
+
 /** Whole months of service between join date and the end of the run period. */
 function monthsOfService(joinDate: string | null, year: number, month: number): number {
   if (!joinDate) return 12; // unknown tenure → treat as full entitlement, warn separately
@@ -213,13 +240,17 @@ function monthsOfService(joinDate: string | null, year: number, month: number): 
  * compute (writing payroll_items + payslips) is the Cloud Run worker's job once
  * it exists — see `services/payroll-worker` in docs/01-architecture.md. This
  * function and @nexis/payroll are intentionally the reusable core for both.
+ *
+ * When `runId` is provided, loads manually-entered days for daily/mixed employees
+ * in manual mode from the payroll_run_manual_days table. When absent (pre-insert
+ * estimate), uses the expected-workdays default for both modes.
  */
 export async function computeRunPreview(
   supabase: SupabaseClient<Database>,
   companyId: string,
-  args: { year: number; month: number; runType: RunType; plan: Database["public"]["Enums"]["plan_tier"] },
+  args: { year: number; month: number; runType: RunType; plan: Database["public"]["Enums"]["plan_tier"]; runId?: string },
 ): Promise<RunPreview> {
-  const { year, month, runType, plan } = args;
+  const { year, month, runType, plan, runId } = args;
   const effectiveDate = periodEffectiveDate(year, month);
   const periodEnd = periodEndDate(year, month);
 
@@ -235,6 +266,7 @@ export async function computeRunPreview(
     { data: attendanceRecords },
     bulkEarnings,
     bulkManualDeductions,
+    manualDays,
   ] = await Promise.all([
       loadPayrollConfig(supabase, effectiveDate),
       supabase
@@ -250,7 +282,7 @@ export async function computeRunPreview(
         .maybeSingle(),
       supabase
         .from("compensation")
-        .select("employee_id, base_salary, pay_frequency, daily_rate, work_days, fixed_allowances, bpjs_kes_enrolled, jht_enrolled, jp_enrolled, effective_from")
+        .select("employee_id, base_salary, pay_frequency, daily_rate, daily_calc_mode, work_days, fixed_allowances, bpjs_kes_enrolled, jht_enrolled, jp_enrolled, effective_from")
         .eq("company_id", companyId),
       supabase
         .from("tax_profile")
@@ -287,6 +319,9 @@ export async function computeRunPreview(
       // Manual/absence deductions, grouped by employee; the dated entries in this
       // period are subtracted from net pay below.
       loadBulkManualDeductions(supabase, companyId),
+      // Manually-entered days for daily/mixed employees (if a runId is provided).
+      // When absent (pre-insert estimate), defaults to expected workdays.
+      runId ? loadRunManualDays(supabase, runId) : Promise.resolve(new Map()),
     ]);
 
   // Unique worked dates per employee (Asia/Jakarta), for daily-pay scaling.
@@ -438,14 +473,18 @@ export async function computeRunPreview(
 
     // Earned base by pay frequency (working-days model):
     //  - monthly → full monthly base.
-    //  - daily   → daily rate × unique attendance days.
-    //  - mixed   → monthly base + daily rate × unique attendance days.
+    //  - daily   → daily rate × days worked (manual or attendance-derived).
+    //  - mixed   → monthly base + daily rate × days worked (manual or attendance-derived).
     // The daily rate is `daily_rate` when set, else `base_salary` (legacy daily).
+    // For daily/mixed employees, days worked is either:
+    //  - manual mode: admin-entered number from payroll_run_manual_days, or expected workdays (estimate)
+    //  - attendance mode: unique attendance dates capped at expected workdays
     let frequency: PayFrequency;
     let usesDays: boolean;
     let expectedDays: number;
     let attendedDays: number;
     let daysWorked: number | null;
+    let dailyCalcMode: 'manual' | 'attendance' | null;
     let earnedBase: Rupiah;
     let earnings: EarningLine[];
     let result: PayrollResult;
@@ -456,15 +495,37 @@ export async function computeRunPreview(
         : "monthly") as PayFrequency;
       usesDays = frequency === "daily" || frequency === "mixed";
       // The employee's expected weekly schedule (own override, else company default)
-      // → expected workdays this month. Pay days are the attended days capped at the
-      // expected days, so a daily/mixed employee is never paid beyond their roster.
+      // → expected workdays this month.
       const schedule =
         comp.work_days && comp.work_days.length > 0
           ? normalizeWorkDays(comp.work_days)
           : companyWorkDays;
       expectedDays = usesDays ? expectedWorkdaysInMonth(schedule, year, month) : 0;
-      attendedDays = usesDays ? daysWorkedByEmployee.get(emp.id)?.size ?? 0 : 0;
-      daysWorked = usesDays ? Math.min(attendedDays, expectedDays) : null;
+
+      // Resolve days worked based on daily_calc_mode for daily/mixed employees.
+      dailyCalcMode = usesDays ? (comp.daily_calc_mode === "manual" ? "manual" : "attendance") : null;
+      if (dailyCalcMode === "manual") {
+        // Manual mode: use admin-entered days from the map, or expected days (estimate) or 0 + warning (runId but no row).
+        if (runId && !manualDays.has(emp.id)) {
+          daysWorked = 0;
+          warnings.push("Jumlah hari kerja manual belum diatur untuk periode ini.");
+        } else {
+          daysWorked = manualDays.get(emp.id) ?? expectedDays;
+        }
+        attendedDays = 0; // Not used in manual mode, but keep it for clarity.
+      } else if (dailyCalcMode === "attendance") {
+        // Attendance mode: unique attended dates capped at expected workdays.
+        attendedDays = daysWorkedByEmployee.get(emp.id)?.size ?? 0;
+        daysWorked = Math.min(attendedDays, expectedDays);
+        if (daysWorked === 0) {
+          warnings.push("Belum ada kehadiran tercatat periode ini — porsi harian dihitung 0.");
+        }
+      } else {
+        // Monthly (dailyCalcMode = null, usesDays = false)
+        daysWorked = null;
+        attendedDays = 0;
+      }
+
       const dailyRate = comp.daily_rate ?? baseSalary;
       const monthlyBase = frequency === "daily" ? 0 : baseSalary;
       earnedBase = computeEarnedBase({
@@ -473,9 +534,6 @@ export async function computeRunPreview(
         dailyRate,
         daysWorked: daysWorked ?? 0,
       });
-      if (usesDays && daysWorked === 0) {
-        warnings.push("Belum ada kehadiran tercatat periode ini — porsi harian dihitung 0.");
-      }
 
       // Configurable earnings (allowances): resolved set → rupiah lines. Taxable
       // lines flow into gross via fixedAllowances; the worker adds any non-taxable
@@ -553,6 +611,7 @@ export async function computeRunPreview(
       baseSalary: earnedBase,
       daysWorked,
       expectedDays: usesDays ? expectedDays : null,
+      dailyCalcMode: dailyCalcMode ?? undefined,
       earnings,
       manualDeductions,
       result,
@@ -666,15 +725,16 @@ export interface RunReadiness {
 }
 
 /**
- * Per-employee readiness for every active employee. Each needs compensation, a
- * tax profile, and a bank account with a number; a tax profile without an NPWP
- * is a non-blocking warning (+20% PPh 21).
+ * Per-employee readiness for every active employee. Each needs compensation and
+ * a tax profile with at least one identity (NPWP or KTP). A tax profile without
+ * any identity is a blocker; a profile with identity but no NPWP flag is a
+ * non-blocking warning (+20% PPh 21).
  */
 async function loadEmployeeReadiness(
   supabase: SupabaseClient<Database>,
   companyId: string,
 ): Promise<EmployeeReadiness[]> {
-  const [{ data: employees }, { data: comps }, { data: taxes }, { data: banks }] = await Promise.all([
+  const [{ data: employees }, { data: comps }, { data: taxes }] = await Promise.all([
     supabase
       .from("employees")
       .select("id, full_name")
@@ -682,8 +742,7 @@ async function loadEmployeeReadiness(
       .eq("status", "active")
       .order("full_name", { ascending: true }),
     supabase.from("compensation").select("employee_id, effective_from").eq("company_id", companyId),
-    supabase.from("tax_profile").select("employee_id, has_npwp").eq("company_id", companyId),
-    supabase.from("bank_accounts").select("employee_id, account_no").eq("company_id", companyId),
+    supabase.from("tax_profile").select("employee_id, has_npwp, npwp, ktp").eq("company_id", companyId),
   ]);
 
   // Any compensation row makes an employee ready: the run engine selects the
@@ -693,21 +752,28 @@ async function loadEmployeeReadiness(
     ((comps as { employee_id: string; effective_from: string }[] | null) ?? [])
       .map((c) => c.employee_id),
   );
-  const taxRows = (taxes as { employee_id: string; has_npwp: boolean | null }[] | null) ?? [];
-  const hasTax = new Set(taxRows.map((t) => t.employee_id));
-  const npwpByEmp = new Map(taxRows.map((t) => [t.employee_id, t.has_npwp === true]));
-  const hasBank = new Set(
-    ((banks as { employee_id: string; account_no: string | null }[] | null) ?? [])
-      .filter((b) => (b.account_no ?? "").trim() !== "")
-      .map((b) => b.employee_id),
+  const taxRows = (taxes as { employee_id: string; has_npwp: boolean | null; npwp: string | null; ktp: string | null }[] | null) ?? [];
+
+  // A tax profile is only present if it exists AND has at least one identity (NPWP or KTP).
+  const hasTaxIdentity = new Set(
+    taxRows
+      .filter((t) => (t.npwp ?? "").trim() !== "" || (t.ktp ?? "").trim() !== "")
+      .map((t) => t.employee_id),
+  );
+
+  // NPWP missing: has tax identity (NPWP or KTP) but has_npwp is false.
+  const npwpMissingByEmp = new Map(
+    taxRows
+      .filter((t) => ((t.npwp ?? "").trim() !== "" || (t.ktp ?? "").trim() !== "") && t.has_npwp !== true)
+      .map((t) => [t.employee_id, true]),
   );
 
   return ((employees as { id: string; full_name: string }[] | null) ?? []).map((emp) => {
     const issues: ReadinessIssue[] = [];
     if (!hasComp.has(emp.id)) issues.push("compensation");
-    if (!hasTax.has(emp.id)) issues.push("tax");
-    // NPWP warning is only meaningful when a tax profile exists (no profile is already a blocker).
-    const npwpMissing = hasTax.has(emp.id) && !npwpByEmp.get(emp.id);
+    if (!hasTaxIdentity.has(emp.id)) issues.push("tax");
+    // NPWP warning: has tax identity but no NPWP flag.
+    const npwpMissing = npwpMissingByEmp.has(emp.id);
     return { employeeId: emp.id, name: emp.full_name, issues, npwpMissing };
   });
 }

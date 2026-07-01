@@ -11,6 +11,7 @@ import { ICONS } from "@/lib/nav";
 import { ActionBar } from "./actions-bar";
 import { CashPaymentPanel, type CashLine } from "./cash-payment-panel";
 import { RunStatusStream } from "./status-stream";
+import { ManualDaysInput } from "./manual-days-input";
 import { Card } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
 import { PageHeader } from "@/components/page-header";
@@ -33,6 +34,8 @@ interface DisplayLine {
   paidAt: string | null;
   paidMethod: string | null;
   daysWorked: number | null;
+  payFrequency?: string;
+  dailyCalcMode?: 'manual' | 'attendance';
   terCategory: string | null;
   terRateBps: number | null;
   hasNpwp: boolean | null;
@@ -193,6 +196,8 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
       paidAt: it.paid_at,
       paidMethod: it.paid_method,
       daysWorked: it.days_worked,
+      payFrequency: undefined,
+      dailyCalcMode: undefined,
       terCategory: it.ter_category,
       terRateBps: it.ter_rate_bps,
       hasNpwp: null,
@@ -254,6 +259,8 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
       paidAt: null,
       paidMethod: null,
       daysWorked: l.daysWorked ?? null,
+      payFrequency: undefined,
+      dailyCalcMode: l.dailyCalcMode,
       terCategory: l.terCategory,
       terRateBps: l.result?.terRateBps ?? null,
       hasNpwp: l.hasNpwp,
@@ -373,11 +380,22 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
                     <TableCell>
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-semibold text-ink">{line.name}</span>
-                        {line.daysWorked != null && (
+                        {line.dailyCalcMode === "manual" && run.status === "draft" ? (
+                          <ManualDaysInput
+                            runId={run.id}
+                            employeeId={line.employeeId}
+                            currentDays={line.daysWorked ?? 0}
+                            isDraft={true}
+                          />
+                        ) : line.dailyCalcMode === "attendance" ? (
+                          <span className="inline-flex items-center rounded-full bg-success-light px-1.5 py-0.5 text-[10px] font-semibold text-success-dark border border-success/20">
+                            {t("detail.attendanceDaysLabel")}: {line.daysWorked ?? 0}
+                          </span>
+                        ) : line.daysWorked != null && (run.status !== "draft") ? (
                           <span className="inline-flex items-center rounded-full bg-brand-light px-1.5 py-0.5 text-[10px] font-semibold text-brand-dark border border-brand/20">
                             {t("detail.daysWorked", { days: line.daysWorked })}
                           </span>
-                        )}
+                        ) : null}
                         {isNew && (
                           <span className="inline-flex items-center rounded-full bg-info/10 px-1.5 py-0.5 text-[10px] font-semibold text-info border border-info/20">
                             {t("detail.newBadge")}
