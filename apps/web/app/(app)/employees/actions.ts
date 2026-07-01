@@ -13,11 +13,19 @@ const employeeSchema = z.object({
   position: z.string().max(80).optional().or(z.literal("")),
   department: z.string().max(80).optional().or(z.literal("")),
   baseSalary: z.coerce.number().int().min(0).default(0),
+  dailyRate: z.coerce.number().int().min(0).default(0),
   employmentType: z.enum(["permanent", "contract", "intern", "daily"]).default("permanent"),
   phone: z.string().max(30).optional().or(z.literal("")),
   bankName: z.string().max(80).optional().or(z.literal("")),
   accountNo: z.string().max(40).optional().or(z.literal("")),
   accountName: z.string().max(120).optional().or(z.literal("")),
+  payFrequency: z.enum(["monthly", "daily", "mixed"]).default("monthly"),
+  ptkpStatus: z.string().default("TK/0"),
+  npwp: z.string().max(20).optional().or(z.literal("")),
+  ktp: z.string().regex(/^\d{16}$/, "KTP harus 16 digit").optional().or(z.literal("")),
+  customSchedule: z.string().optional().or(z.literal("")),
+  workDays: z.array(z.coerce.number()).optional(),
+  dailyCalcMode: z.string().optional().or(z.literal("")),
 });
 
 export type EmployeeState = { error?: string; success?: string; upgrade?: boolean };
@@ -26,6 +34,7 @@ export async function createEmployee(
   _prev: EmployeeState,
   formData: FormData,
 ): Promise<EmployeeState> {
+  const workDaysRaw = formData.getAll("workDays");
   const parsed = employeeSchema.safeParse({
     fullName: formData.get("fullName"),
     email: formData.get("email") ?? "",
@@ -33,11 +42,19 @@ export async function createEmployee(
     position: formData.get("position") ?? "",
     department: formData.get("department") ?? "",
     baseSalary: formData.get("baseSalary") ?? 0,
+    dailyRate: formData.get("dailyRate") ?? 0,
     employmentType: formData.get("employmentType") ?? "permanent",
     phone: formData.get("phone") ?? "",
     bankName: formData.get("bankName") ?? "",
     accountNo: formData.get("accountNo") ?? "",
     accountName: formData.get("accountName") ?? "",
+    payFrequency: formData.get("payFrequency") ?? "monthly",
+    ptkpStatus: formData.get("ptkpStatus") ?? "TK/0",
+    npwp: formData.get("npwp") ?? "",
+    ktp: formData.get("ktp") ?? "",
+    customSchedule: formData.get("customSchedule") ?? "",
+    workDays: workDaysRaw.length > 0 ? workDaysRaw.map(Number) : undefined,
+    dailyCalcMode: formData.get("dailyCalcMode") ?? "",
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Data tidak valid" };
@@ -97,11 +114,30 @@ export async function createEmployee(
 
   // Seed a compensation row so payroll (Stage 4) has a base salary to work with.
   if (employee) {
+    const dailyCalcModeValue = parsed.data.dailyCalcMode === "manual" ? "manual" : "attendance";
+    const workDaysValue = parsed.data.customSchedule && parsed.data.workDays ? parsed.data.workDays : null;
+
     await supabase.from("compensation").insert({
       company_id: active.id,
       employee_id: employee.id,
       base_salary: parsed.data.baseSalary,
+      daily_rate: parsed.data.dailyRate,
+      pay_frequency: parsed.data.payFrequency,
+      work_days: workDaysValue,
+      daily_calc_mode: dailyCalcModeValue,
     });
+
+    // Seed a tax_profile row if either NPWP or KTP is provided.
+    if (parsed.data.npwp || parsed.data.ktp) {
+      await supabase.from("tax_profile").insert({
+        company_id: active.id,
+        employee_id: employee.id,
+        has_npwp: !!parsed.data.npwp,
+        npwp: parsed.data.npwp || null,
+        ktp: parsed.data.ktp || null,
+        ptkp_status: parsed.data.ptkpStatus,
+      });
+    }
 
     // Seed the primary bank account when any bank field was provided at registration.
     if (parsed.data.bankName || parsed.data.accountNo || parsed.data.accountName) {

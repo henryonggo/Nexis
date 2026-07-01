@@ -307,6 +307,57 @@ export async function cancelRun(
   return {};
 }
 
+const updateManualDaysSchema = z.object({
+  runId: z.string().uuid(),
+  employeeId: z.string().uuid(),
+  days: z.number().int().min(0).max(31),
+});
+
+export type UpdateManualDaysState = { error?: string; ok?: boolean };
+
+/**
+ * Update the manually-entered days for a daily/mixed employee in a draft run.
+ * Calls the set_run_manual_days RPC which enforces admin + draft-status atomically.
+ * On success, revalidates the run page so the preview updates with the new days.
+ */
+export async function updateRunManualDays(
+  _prev: UpdateManualDaysState,
+  formData: FormData,
+): Promise<UpdateManualDaysState> {
+  const parsed = updateManualDaysSchema.safeParse({
+    runId: formData.get("runId"),
+    employeeId: formData.get("employeeId"),
+    days: formData.get("days"),
+  });
+  if (!parsed.success) {
+    return { error: "Data tidak valid." };
+  }
+
+  const active = await getActiveCompany();
+  if (!active) return { error: "Tidak ada perusahaan aktif." };
+  if (!isAdmin(active.role)) {
+    return { error: "Hanya admin/pemilik yang dapat mengubah jumlah hari kerja." };
+  }
+
+  const supabase = createClient();
+  const { error } = await supabase.rpc("set_run_manual_days", {
+    p_run_id: parsed.data.runId,
+    p_employee_id: parsed.data.employeeId,
+    p_days: parsed.data.days,
+  });
+
+  if (error) {
+    // RPC raises RUN_NOT_EDITABLE if the run is no longer in draft status
+    if (error.message.includes("RUN_NOT_EDITABLE")) {
+      return { error: "Run tidak lagi dalam status draf. Hanya draf yang dapat diedit." };
+    }
+    return { error: error.message };
+  }
+
+  revalidatePath(`/payroll/${parsed.data.runId}`);
+  return { ok: true };
+}
+
 const confirmPaidSchema = z.object({
   runId: z.string().uuid(),
   itemIds: z.array(z.string().uuid()).min(1).max(500),

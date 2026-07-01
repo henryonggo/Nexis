@@ -313,6 +313,7 @@ app.post("/process", async (req, res) => {
       { data: currencies },
       { data: exchangeRates },
       { data: attendanceRecords },
+      { data: manualDaysRows },
     ] = await Promise.all([
       supabase.from("company_settings").select("*").eq("company_id", run.company_id).maybeSingle(),
       supabase.from("employees").select("*").eq("company_id", run.company_id).eq("status", "active"),
@@ -329,6 +330,7 @@ app.post("/process", async (req, res) => {
       supabase.from("currencies").select("*"),
       supabase.from("exchange_rates").select("*"),
       supabase.from("attendance_records").select("employee_id, event_at").eq("company_id", run.company_id).gte("event_at", `${startDateStr}T00:00:00Z`).lte("event_at", `${endDateStr}T23:59:59Z`),
+      supabase.from("payroll_run_manual_days").select("employee_id, days_worked").eq("payroll_run_id", runId),
     ]);
 
     // Map claims by employee
@@ -368,6 +370,14 @@ app.post("/process", async (req, res) => {
         const dates = attendanceByEmployee.get(empId) || new Set<string>();
         dates.add(dateStr);
         attendanceByEmployee.set(empId, dates);
+      }
+    }
+
+    // Map manual days by employee (from payroll_run_manual_days, seeded at draft creation).
+    const manualDaysByEmployee = new Map<string, number>();
+    for (const row of manualDaysRows || []) {
+      if (row.employee_id != null) {
+        manualDaysByEmployee.set(row.employee_id, Number(row.days_worked));
       }
     }
 
@@ -548,9 +558,39 @@ app.post("/process", async (req, res) => {
 
         let baseSalaryInput = baseSalary;
         let daysWorked: number | null = null;
-        if (comp.pay_frequency === "daily") {
-          daysWorked = attendanceByEmployee.get(emp.id)?.size ?? 0;
-          baseSalaryInput = baseSalary * daysWorked;
+
+        if (comp.pay_frequency === "daily" || comp.pay_frequency === "mixed") {
+          const calcMode: string = comp.daily_calc_mode ?? "manual";
+
+          if (calcMode === "manual") {
+            // Frozen at draft time via set_run_manual_days RPC; 0 if row missing
+            // (employee added after draft creation — preview and worker both treat as 0).
+            daysWorked = manualDaysByEmployee.get(emp.id) ?? 0;
+          } else {
+            // attendance mode: count unique Jakarta calendar dates.
+            // NOTE: expectedWorkdaysInMonth cap not available in this service
+            // (helper lives in apps/web/lib/work-schedule — cross-lane dependency).
+            // For now, raw attendance count is used; preview may cap and diverge.
+            // TODO(db): promote expectedWorkdaysInMonth to @nexis/payroll to unify.
+            daysWorked = attendanceByEmployee.get(emp.id)?.size ?? 0;
+          }
+
+          // Resolve daily rate: use comp.daily_rate if set, otherwise fall back to
+          // comp.base_salary (legacy daily employees that pre-date the daily_rate column).
+          const rawDailyRateMinor = Number(comp.daily_rate) > 0
+            ? Number(comp.daily_rate)
+            : Number(comp.base_salary);
+          const dailyRateIdr = convertToIdr(
+            rawDailyRateMinor, empCurrency, currencies || [], exchangeRates || [], startDateStr, configSnapshot,
+          );
+
+          if (comp.pay_frequency === "daily") {
+            // Earned base = daily rate * days (no monthly component).
+            baseSalaryInput = dailyRateIdr * daysWorked;
+          } else {
+            // mixed: fixed monthly component + daily rate * days worked this month.
+            baseSalaryInput = baseSalary + dailyRateIdr * daysWorked;
+          }
         }
 
         const input: EmployeePayrollInput = {
@@ -1130,7 +1170,7 @@ app.post("/process-report", async (req, res) => {
       for (const item of items) {
         const emp = (item.employees as any) || {};
         const tax = (emp.tax_profile as any) || {};
-        const idNumber = tax.npwp || emp.employee_no || ""; // Fallback to employee no if no NPWP/NIK is stored
+        const idNumber = tax.npwp || tax.ktp || emp.employee_no || ""; // KTP/NIK interchangeable with NPWP (Coretax)
         const gross = Number(item.gross_pay);
         const pph21 = Number(item.pph21);
 
@@ -1155,10 +1195,13 @@ app.post("/process-report", async (req, res) => {
 
       for (const item of items) {
         const emp = (item.employees as any) || {};
+        const empTax = (emp.tax_profile as any) || {};
+        // NIK: prefer KTP (16-digit NIK), fall back to NPWP if KTP absent.
+        const nik = empTax.ktp || empTax.npwp || "";
         const wage = Number(item.base_salary) + Number(item.allowances);
-        
+
         wsData.push([
-          "", // NIK is not explicitly stored or can use a mock
+          nik,
           "", // KPJ is not explicitly stored
           emp.full_name || "",
           wage
