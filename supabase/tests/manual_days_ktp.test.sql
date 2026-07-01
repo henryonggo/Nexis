@@ -40,15 +40,15 @@ insert into public.employees (id, company_id, full_name, status) values
 -- Two runs for Company A: one draft, one completed (different months to satisfy
 -- the UNIQUE (company_id, period_year, period_month) constraint).
 insert into public.payroll_runs (id, company_id, period_year, period_month, status) values
-  ('runa0001-0000-0000-0000-000000000001', 'aaaa0001-0000-0000-0000-000000000000', 2026, 7, 'draft'),
-  ('runa0001-0000-0000-0000-000000000002', 'aaaa0001-0000-0000-0000-000000000000', 2026, 6, 'completed'),
-  ('runb0001-0000-0000-0000-000000000001', 'bbbb0001-0000-0000-0000-000000000000', 2026, 7, 'draft');
+  ('aaaa1111-0000-0000-0000-000000000001', 'aaaa0001-0000-0000-0000-000000000000', 2026, 7, 'draft'),
+  ('aaaa1111-0000-0000-0000-000000000002', 'aaaa0001-0000-0000-0000-000000000000', 2026, 6, 'completed'),
+  ('bbbb1111-0000-0000-0000-000000000001', 'bbbb0001-0000-0000-0000-000000000000', 2026, 7, 'draft');
 
 -- Pre-seed a manual-days row for Company A's draft run (postgres role, bypasses RLS).
 insert into public.payroll_run_manual_days
   (company_id, payroll_run_id, employee_id, days_worked)
 values
-  ('aaaa0001-0000-0000-0000-000000000000', 'runa0001-0000-0000-0000-000000000001',
+  ('aaaa0001-0000-0000-0000-000000000000', 'aaaa1111-0000-0000-0000-000000000001',
    'ea000001-0000-0000-0000-000000000001', 20);
 
 -- Helper: switch to authenticated role impersonating a specific user.
@@ -79,7 +79,7 @@ select tests.authenticate_as('a1000001-1111-1111-1111-111111111111');
 select is(
   (select count(*)::int
    from public.payroll_run_manual_days
-   where payroll_run_id = 'runa0001-0000-0000-0000-000000000001'),
+   where payroll_run_id = 'aaaa1111-0000-0000-0000-000000000001'),
   1,
   'Company A owner can SELECT Company A manual-days row'
 );
@@ -105,14 +105,14 @@ select is(
 );
 
 -- ── 5. Employee-role cannot INSERT (admin write policy blocks it) ─────────────
--- The pre-seeded row uses key (runa0001…, ea000001…). We attempt the same key;
+-- The pre-seeded row uses key (aaaa1111…, ea000001…). We attempt the same key;
 -- RLS WITH CHECK fires before the unique-constraint check.
 select throws_ok(
   $$insert into public.payroll_run_manual_days
       (company_id, payroll_run_id, employee_id, days_worked)
     values
       ('aaaa0001-0000-0000-0000-000000000000',
-       'runa0001-0000-0000-0000-000000000001',
+       'aaaa1111-0000-0000-0000-000000000001',
        'ea000001-0000-0000-0000-000000000001',
        15)$$,
   'new row violates row-level security policy for table "payroll_run_manual_days"',
@@ -122,7 +122,7 @@ select throws_ok(
 -- ── 6. set_run_manual_days: UNAUTHORIZED for employee caller ─────────────────
 select throws_ok(
   $$select public.set_run_manual_days(
-      'runa0001-0000-0000-0000-000000000001',
+      'aaaa1111-0000-0000-0000-000000000001',
       'ea000001-0000-0000-0000-000000000001',
       22)$$,
   'UNAUTHORIZED',
@@ -133,7 +133,7 @@ select throws_ok(
 select tests.authenticate_as('a1000001-1111-1111-1111-111111111111');
 select throws_ok(
   $$select public.set_run_manual_days(
-      'runa0001-0000-0000-0000-000000000002',
+      'aaaa1111-0000-0000-0000-000000000002',
       'ea000001-0000-0000-0000-000000000001',
       22)$$,
   'RUN_NOT_EDITABLE',
@@ -143,7 +143,7 @@ select throws_ok(
 -- ── 8. set_run_manual_days: succeeds on draft run (upsert) ───────────────────
 select lives_ok(
   $$select public.set_run_manual_days(
-      'runa0001-0000-0000-0000-000000000001',
+      'aaaa1111-0000-0000-0000-000000000001',
       'ea000001-0000-0000-0000-000000000001',
       18)$$,
   'Admin can call set_run_manual_days on a draft run'
@@ -153,7 +153,7 @@ select tests.reset_role();
 select is(
   (select days_worked
    from public.payroll_run_manual_days
-   where payroll_run_id = 'runa0001-0000-0000-0000-000000000001'
+   where payroll_run_id = 'aaaa1111-0000-0000-0000-000000000001'
      and employee_id = 'ea000001-0000-0000-0000-000000000001'),
   18,
   'days_worked updated to 18 after upsert via set_run_manual_days'
@@ -163,7 +163,7 @@ select is(
 select tests.authenticate_as('a1000001-1111-1111-1111-111111111111');
 select lives_ok(
   $$select public.set_run_manual_days(
-      'runa0001-0000-0000-0000-000000000001',
+      'aaaa1111-0000-0000-0000-000000000001',
       'ea000001-0000-0000-0000-000000000001',
       99)$$,
   'set_run_manual_days accepts 99 (clamps without error)'
@@ -173,7 +173,7 @@ select tests.reset_role();
 select is(
   (select days_worked
    from public.payroll_run_manual_days
-   where payroll_run_id = 'runa0001-0000-0000-0000-000000000001'
+   where payroll_run_id = 'aaaa1111-0000-0000-0000-000000000001'
      and employee_id = 'ea000001-0000-0000-0000-000000000001'),
   31,
   'days_worked clamped to 31 when input was 99'
@@ -183,7 +183,7 @@ select is(
 select tests.authenticate_as('b1000001-1111-1111-1111-111111111111');
 select throws_ok(
   $$select public.set_run_manual_days(
-      'runa0001-0000-0000-0000-000000000001',
+      'aaaa1111-0000-0000-0000-000000000001',
       'ea000001-0000-0000-0000-000000000001',
       5)$$,
   'UNAUTHORIZED',
