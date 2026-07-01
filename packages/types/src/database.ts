@@ -827,6 +827,7 @@ export type Database = {
           company_id: string
           created_at: string
           currency: string
+          daily_calc_mode: string
           daily_rate: number
           effective_from: string
           employee_id: string
@@ -846,6 +847,7 @@ export type Database = {
           company_id: string
           created_at?: string
           currency?: string
+          daily_calc_mode?: string
           daily_rate?: number
           effective_from?: string
           employee_id: string
@@ -865,6 +867,7 @@ export type Database = {
           company_id?: string
           created_at?: string
           currency?: string
+          daily_calc_mode?: string
           daily_rate?: number
           effective_from?: string
           employee_id?: string
@@ -2402,6 +2405,58 @@ export type Database = {
           },
         ]
       }
+      payroll_run_manual_days: {
+        Row: {
+          company_id: string
+          created_at: string
+          days_worked: number
+          employee_id: string
+          id: string
+          payroll_run_id: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          days_worked?: number
+          employee_id: string
+          id?: string
+          payroll_run_id: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          days_worked?: number
+          employee_id?: string
+          id?: string
+          payroll_run_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_run_manual_days_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_run_manual_days_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_run_manual_days_payroll_run_id_fkey"
+            columns: ["payroll_run_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payroll_runs: {
         Row: {
           company_id: string
@@ -3002,6 +3057,7 @@ export type Database = {
           company_id: string
           employee_id: string
           has_npwp: boolean
+          ktp: string | null
           npwp: string | null
           ptkp_status: string
         }
@@ -3009,6 +3065,7 @@ export type Database = {
           company_id: string
           employee_id: string
           has_npwp?: boolean
+          ktp?: string | null
           npwp?: string | null
           ptkp_status?: string
         }
@@ -3016,6 +3073,7 @@ export type Database = {
           company_id?: string
           employee_id?: string
           has_npwp?: boolean
+          ktp?: string | null
           npwp?: string | null
           ptkp_status?: string
         }
@@ -3372,6 +3430,10 @@ export type Database = {
         Returns: undefined
       }
       seed_indonesian_holidays: { Args: { p_year: number }; Returns: undefined }
+      set_run_manual_days: {
+        Args: { p_days: number; p_employee_id: string; p_run_id: string }
+        Returns: undefined
+      }
       submit_review: { Args: { p_review_id: string }; Returns: undefined }
       update_own_contact: {
         Args: {
