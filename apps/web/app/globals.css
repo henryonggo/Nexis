@@ -129,6 +129,7 @@
   --bg: #0a0e16;
   --surface-sunken: #11161f;
   --surface: #151b26;
+  --surface-2: #1b2230;
   --surface-raised: #1b2230;
   --ink: #eef1f6;
   --ink-2: #c2c9d4;
@@ -137,7 +138,11 @@
   --hairline: rgba(255, 255, 255, 0.08);
   --hairline-strong: rgba(255, 255, 255, 0.14);
   --brand: #5b7bff;
+  --brand-700: #7a94ff;
+  --brand-dark: #7a94ff;
+  --brand-light: rgba(91, 123, 255, 0.16);
   --brand-100: rgba(91, 123, 255, 0.16);
+  --info: #38bdf8;
   --accent-teal: #2dd4bf;
   --success: #34d399;
   --warning: #fbbf24;

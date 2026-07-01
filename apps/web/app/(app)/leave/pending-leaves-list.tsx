@@ -158,7 +158,7 @@ export function PendingLeavesList({
             : "translate-y-12 opacity-0 pointer-events-none"
         }`}
       >
-        <div className="glass-panel border-white/20 shadow-elev-pop rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/45 backdrop-blur-md">
+        <div className="glass-panel border-hairline shadow-elev-pop rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 bg-surface/45 backdrop-blur-md">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-brand animate-pulse" />
             <span className="text-sm font-semibold text-ink">
@@ -172,7 +172,7 @@ export function PendingLeavesList({
               placeholder={td("rejectReason")}
               value={rejectNote}
               onChange={(e) => setRejectNote(e.target.value)}
-              className="h-9 text-xs max-w-[180px] bg-white/10 border-white/20 text-ink placeholder:text-muted focus-visible:ring-brand/30"
+              className="h-9 text-xs max-w-[180px] bg-surface/10 border-hairline text-ink placeholder:text-muted focus-visible:ring-brand/30"
               disabled={isPending}
             />
 

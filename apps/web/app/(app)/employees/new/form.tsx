@@ -14,7 +14,11 @@ import { Alert } from "@/components/ui/alert";
 
 const initial: EmployeeState = {};
 
-export function NewEmployeeForm() {
+interface NewEmployeeFormProps {
+  nextEmployeeNo: number;
+}
+
+export function NewEmployeeForm({ nextEmployeeNo }: NewEmployeeFormProps) {
   const t = useTranslations("employees");
   const tc = useTranslations("common");
   const [state, action] = useFormState(createEmployee, initial);
@@ -54,7 +58,7 @@ export function NewEmployeeForm() {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <Label htmlFor="employeeNo">{t("form.employeeNo")}</Label>
-            <Input id="employeeNo" name="employeeNo" />
+            <Input id="employeeNo" name="employeeNo" defaultValue={nextEmployeeNo} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="employmentType">{t("form.type")}</Label>

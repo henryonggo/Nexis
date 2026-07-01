@@ -281,6 +281,11 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
       }
     : null;
 
+  // The run can only be closed to "paid" once every persisted item is confirmed
+  // disbursed (gates the run-level "Mark as paid" against the cash ledger).
+  const ledgerLines = lines.filter((l) => l.itemId !== null);
+  const allItemsPaid = ledgerLines.every((l) => l.paidAt);
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -318,7 +323,7 @@ export default async function PayrollRunPage({ params }: { params: { runId: stri
         <SummaryCard label={t("summary.net")} value={totals.net} diff={totalsDiff?.net} emphasize />
       </div>
 
-      <ActionBar runId={run.id} status={run.status} />
+      <ActionBar runId={run.id} status={run.status} allItemsPaid={allItemsPaid} />
 
       {showPersisted && isAdmin && (
         <CashPaymentPanel

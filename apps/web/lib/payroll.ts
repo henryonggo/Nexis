@@ -706,7 +706,6 @@ async function loadEmployeeReadiness(
     const issues: ReadinessIssue[] = [];
     if (!hasComp.has(emp.id)) issues.push("compensation");
     if (!hasTax.has(emp.id)) issues.push("tax");
-    if (!hasBank.has(emp.id)) issues.push("bank");
     // NPWP warning is only meaningful when a tax profile exists (no profile is already a blocker).
     const npwpMissing = hasTax.has(emp.id) && !npwpByEmp.get(emp.id);
     return { employeeId: emp.id, name: emp.full_name, issues, npwpMissing };
