@@ -10,7 +10,7 @@ const VARIANT: Record<Status, "default" | "secondary" | "success" | "warning" | 
   draft: "secondary",
   queued: "default",
   processing: "default",
-  completed: "success",
+  completed: "warning",
   paid: "success",
   failed: "destructive",
   cancelled: "secondary",

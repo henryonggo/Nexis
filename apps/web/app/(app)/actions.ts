@@ -8,10 +8,15 @@ import { createClient } from "@/lib/supabase/server";
 /** Switch the active company (validates membership) and refresh the UI. */
 export async function setActiveCompany(companyId: string) {
   const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return;
+
   const { data } = await supabase
     .from("company_members")
     .select("company_id")
     .eq("company_id", companyId)
+    .eq("user_id", user.id)
     .maybeSingle();
 
   if (data) {

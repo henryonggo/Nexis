@@ -50,7 +50,7 @@ export function PlanCards({ currentPlan }: { currentPlan: PlanTier }) {
                   ? "border-brand ring-1 ring-brand"
                   : "border-border"
               } ${isSelectable ? "cursor-pointer hover:border-brand" : ""} ${
-                isCurrent ? "bg-brand-light/40" : "bg-white"
+                isCurrent ? "bg-brand-light/40" : "bg-surface"
               }`}
             >
               <div className="flex items-center justify-between">

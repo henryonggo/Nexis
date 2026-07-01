@@ -39,7 +39,7 @@ export function AccessForm({ defaults }: { defaults: EmployeeAccess }) {
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
             {t(`groups.${g.key}`)}
           </h2>
-          <Card className="divide-y divide-white/10 p-0">
+          <Card className="divide-y divide-hairline p-0">
             {g.items.map((item) => (
               <label key={item} className="flex items-start justify-between gap-3 p-4">
                 <span className="text-sm text-ink">
@@ -65,7 +65,7 @@ export function AccessForm({ defaults }: { defaults: EmployeeAccess }) {
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
           {t("groups.dashboard")}
         </h2>
-        <Card className="divide-y divide-white/10 p-0">
+        <Card className="divide-y divide-hairline p-0">
           {DASH_ITEMS.map((item) => (
             <label key={item.field} className="flex items-start justify-between gap-3 p-4">
               <span className="text-sm text-ink">
@@ -90,7 +90,7 @@ export function AccessForm({ defaults }: { defaults: EmployeeAccess }) {
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
           {t("groups.navigation")}
         </h2>
-        <Card className="divide-y divide-white/10 p-0">
+        <Card className="divide-y divide-hairline p-0">
           {(["flat", "pillars"] as const).map((style) => (
             <label key={style} className="flex items-start justify-between gap-3 p-4">
               <span className="text-sm text-ink">

@@ -6,49 +6,71 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { setDarkMode } from "@/app/actions/set-dark-mode";
 
 export function ThemeSettingsForm() {
   const t = useTranslations("settings.appearance");
-  
+
   const [theme, setTheme] = useState<"soft-ui" | "mono">("soft-ui");
   const [density, setDensity] = useState<"standard" | "compact">("standard");
+  const [mode, setMode] = useState<"light" | "dark" | "system">("system");
   const [mounted, setMounted] = useState(false);
 
   // Load from local storage on mount
   useEffect(() => {
     const savedTheme = localStorage.getItem("nexis-theme") as "soft-ui" | "mono" | null;
     const savedDensity = localStorage.getItem("nexis-density") as "standard" | "compact" | null;
-    
+    const savedMode = localStorage.getItem("nexis-mode") as "light" | "dark" | "system" | null;
+
     if (savedTheme) setTheme(savedTheme);
     if (savedDensity) setDensity(savedDensity);
-    
+    if (savedMode) setMode(savedMode);
+
     setMounted(true);
   }, []);
 
   // Handle setting updates
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       localStorage.setItem("nexis-theme", theme);
       localStorage.setItem("nexis-density", density);
-      
+      localStorage.setItem("nexis-mode", mode);
+
       const doc = document.documentElement;
-      
+
       // Update theme class
       if (theme === "mono") {
         doc.classList.add("theme-mono");
       } else {
         doc.classList.remove("theme-mono");
       }
-      
+
       // Update density class
       if (density === "compact") {
         doc.classList.add("density-compact");
       } else {
         doc.classList.remove("density-compact");
       }
-      
+
+      // Update dark mode class
+      if (mode === "dark") {
+        doc.classList.add("dark");
+      } else if (mode === "light") {
+        doc.classList.remove("dark");
+      } else {
+        // system mode: check prefers-color-scheme
+        if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+          doc.classList.add("dark");
+        } else {
+          doc.classList.remove("dark");
+        }
+      }
+
+      // Persist dark mode choice to cookie via server action
+      await setDarkMode(mode);
+
       toast.success(t("saved"));
     } catch (error) {
       toast.error("Failed to save appearance settings");
@@ -67,7 +89,7 @@ export function ThemeSettingsForm() {
       return `flex flex-col items-start text-left p-3 transition-all cursor-pointer rounded-lg border-[1.5px] ${
         isSelected
           ? "border-brand/40 bg-brand/5 shadow-elev-1"
-          : "border-white/20 bg-white/10 hover:bg-white/20 hover:border-white/30"
+          : "border-hairline bg-surface-2 hover:bg-surface hover:border-hairline"
       }`;
     }
   };
@@ -84,7 +106,24 @@ export function ThemeSettingsForm() {
       return `flex flex-col items-start text-left p-3 transition-all cursor-pointer rounded-lg border-[1.5px] ${
         isSelected
           ? "border-brand/40 bg-brand/5 shadow-elev-1"
-          : "border-white/20 bg-white/10 hover:bg-white/20 hover:border-white/30"
+          : "border-hairline bg-surface-2 hover:bg-surface hover:border-hairline"
+      }`;
+    }
+  };
+
+  const getModeButtonClass = (option: "light" | "dark" | "system") => {
+    const isSelected = mode === option;
+    if (theme === "mono") {
+      return `flex flex-col items-start text-left p-3 transition-all cursor-pointer rounded-none border-2 ${
+        isSelected
+          ? "border-ink bg-ink/5"
+          : "border-border bg-surface hover:border-ink/50"
+      }`;
+    } else {
+      return `flex flex-col items-start text-left p-3 transition-all cursor-pointer rounded-lg border-[1.5px] ${
+        isSelected
+          ? "border-brand/40 bg-brand/5 shadow-elev-1"
+          : "border-hairline bg-surface-2 hover:bg-surface hover:border-hairline"
       }`;
     }
   };
@@ -161,6 +200,42 @@ export function ThemeSettingsForm() {
               <span className="text-xs text-muted mt-1">
                 Compact cells, smaller headers, optimized for data density
               </span>
+            </button>
+          </div>
+        </div>
+
+        {/* Dark Mode Section */}
+        <div className="space-y-2.5">
+          <Label className="text-sm font-semibold text-ink">{t("mode")}</Label>
+          <div className="grid grid-cols-3 gap-3">
+            {/* Light Mode */}
+            <button
+              type="button"
+              onClick={() => setMode("light")}
+              className={getModeButtonClass("light")}
+            >
+              <span className="font-semibold text-sm text-ink">{t("modeLight")}</span>
+              <span className="text-xs text-muted mt-1">Light theme</span>
+            </button>
+
+            {/* Dark Mode */}
+            <button
+              type="button"
+              onClick={() => setMode("dark")}
+              className={getModeButtonClass("dark")}
+            >
+              <span className="font-semibold text-sm text-ink">{t("modeDark")}</span>
+              <span className="text-xs text-muted mt-1">Dark theme</span>
+            </button>
+
+            {/* System Mode */}
+            <button
+              type="button"
+              onClick={() => setMode("system")}
+              className={getModeButtonClass("system")}
+            >
+              <span className="font-semibold text-sm text-ink">{t("modeSystem")}</span>
+              <span className="text-xs text-muted mt-1">Follow OS setting</span>
             </button>
           </div>
         </div>

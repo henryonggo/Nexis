@@ -68,7 +68,7 @@ export default async function SuperadminPage() {
       ) : companies.length === 0 ? (
         <p className="text-sm text-muted">{t("empty")}</p>
       ) : (
-        <Card className="divide-y divide-white/10 p-0">
+        <Card className="divide-y divide-hairline p-0">
           {companies.map((c) => (
             <div key={c.id} className="flex items-center justify-between gap-4 p-4">
               <div className="min-w-0">
