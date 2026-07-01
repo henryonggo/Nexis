@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { getNextEmployeeNumber } from "@/lib/employees";
 
 const employeeSchema = z.object({
   fullName: z.string().min(2, "Nama karyawan minimal 2 karakter"),
@@ -49,20 +50,36 @@ export async function createEmployee(
     return { error: "Hanya pemilik/admin yang dapat menambah karyawan." };
   }
 
-  const { data: employee, error } = await supabase
-    .from("employees")
-    .insert({
-      company_id: active.id,
-      full_name: parsed.data.fullName,
-      email: parsed.data.email || null,
-      employee_no: parsed.data.employeeNo || null,
-      position: parsed.data.position || null,
-      department: parsed.data.department || null,
-      employment_type: parsed.data.employmentType,
-      phone: parsed.data.phone || null,
-    })
-    .select("id")
-    .single();
+  // Determine the employee number: use provided value or auto-compute fallback
+  let employeeNo = parsed.data.employeeNo || null;
+
+  const attemptInsert = async (empNo: string | null) => {
+    return supabase
+      .from("employees")
+      .insert({
+        company_id: active.id,
+        full_name: parsed.data.fullName,
+        email: parsed.data.email || null,
+        employee_no: empNo,
+        position: parsed.data.position || null,
+        department: parsed.data.department || null,
+        employment_type: parsed.data.employmentType,
+        phone: parsed.data.phone || null,
+      })
+      .select("id")
+      .single();
+  };
+
+  let result = await attemptInsert(employeeNo);
+
+  // If no employee number was provided and we hit a unique constraint,
+  // compute the next number and retry once
+  if (!employeeNo && result.error?.code === "23505") {
+    const nextNo = await getNextEmployeeNumber(active.id);
+    result = await attemptInsert(String(nextNo));
+  }
+
+  const { data: employee, error } = result;
 
   if (error) {
     if (error.message.includes("FREE_SEAT_LIMIT_REACHED")) {

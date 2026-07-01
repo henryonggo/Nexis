@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { getActiveCompany } from "@/lib/company";
+import { getNextEmployeeNumber } from "@/lib/employees";
 import { ICONS } from "@/lib/nav";
 import { PageHeader } from "@/components/page-header";
 import { NewEmployeeForm } from "./form";
@@ -11,6 +12,8 @@ export default async function NewEmployeePage() {
   if (active.role !== "owner" && active.role !== "admin") redirect("/employees");
   const t = await getTranslations("employees");
 
+  const nextEmployeeNo = await getNextEmployeeNumber(active.id);
+
   return (
     <div className="max-w-xl space-y-5">
       <PageHeader
@@ -18,7 +21,7 @@ export default async function NewEmployeePage() {
         title={t("newTitle")}
         description={t("companyLabel", { name: active.name })}
       />
-      <NewEmployeeForm />
+      <NewEmployeeForm nextEmployeeNo={nextEmployeeNo} />
     </div>
   );
 }

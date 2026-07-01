@@ -13,7 +13,17 @@ type Status = Database["public"]["Enums"]["pay_period_status"];
 
 const initial: RunActionState = {};
 
-export function ActionBar({ runId, status }: { runId: string; status: Status }) {
+export function ActionBar({
+  runId,
+  status,
+  allItemsPaid,
+}: {
+  runId: string;
+  status: Status;
+  // The run can only be closed to "paid" once every employee's item is confirmed
+  // disbursed. Gates the run-level button against the per-employee cash ledger.
+  allItemsPaid: boolean;
+}) {
   const t = useTranslations("payroll.actions");
   const [approveState, approve] = useFormState(approveRun, initial);
   const [paidState, markPaid] = useFormState(markRunPaid, initial);
@@ -48,7 +58,8 @@ export function ActionBar({ runId, status }: { runId: string; status: Status }) 
         {canMarkPaid && (
           <form action={markPaid}>
             <input type="hidden" name="runId" value={runId} />
-            <SubmitButton><Download className="w-4 h-4 mr-2" />{t("markPaid")}</SubmitButton>
+            <SubmitButton disabled={!allItemsPaid}><Download className="w-4 h-4 mr-2" />{t("markPaid")}</SubmitButton>
+            {!allItemsPaid && <p className="mt-1 text-xs text-muted">{t("markPaidBlocked")}</p>}
           </form>
         )}
         {canReopen && (

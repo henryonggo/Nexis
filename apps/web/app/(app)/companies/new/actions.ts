@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createCompanySchema } from "@/lib/validation";
 import { setActiveCompany } from "@/app/(app)/actions";
+import { acceptInvite } from "@/lib/actions/invitations";
 
 export type CreateCompanyState = { error?: string };
 
@@ -42,4 +43,20 @@ export async function createCompany(
   }
 
   redirect("/dashboard");
+}
+
+/**
+ * Join an existing company via an invite token. Calls acceptInvite which
+ * handles the RPC call and redirects on success.
+ */
+export async function joinCompanyViaInvite(
+  _prev: CreateCompanyState,
+  formData: FormData,
+): Promise<CreateCompanyState> {
+  const token = (formData.get("inviteToken") as string) || "";
+  if (!token.trim()) {
+    return { error: "Token undangan tidak boleh kosong." };
+  }
+
+  return acceptInvite(token.trim());
 }
