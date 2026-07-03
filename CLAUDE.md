@@ -4,6 +4,20 @@
 > lane only. The full agent split is **`docs/08-agent-boundaries.md`** — read it
 > before any task that might cross the database seam.
 
+## Strategic Direction (July 2026 pivot)
+
+Nexis is an **agentic operations layer**, not a UI-first SaaS. Agents execute
+back-office workflows; humans approve via approval gates. Beras Wortel is
+customer zero. The active execution plan is **`docs/pivot/PIVOT-PHASE-1.md`** —
+read it at the start of any session touching architecture, payroll, or the
+agent layer.
+
+Non-negotiables (unchanged): RLS-first security, integer rupiah,
+`packages/types` as the sole generated contract, Antigravity seam as the
+agent-tool boundary. Payroll values are never estimated — halt and ask.
+Do not build features outside workflow zero (Beras Wortel payroll cycle)
+during Phase 1.
+
 ## Your lane (Claude Code = application layer)
 
 You own everything **in front of the Supabase client**:
