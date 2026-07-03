@@ -20,13 +20,14 @@ changes. Company: **CV AGRI PANGAN GLOBAL** (Beras Wortel), id
 | Configurable earnings enabled | 2 rows, both on **one** employee (Puput) |
 
 **Conclusion:** `fetch_employee_roster` returns 6 complete lines.
-`compute_pph21_for_employee` computes cleanly for **5 of 6** employees and
-halts with `configurable_earnings_not_supported` for Puput (Lunch
-Accommodation Rp 500.000 + Transport Allowance Rp 100.000, both taxable) —
-the correct behaviour: including her would require folding configurable
-earnings into gross, which is Week 2 scope. That halt is the first concrete
-Week 2 requirement: **the full-cycle tool set must resolve configurable
-earnings into taxable gross** (reuse `apps/web/lib/earnings.ts` logic).
+`compute_pph21_for_employee` initially halted for Puput (Lunch Accommodation
+Rp 500.000 + Transport Allowance Rp 100.000 override, both taxable, both
+fixed-amount) — so the tool was extended the same day to resolve manual,
+enabled, active, **fixed-amount** configurable earnings into taxable gross,
+mirroring `apps/web/lib/earnings.ts` resolution (group wins → halt in v0;
+percentage earnings → halt in v0). With that, **all 6 of 6** employees
+compute cleanly. Percentage earnings and earning groups remain Week 2 scope
+(their bases follow earned-base logic landing with the full-cycle tool set).
 
 ## Gaps found (for db-engineer / Week 2)
 

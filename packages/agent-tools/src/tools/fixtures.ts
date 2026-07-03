@@ -104,6 +104,7 @@ export function baseTables() {
     bpjs_config: BPJS_CONFIG,
     ter_rates: TER_RATES,
     overtime_entries: [] as Record<string, unknown>[],
+    custom_earning_types: [] as Record<string, unknown>[],
     employee_earning: [] as Record<string, unknown>[],
     employee_earning_group: [] as Record<string, unknown>[],
   });

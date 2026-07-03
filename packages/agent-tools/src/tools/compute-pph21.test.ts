@@ -97,16 +97,175 @@ describe("compute_pph21_for_employee", () => {
     expect(haltCodes(result)).toContain("overtime_not_supported");
   });
 
-  it("halts when configurable earnings are assigned", async () => {
+  it("adds taxable fixed earnings (with override) to gross — Puput's staging case", async () => {
     const tables = baseTables();
+    tables.custom_earning_types.push(
+      {
+        id: "type-lunch",
+        company_id: COMPANY_ID,
+        name: "Lunch Accomodation",
+        calc: "fixed",
+        amount: 500_000,
+        rate_bps: null,
+        base: null,
+        taxable: true,
+        active: true,
+      },
+      {
+        id: "type-transport",
+        company_id: COMPANY_ID,
+        name: "Transport Allowance",
+        calc: "fixed",
+        amount: 500_000,
+        rate_bps: null,
+        base: null,
+        taxable: true,
+        active: true,
+      },
+    );
+    tables.employee_earning.push(
+      {
+        company_id: COMPANY_ID,
+        employee_id: EMP_BUDI,
+        custom_type_id: "type-lunch",
+        amount_override: null,
+        enabled: true,
+      },
+      {
+        company_id: COMPANY_ID,
+        employee_id: EMP_BUDI,
+        custom_type_id: "type-transport",
+        amount_override: 100_000,
+        enabled: true,
+      },
+    );
+    const result = await executeTool(computePph21ForEmployee, PERIOD, makeCtx(tables));
+    expect(result.status).toBe("ok");
+    if (result.status !== "ok") return;
+    // Gross 10,000,000 + 500,000 + 100,000 = 10,600,000, still in the 75 bps
+    // TER band → PPh 21 = 79,500. BPJS bases stay on base salary.
+    expect(result.data.inputs.gross).toBe(10_600_000);
+    expect(result.data.result.pph21).toBe(79_500);
+    expect(result.data.result.netPay).toBe(10_120_500);
+    expect(result.data.earnings).toEqual([
+      { label: "Lunch Accomodation", amount: 500_000, taxable: true },
+      { label: "Transport Allowance", amount: 100_000, taxable: true },
+    ]);
+    expect(result.data.nonTaxableEarnings).toBe(0);
+  });
+
+  it("keeps non-taxable earnings out of gross but reports them", async () => {
+    const tables = baseTables();
+    tables.custom_earning_types.push({
+      id: "type-reimb",
+      company_id: COMPANY_ID,
+      name: "Pulsa Reimbursement",
+      calc: "fixed",
+      amount: 200_000,
+      rate_bps: null,
+      base: null,
+      taxable: false,
+      active: true,
+    });
     tables.employee_earning.push({
-      id: "earn-1",
+      company_id: COMPANY_ID,
       employee_id: EMP_BUDI,
+      custom_type_id: "type-reimb",
+      amount_override: null,
+      enabled: true,
+    });
+    const result = await executeTool(computePph21ForEmployee, PERIOD, makeCtx(tables));
+    expect(result.status).toBe("ok");
+    if (result.status !== "ok") return;
+    expect(result.data.inputs.gross).toBe(10_000_000);
+    expect(result.data.result.pph21).toBe(75_000);
+    expect(result.data.nonTaxableEarnings).toBe(200_000);
+  });
+
+  it("ignores disabled rows and inactive earning types", async () => {
+    const tables = baseTables();
+    tables.custom_earning_types.push(
+      {
+        id: "type-old",
+        company_id: COMPANY_ID,
+        name: "Old Allowance",
+        calc: "fixed",
+        amount: 1_000_000,
+        rate_bps: null,
+        base: null,
+        taxable: true,
+        active: false, // inactive type
+      },
+      {
+        id: "type-off",
+        company_id: COMPANY_ID,
+        name: "Disabled Allowance",
+        calc: "fixed",
+        amount: 1_000_000,
+        rate_bps: null,
+        base: null,
+        taxable: true,
+        active: true,
+      },
+    );
+    tables.employee_earning.push(
+      {
+        company_id: COMPANY_ID,
+        employee_id: EMP_BUDI,
+        custom_type_id: "type-old",
+        amount_override: null,
+        enabled: true,
+      },
+      {
+        company_id: COMPANY_ID,
+        employee_id: EMP_BUDI,
+        custom_type_id: "type-off",
+        amount_override: null,
+        enabled: false, // disabled row
+      },
+    );
+    const result = await executeTool(computePph21ForEmployee, PERIOD, makeCtx(tables));
+    expect(result.status).toBe("ok");
+    if (result.status !== "ok") return;
+    expect(result.data.inputs.gross).toBe(10_000_000);
+    expect(result.data.earnings).toEqual([]);
+  });
+
+  it("halts on percentage-based earnings in v0", async () => {
+    const tables = baseTables();
+    tables.custom_earning_types.push({
+      id: "type-pct",
+      company_id: COMPANY_ID,
+      name: "Bonus Persen",
+      calc: "percent",
+      amount: null,
+      rate_bps: 1_000,
+      base: "base_salary",
+      taxable: true,
+      active: true,
+    });
+    tables.employee_earning.push({
+      company_id: COMPANY_ID,
+      employee_id: EMP_BUDI,
+      custom_type_id: "type-pct",
+      amount_override: null,
       enabled: true,
     });
     const result = await executeTool(computePph21ForEmployee, PERIOD, makeCtx(tables));
     expect(result.status).toBe("halt");
-    expect(haltCodes(result)).toContain("configurable_earnings_not_supported");
+    expect(haltCodes(result)).toContain("percent_earnings_not_supported");
+  });
+
+  it("halts on an earning-group assignment in v0", async () => {
+    const tables = baseTables();
+    tables.employee_earning_group.push({
+      company_id: COMPANY_ID,
+      employee_id: EMP_BUDI,
+      group_id: "group-1",
+    });
+    const result = await executeTool(computePph21ForEmployee, PERIOD, makeCtx(tables));
+    expect(result.status).toBe("halt");
+    expect(haltCodes(result)).toContain("earning_groups_not_supported");
   });
 
   it("halts when rate reference tables have no rows in force", async () => {

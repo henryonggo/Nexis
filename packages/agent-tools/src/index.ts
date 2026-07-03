@@ -35,6 +35,7 @@ export {
 } from "./tools/fetch-employee-roster";
 export {
   computePph21ForEmployee,
+  type EarningLineOut,
   type Pph21Output,
 } from "./tools/compute-pph21";
 
