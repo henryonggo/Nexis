@@ -97,7 +97,7 @@ describe("compute_pph21_for_employee", () => {
     expect(haltCodes(result)).toContain("overtime_not_supported");
   });
 
-  it("adds taxable fixed earnings (with override) to gross — Puput's staging case", async () => {
+  it("adds taxable fixed earnings (with override) to gross — staging case E-4", async () => {
     const tables = baseTables();
     tables.custom_earning_types.push(
       {

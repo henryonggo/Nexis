@@ -1,7 +1,7 @@
 # ADR 0001 — Agent architecture for the Phase 1 pivot
 
-- **Status:** Proposed (drafted 2026-07-03; awaiting owner sign-off before any
-  restructuring of `.claude/agents/`)
+- **Status:** Accepted (owner, 2026-07-03). Restructuring of `.claude/agents/`
+  applied the same day.
 - **Context:** `docs/pivot/PIVOT-PHASE-1.md` (Week 1 task), `.claude/agents/README.md`
 - **Deciders:** Owner (Boss); drafted by Claude Code (Fable 5)
 

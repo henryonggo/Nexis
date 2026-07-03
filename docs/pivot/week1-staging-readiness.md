@@ -17,12 +17,12 @@ changes. Company: **CV AGRI PANGAN GLOBAL** (Beras Wortel), id
 | Non-monthly pay frequencies | 0 |
 | Company JKK risk class | `very_low` (set) |
 | Approved overtime in 2026-07 | 0 |
-| Configurable earnings enabled | 2 rows, both on **one** employee (Puput) |
+| Configurable earnings enabled | 2 rows, both on **one** employee (anonymized: E-4) |
 
 **Conclusion:** `fetch_employee_roster` returns 6 complete lines.
-`compute_pph21_for_employee` initially halted for Puput (Lunch Accommodation
-Rp 500.000 + Transport Allowance Rp 100.000 override, both taxable, both
-fixed-amount) — so the tool was extended the same day to resolve manual,
+`compute_pph21_for_employee` initially halted for employee E-4 (two taxable
+fixed-amount allowances, one with a per-employee override) — so the tool was
+extended the same day to resolve manual,
 enabled, active, **fixed-amount** configurable earnings into taxable gross,
 mirroring `apps/web/lib/earnings.ts` resolution (group wins → halt in v0;
 percentage earnings → halt in v0). With that, **all 6 of 6** employees

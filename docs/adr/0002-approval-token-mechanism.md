@@ -1,7 +1,8 @@
 # ADR 0002 — Approval-token mechanism for mutating agent tools
 
-- **Status:** Proposed (drafted 2026-07-03; Week 2 implementation is gated on
-  owner sign-off)
+- **Status:** Accepted (owner, 2026-07-03). App-side verification implemented
+  in `packages/agent-tools`; DB-side items remain with db-engineer (see
+  TODO(db) list below).
 - **Context:** `docs/pivot/PIVOT-PHASE-1.md` (Week 2 milestone),
   `packages/agent-tools/src/tool.ts` (the executor's `requiresApproval` gate),
   ADR 0001
