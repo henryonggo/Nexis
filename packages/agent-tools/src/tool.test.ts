@@ -5,8 +5,11 @@ import type { Database } from "@nexis/types";
 import { defineTool, executeTool, type ToolContext } from "./tool";
 import { fakeSupabase } from "./testing/fake-supabase";
 
-function ctx(overrides: Partial<ToolContext> = {}) {
-  const fake = fakeSupabase({});
+function ctx(
+  overrides: Partial<ToolContext> = {},
+  fakeOpts: Parameters<typeof fakeSupabase>[1] = {},
+) {
+  const fake = fakeSupabase({}, fakeOpts);
   return {
     context: {
       supabase: fake as unknown as SupabaseClient<Database>,
@@ -66,10 +69,44 @@ describe("executeTool", () => {
     if (result.status === "denied") expect(result.reason).toMatch(/approval token/);
   });
 
-  it("allows a requires_approval mutation when a token is present", async () => {
-    const { context } = ctx({ approvalToken: "tok-1" });
+  it("runs a requires_approval mutation when consume_approval accepts the token", async () => {
+    const { context, fake } = ctx(
+      { approvalToken: "req-1" },
+      { rpcHandlers: { consume_approval: () => ({ data: true, error: null }) } },
+    );
     const result = await executeTool(mutateTool, {}, context);
     expect(result.status).toBe("ok");
+    // The RPC got the token, tool name, and a real payload hash.
+    expect(fake.rpcCalls).toHaveLength(1);
+    const call = fake.rpcCalls[0]!;
+    expect(call.fn).toBe("consume_approval");
+    expect(call.args.request_id).toBe("req-1");
+    expect(call.args.tool_name).toBe("mutate");
+    expect(String(call.args.payload_hash)).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it("denies a mutation when consume_approval rejects the token", async () => {
+    const { context } = ctx(
+      { approvalToken: "req-expired" },
+      { rpcHandlers: { consume_approval: () => ({ data: false, error: null }) } },
+    );
+    const result = await executeTool(mutateTool, {}, context);
+    expect(result.status).toBe("denied");
+    if (result.status === "denied") expect(result.reason).toMatch(/rejected/);
+  });
+
+  it("denies a mutation when the verification RPC errors", async () => {
+    const { context } = ctx(
+      { approvalToken: "req-1" },
+      {
+        rpcHandlers: {
+          consume_approval: () => ({ data: null, error: { message: "function does not exist" } }),
+        },
+      },
+    );
+    const result = await executeTool(mutateTool, {}, context);
+    expect(result.status).toBe("denied");
+    if (result.status === "denied") expect(result.reason).toMatch(/verification failed/);
   });
 
   it("converts a thrown error into a structured error result", async () => {

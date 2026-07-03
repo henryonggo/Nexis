@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@nexis/types";
 import type { z } from "zod";
+import { approvalPayloadHash } from "./approval";
 import type { HaltReason, ToolAudit, ToolResult, ToolStatus } from "./result";
 
 /**
@@ -16,9 +17,10 @@ export interface ToolContext {
   /** Auth user id the agent acts on behalf of; goes to audit_logs.actor_id. */
   actorId: string | null;
   /**
-   * Opaque approval token for mutations flagged `requiresApproval`.
-   * Week 1 only gates on presence; verification (signature, scope, expiry)
-   * is the Week 2 approval-token mechanism.
+   * Approval token for mutations flagged `requiresApproval`: the id of an
+   * `approval_requests` row the owner has approved (ADR 0002). The executor
+   * verifies AND consumes it atomically via the `consume_approval` RPC —
+   * tokens are single-use and bound to the exact input payload by hash.
    */
   approvalToken?: string;
 }
@@ -130,14 +132,59 @@ export async function executeTool<In, Out>(
     return finalize({ status: "error", message: `Invalid input — ${issues}` }, rawInput);
   }
 
-  if (tool.requiresApproval && !ctx.approvalToken) {
-    return finalize(
-      {
-        status: "denied",
-        reason: `Tool "${tool.name}" mutates state and requires an approval token.`,
-      },
-      parsed.data,
-    );
+  if (tool.requiresApproval) {
+    if (!ctx.approvalToken) {
+      return finalize(
+        {
+          status: "denied",
+          reason: `Tool "${tool.name}" mutates state and requires an approval token.`,
+        },
+        parsed.data,
+      );
+    }
+
+    // Verify + consume atomically (ADR 0002): the RPC only returns true when
+    // the request is approved, unexpired, for this tool, and its stored hash
+    // matches the hash of the input we are about to execute.
+    const payloadHash = await approvalPayloadHash(tool.name, parsed.data);
+    // TODO(db): consume_approval(request_id uuid, tool_name text, payload_hash text)
+    // returns boolean (ADR 0002 §TODO(db) 2) — db-engineer. Cast until
+    // packages/types regenerates with the RPC signature.
+    const rpc = ctx.supabase.rpc.bind(ctx.supabase) as unknown as (
+      fn: string,
+      args: Record<string, unknown>,
+    ) => PromiseLike<{ data: unknown; error: { message: string } | null }>;
+    try {
+      const { data: consumed, error } = await rpc("consume_approval", {
+        request_id: ctx.approvalToken,
+        tool_name: tool.name,
+        payload_hash: payloadHash,
+      });
+      if (error) {
+        return finalize(
+          { status: "denied", reason: `Approval verification failed: ${error.message}` },
+          parsed.data,
+        );
+      }
+      if (consumed !== true) {
+        return finalize(
+          {
+            status: "denied",
+            reason:
+              "Approval token rejected: not approved, expired, already consumed, or payload changed since approval.",
+          },
+          parsed.data,
+        );
+      }
+    } catch (err) {
+      return finalize(
+        {
+          status: "denied",
+          reason: `Approval verification failed: ${err instanceof Error ? err.message : "unexpected error"}`,
+        },
+        parsed.data,
+      );
+    }
   }
 
   try {

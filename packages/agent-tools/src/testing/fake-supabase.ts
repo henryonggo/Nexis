@@ -81,22 +81,39 @@ class FakeQuery implements PromiseLike<FakeResult> {
   }
 }
 
+type RpcHandler = (args: Record<string, unknown>) => {
+  data: unknown;
+  error: { message: string } | null;
+};
+
 export interface FakeSupabase {
   from(table: string): {
     select(columns: string): FakeQuery;
     insert(row: Row): PromiseLike<{ error: { message: string } | null }>;
   };
+  rpc(
+    fn: string,
+    args: Record<string, unknown>,
+  ): PromiseLike<{ data: unknown; error: { message: string } | null }>;
   /** Rows inserted per table, for assertions (e.g. audit_logs). */
   inserts: Record<string, Row[]>;
+  /** RPC invocations, for assertions (e.g. consume_approval args). */
+  rpcCalls: { fn: string; args: Record<string, unknown> }[];
 }
 
 export function fakeSupabase(
   tables: Record<string, Row[]>,
-  opts: { failTables?: Record<string, string>; failInserts?: Record<string, string> } = {},
+  opts: {
+    failTables?: Record<string, string>;
+    failInserts?: Record<string, string>;
+    rpcHandlers?: Record<string, RpcHandler>;
+  } = {},
 ): FakeSupabase {
   const inserts: Record<string, Row[]> = {};
+  const rpcCalls: { fn: string; args: Record<string, unknown> }[] = [];
   return {
     inserts,
+    rpcCalls,
     from(table: string) {
       return {
         select: () =>
@@ -107,6 +124,14 @@ export function fakeSupabase(
           return Promise.resolve({ error: failure ? { message: failure } : null });
         },
       };
+    },
+    rpc(fn: string, args: Record<string, unknown>) {
+      rpcCalls.push({ fn, args });
+      const handler = opts.rpcHandlers?.[fn];
+      if (!handler) {
+        return Promise.resolve({ data: null, error: { message: `rpc ${fn} not stubbed` } });
+      }
+      return Promise.resolve(handler(args));
     },
   };
 }

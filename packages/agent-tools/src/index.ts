@@ -27,6 +27,7 @@ export {
   type ToolDefinition,
   type ToolOutcome,
 } from "./tool";
+export { approvalPayloadHash, canonicalJson } from "./approval";
 
 export {
   fetchEmployeeRoster,
