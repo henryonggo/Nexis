@@ -28,6 +28,7 @@ export {
   type ToolOutcome,
 } from "./tool";
 export { approvalPayloadHash, canonicalJson } from "./approval";
+export { createApprovalRequest } from "./approval-request";
 
 export {
   fetchEmployeeRoster,
