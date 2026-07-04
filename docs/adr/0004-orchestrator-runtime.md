@@ -1,7 +1,8 @@
 # ADR 0004 — Orchestrator runtime shape (packages/orchestrator)
 
-- **Status:** Proposed (drafted 2026-07-04; awaiting owner review — no code
-  until accepted)
+- **Status:** Accepted (owner "go", 2026-07-04). `packages/orchestrator`
+  implemented the same day; the apps/web start/resume surface is the
+  remaining app-engineer task.
 - **Context:** `docs/pivot/PIVOT-PHASE-1.md` ("What changes"), ADRs 0001–0003,
   `packages/agent-tools` (tool registry + executor, complete)
 - **Deciders:** Owner (Boss); drafted by Claude Code (Fable 5)
