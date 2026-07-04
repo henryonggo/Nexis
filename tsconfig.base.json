@@ -17,6 +17,7 @@
     "composite": false,
     "baseUrl": ".",
     "paths": {
+      "@nexis/agent-tools": ["packages/agent-tools/src/index.ts"],
       "@nexis/types": ["packages/types/src/index.ts"],
       "@nexis/money": ["packages/money/src/index.ts"],
       "@nexis/payroll": ["packages/payroll/src/index.ts"]
