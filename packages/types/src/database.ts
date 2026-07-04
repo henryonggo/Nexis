@@ -93,6 +93,62 @@ export type Database = {
           },
         ]
       }
+      approval_requests: {
+        Row: {
+          company_id: string
+          consumed_at: string | null
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          expires_at: string
+          id: string
+          payload: Json
+          payload_hash: string
+          requested_by: string
+          status: Database["public"]["Enums"]["approval_request_status"]
+          summary: string | null
+          tool_name: string
+        }
+        Insert: {
+          company_id: string
+          consumed_at?: string | null
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          expires_at?: string
+          id?: string
+          payload: Json
+          payload_hash: string
+          requested_by?: string
+          status?: Database["public"]["Enums"]["approval_request_status"]
+          summary?: string | null
+          tool_name: string
+        }
+        Update: {
+          company_id?: string
+          consumed_at?: string | null
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          expires_at?: string
+          id?: string
+          payload?: Json
+          payload_hash?: string
+          requested_by?: string
+          status?: Database["public"]["Enums"]["approval_request_status"]
+          summary?: string | null
+          tool_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approval_requests_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attendance_records: {
         Row: {
           client_uuid: string | null
@@ -3310,6 +3366,10 @@ export type Database = {
           scheduled_minutes: number
         }[]
       }
+      consume_approval: {
+        Args: { payload_hash: string; request_id: string; tool_name: string }
+        Returns: boolean
+      }
       create_company_with_owner: {
         Args: { p_industry?: string; p_name: string }
         Returns: string
@@ -3377,6 +3437,23 @@ export type Database = {
       mark_payroll_items_paid: {
         Args: { p_payment_method?: string; p_payroll_item_ids: string[] }
         Returns: undefined
+      }
+      portal_company_summaries: {
+        Args: never
+        Returns: {
+          active_seats: number
+          company_id: string
+          free_seat_limit: number
+          headcount: number
+          last_run_period_month: number
+          last_run_period_year: number
+          last_run_status: Database["public"]["Enums"]["pay_period_status"]
+          last_run_total_net: number
+          name: string
+          pending_approvals: number
+          plan: Database["public"]["Enums"]["plan_tier"]
+          role: Database["public"]["Enums"]["company_role"]
+        }[]
       }
       recompute_employee_overtime: {
         Args: { p_date: string; p_employee_id: string }
@@ -3471,6 +3548,12 @@ export type Database = {
         | "offer"
         | "hired"
         | "rejected"
+      approval_request_status:
+        | "pending"
+        | "approved"
+        | "rejected"
+        | "consumed"
+        | "expired"
       attendance_kind: "clock_in" | "clock_out" | "break_start" | "break_end"
       claim_status: "pending" | "approved" | "rejected" | "paid"
       company_role: "owner" | "admin" | "manager" | "employee" | "accountant"
@@ -3632,6 +3715,13 @@ export const Constants = {
         "offer",
         "hired",
         "rejected",
+      ],
+      approval_request_status: [
+        "pending",
+        "approved",
+        "rejected",
+        "consumed",
+        "expired",
       ],
       attendance_kind: ["clock_in", "clock_out", "break_start", "break_end"],
       claim_status: ["pending", "approved", "rejected", "paid"],

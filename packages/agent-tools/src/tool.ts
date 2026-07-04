@@ -54,10 +54,9 @@ function summarizeHalt(reasons: HaltReason[]): string {
 /**
  * Best-effort audit insert. Failure never fails the tool call — the result
  * carries `audit.recorded: false` so the orchestrator can escalate instead.
+ * RLS: "audit_logs: agent tool insert" (20260704020000_agent_approvals.sql)
+ * permits exactly these rows — entity 'agent_tools', own company, own actor.
  */
-// TODO(db): audit_logs needs an INSERT policy permitting company members to
-// write rows with entity = 'agent_tools' (agent executions must be auditable
-// under RLS, no service role) — db-engineer.
 async function recordAudit(ctx: ToolContext, audit: ToolAudit): Promise<ToolAudit> {
   try {
     const { error } = await ctx.supabase.from("audit_logs").insert({
@@ -147,15 +146,8 @@ export async function executeTool<In, Out>(
     // the request is approved, unexpired, for this tool, and its stored hash
     // matches the hash of the input we are about to execute.
     const payloadHash = await approvalPayloadHash(tool.name, parsed.data);
-    // TODO(db): consume_approval(request_id uuid, tool_name text, payload_hash text)
-    // returns boolean (ADR 0002 §TODO(db) 2) — db-engineer. Cast until
-    // packages/types regenerates with the RPC signature.
-    const rpc = ctx.supabase.rpc.bind(ctx.supabase) as unknown as (
-      fn: string,
-      args: Record<string, unknown>,
-    ) => PromiseLike<{ data: unknown; error: { message: string } | null }>;
     try {
-      const { data: consumed, error } = await rpc("consume_approval", {
+      const { data: consumed, error } = await ctx.supabase.rpc("consume_approval", {
         request_id: ctx.approvalToken,
         tool_name: tool.name,
         payload_hash: payloadHash,
