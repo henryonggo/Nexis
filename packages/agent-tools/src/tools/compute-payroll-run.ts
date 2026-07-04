@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { Rupiah } from "@nexis/money";
-import { buildPayrollConfig } from "@nexis/payroll";
-import { defineTool } from "../tool";
+import { buildPayrollConfig, type PayrollConfig } from "@nexis/payroll";
+import { defineTool, type ToolContext } from "../tool";
 import type { HaltReason } from "../result";
 import {
   computeEmployeeStatutory,
@@ -47,13 +47,23 @@ const inputSchema = z.object({
   month: z.number().int().min(1).max(12),
 });
 
-export const computePayrollRun = defineTool<z.infer<typeof inputSchema>, PayrollRunOutput>({
-  name: "compute_payroll_run",
-  description:
-    "Compute the statutory monthly payroll breakdown (gross, BPJS, PPh 21 TER, net) for EVERY active employee in a period, with company totals. Read-only; halts with all reasons if any employee cannot be computed exactly.",
-  requiresApproval: false,
-  input: inputSchema,
-  async run(input, ctx) {
+export interface ComputedRun {
+  lines: StatutoryLine[];
+  totals: PayrollRunOutput["totals"];
+  config: PayrollConfig;
+  /** First day of the period — the reference effective-date (YYYY-MM-DD). */
+  effectiveDate: string;
+}
+
+/**
+ * The load + compute core, shared with create_draft_payroll_run so the draft
+ * a mutation writes is byte-identical to the numbers the read-only tool showed
+ * the owner. All-or-nothing: any per-employee halt fails the whole run.
+ */
+export async function loadAndComputeRun(
+  input: { year: number; month: number },
+  ctx: ToolContext,
+): Promise<{ halt: HaltReason[] } | ComputedRun> {
     const start = periodStart(input.year, input.month);
     const end = periodEnd(input.year, input.month);
 
@@ -211,12 +221,24 @@ export const computePayrollRun = defineTool<z.infer<typeof inputSchema>, Payroll
       { gross: 0, bpjsEmployee: 0, bpjsEmployer: 0, pph21: 0, net: 0, nonTaxableEarnings: 0 },
     );
 
+    return { lines, totals, config, effectiveDate: start };
+}
+
+export const computePayrollRun = defineTool<z.infer<typeof inputSchema>, PayrollRunOutput>({
+  name: "compute_payroll_run",
+  description:
+    "Compute the statutory monthly payroll breakdown (gross, BPJS, PPh 21 TER, net) for EVERY active employee in a period, with company totals. Read-only; halts with all reasons if any employee cannot be computed exactly.",
+  requiresApproval: false,
+  input: inputSchema,
+  async run(input, ctx) {
+    const computed = await loadAndComputeRun(input, ctx);
+    if ("halt" in computed) return { halt: computed.halt };
     return {
       data: {
         companyId: ctx.companyId,
         period: { year: input.year, month: input.month },
-        lines,
-        totals,
+        lines: computed.lines,
+        totals: computed.totals,
       },
     };
   },

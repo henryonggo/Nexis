@@ -40,11 +40,16 @@ export {
   type Pph21Output,
 } from "./tools/compute-pph21";
 export { computePayrollRun, type PayrollRunOutput } from "./tools/compute-payroll-run";
+export {
+  createDraftPayrollRun,
+  type CreateDraftRunOutput,
+} from "./tools/create-draft-payroll-run";
 export { type StatutoryLine } from "./tools/statutory";
 
 import { fetchEmployeeRoster } from "./tools/fetch-employee-roster";
 import { computePph21ForEmployee } from "./tools/compute-pph21";
 import { computePayrollRun } from "./tools/compute-payroll-run";
+import { createDraftPayrollRun } from "./tools/create-draft-payroll-run";
 import type { ToolDefinition } from "./tool";
 
 /** Registry the orchestrator exposes to the model. Names are unique. */
@@ -53,4 +58,5 @@ export const AGENT_TOOLS: readonly ToolDefinition<any, any>[] = [
   fetchEmployeeRoster,
   computePph21ForEmployee,
   computePayrollRun,
+  createDraftPayrollRun,
 ];

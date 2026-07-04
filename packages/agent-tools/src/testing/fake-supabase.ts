@@ -86,10 +86,22 @@ type RpcHandler = (args: Record<string, unknown>) => {
   error: { message: string } | null;
 };
 
+interface FakeInsert extends PromiseLike<{ error: { message: string } | null }> {
+  /** Supports the `.insert(row).select("id").single()` chain. */
+  select(columns: string): {
+    single(): Promise<{ data: Row | null; error: { message: string } | null }>;
+  };
+}
+
+interface FakeUpdate extends PromiseLike<{ error: { message: string } | null }> {
+  eq(column: string, value: unknown): FakeUpdate;
+}
+
 export interface FakeSupabase {
   from(table: string): {
     select(columns: string): FakeQuery;
-    insert(row: Row): PromiseLike<{ error: { message: string } | null }>;
+    insert(row: Row): FakeInsert;
+    update(patch: Row): FakeUpdate;
   };
   rpc(
     fn: string,
@@ -97,6 +109,8 @@ export interface FakeSupabase {
   ): PromiseLike<{ data: unknown; error: { message: string } | null }>;
   /** Rows inserted per table, for assertions (e.g. audit_logs). */
   inserts: Record<string, Row[]>;
+  /** Patches applied per table via update(), for assertions. */
+  updates: Record<string, Row[]>;
   /** RPC invocations, for assertions (e.g. consume_approval args). */
   rpcCalls: { fn: string; args: Record<string, unknown> }[];
 }
@@ -110,18 +124,56 @@ export function fakeSupabase(
   } = {},
 ): FakeSupabase {
   const inserts: Record<string, Row[]> = {};
+  const updates: Record<string, Row[]> = {};
   const rpcCalls: { fn: string; args: Record<string, unknown> }[] = [];
+  let insertSeq = 0;
   return {
     inserts,
+    updates,
     rpcCalls,
     from(table: string) {
       return {
         select: () =>
           new FakeQuery(tables[table] ?? [], opts.failTables?.[table] ?? null),
-        insert: (row: Row) => {
+        insert: (row: Row): FakeInsert => {
           const failure = opts.failInserts?.[table];
-          if (!failure) (inserts[table] ??= []).push(row);
-          return Promise.resolve({ error: failure ? { message: failure } : null });
+          let stored: Row | null = null;
+          if (!failure) {
+            stored = { id: `fake-${table}-${++insertSeq}`, ...row };
+            (inserts[table] ??= []).push(stored);
+            (tables[table] ??= []).push(stored);
+          }
+          const error = failure ? { message: failure } : null;
+          return {
+            then: (onfulfilled, onrejected) =>
+              Promise.resolve({ error }).then(onfulfilled, onrejected),
+            select: () => ({
+              single: () => Promise.resolve({ data: stored, error }),
+            }),
+          };
+        },
+        update: (patch: Row): FakeUpdate => {
+          const failure = opts.failInserts?.[table] ?? null;
+          const filters: ((row: Row) => boolean)[] = [];
+          const self: FakeUpdate = {
+            eq(column: string, value: unknown) {
+              filters.push((row) => row[column] === value);
+              return self;
+            },
+            then: (onfulfilled, onrejected) => {
+              if (!failure) {
+                for (const row of tables[table] ?? []) {
+                  if (filters.every((f) => f(row))) Object.assign(row, patch);
+                }
+                (updates[table] ??= []).push(patch);
+              }
+              return Promise.resolve({ error: failure ? { message: failure } : null }).then(
+                onfulfilled,
+                onrejected,
+              );
+            },
+          };
+          return self;
         },
       };
     },
