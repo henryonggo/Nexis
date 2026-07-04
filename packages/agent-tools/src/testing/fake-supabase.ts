@@ -11,6 +11,7 @@ type Row = Record<string, unknown>;
 interface FakeResult {
   data: Row[] | Row | null;
   error: { message: string } | null;
+  count: number | null;
 }
 
 class FakeQuery implements PromiseLike<FakeResult> {
@@ -18,18 +19,30 @@ class FakeQuery implements PromiseLike<FakeResult> {
   private orderKey: { column: string; ascending: boolean } | null = null;
   private limitCount: number | null = null;
   private single = false;
+  private headCount = false;
 
   constructor(
     private rows: Row[],
     private failWith: string | null,
   ) {}
 
-  select(_columns: string): this {
+  select(_columns: string, opts?: { count?: string; head?: boolean }): this {
+    if (opts?.head && opts.count) this.headCount = true;
     return this;
   }
 
   eq(column: string, value: unknown): this {
     this.filters.push((row) => row[column] === value);
+    return this;
+  }
+
+  in(column: string, values: readonly unknown[]): this {
+    this.filters.push((row) => values.includes(row[column]));
+    return this;
+  }
+
+  is(column: string, value: unknown): this {
+    this.filters.push((row) => (value === null ? row[column] == null : row[column] === value));
     return this;
   }
 
@@ -59,7 +72,7 @@ class FakeQuery implements PromiseLike<FakeResult> {
   }
 
   private resolve(): FakeResult {
-    if (this.failWith) return { data: null, error: { message: this.failWith } };
+    if (this.failWith) return { data: null, error: { message: this.failWith }, count: null };
     let out = this.rows.filter((row) => this.filters.every((f) => f(row)));
     if (this.orderKey) {
       const { column, ascending } = this.orderKey;
@@ -69,8 +82,9 @@ class FakeQuery implements PromiseLike<FakeResult> {
       });
     }
     if (this.limitCount != null) out = out.slice(0, this.limitCount);
-    if (this.single) return { data: out[0] ?? null, error: null };
-    return { data: out, error: null };
+    if (this.headCount) return { data: null, error: null, count: out.length };
+    if (this.single) return { data: out[0] ?? null, error: null, count: null };
+    return { data: out, error: null, count: null };
   }
 
   then<TResult1 = FakeResult, TResult2 = never>(
@@ -95,6 +109,11 @@ interface FakeInsert extends PromiseLike<{ error: { message: string } | null }> 
 
 interface FakeUpdate extends PromiseLike<{ error: { message: string } | null }> {
   eq(column: string, value: unknown): FakeUpdate;
+  in(column: string, values: readonly unknown[]): FakeUpdate;
+  /** Supports `.update(patch).eq(...).select("id").maybeSingle()`. */
+  select(columns: string): {
+    maybeSingle(): Promise<{ data: Row | null; error: { message: string } | null }>;
+  };
 }
 
 export interface FakeSupabase {
@@ -120,6 +139,7 @@ export function fakeSupabase(
   opts: {
     failTables?: Record<string, string>;
     failInserts?: Record<string, string>;
+    failUpdates?: Record<string, string>;
     rpcHandlers?: Record<string, RpcHandler>;
   } = {},
 ): FakeSupabase {
@@ -133,8 +153,11 @@ export function fakeSupabase(
     rpcCalls,
     from(table: string) {
       return {
-        select: () =>
-          new FakeQuery(tables[table] ?? [], opts.failTables?.[table] ?? null),
+        select: (columns: string, selectOpts?: { count?: string; head?: boolean }) =>
+          new FakeQuery(tables[table] ?? [], opts.failTables?.[table] ?? null).select(
+            columns,
+            selectOpts,
+          ),
         insert: (row: Row): FakeInsert => {
           const failure = opts.failInserts?.[table];
           let stored: Row | null = null;
@@ -153,20 +176,38 @@ export function fakeSupabase(
           };
         },
         update: (patch: Row): FakeUpdate => {
-          const failure = opts.failInserts?.[table] ?? null;
+          // failUpdates falls back to failInserts for backwards compatibility.
+          const failure = opts.failUpdates?.[table] ?? opts.failInserts?.[table] ?? null;
           const filters: ((row: Row) => boolean)[] = [];
+          const apply = (): Row[] => {
+            const matched: Row[] = [];
+            for (const row of tables[table] ?? []) {
+              if (filters.every((f) => f(row))) {
+                Object.assign(row, patch);
+                matched.push(row);
+              }
+            }
+            (updates[table] ??= []).push(patch);
+            return matched;
+          };
           const self: FakeUpdate = {
             eq(column: string, value: unknown) {
               filters.push((row) => row[column] === value);
               return self;
             },
+            in(column: string, values: readonly unknown[]) {
+              filters.push((row) => values.includes(row[column]));
+              return self;
+            },
+            select: () => ({
+              maybeSingle: () => {
+                if (failure) return Promise.resolve({ data: null, error: { message: failure } });
+                const matched = apply();
+                return Promise.resolve({ data: matched[0] ?? null, error: null });
+              },
+            }),
             then: (onfulfilled, onrejected) => {
-              if (!failure) {
-                for (const row of tables[table] ?? []) {
-                  if (filters.every((f) => f(row))) Object.assign(row, patch);
-                }
-                (updates[table] ??= []).push(patch);
-              }
+              if (!failure) apply();
               return Promise.resolve({ error: failure ? { message: failure } : null }).then(
                 onfulfilled,
                 onrejected,

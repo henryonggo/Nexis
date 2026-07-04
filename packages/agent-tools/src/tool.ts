@@ -23,6 +23,16 @@ export interface ToolContext {
    * tokens are single-use and bound to the exact input payload by hash.
    */
   approvalToken?: string;
+  /**
+   * Injected infrastructure capabilities (ADR 0003). Tools that need an
+   * effect beyond the database call these; the caller decides how the
+   * environment provides them (web app wires Cloud Tasks, tests wire stubs).
+   * A tool requiring an absent capability halts — it never guesses.
+   */
+  effects?: {
+    /** Hand a queued run to the payroll worker (apps/web/lib/payroll-worker.ts). */
+    enqueuePayrollRun?: (runId: string) => Promise<{ ok: true } | { ok: false; error: string }>;
+  };
 }
 
 /** What a tool's `run` returns before the executor wraps it. */

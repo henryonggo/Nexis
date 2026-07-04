@@ -45,12 +45,23 @@ export {
   createDraftPayrollRun,
   type CreateDraftRunOutput,
 } from "./tools/create-draft-payroll-run";
+export {
+  approvePayrollRun,
+  cancelPayrollRun,
+  markPayrollRunPaid,
+  type RunTransitionOutput,
+} from "./tools/run-lifecycle";
 export { type StatutoryLine } from "./tools/statutory";
 
 import { fetchEmployeeRoster } from "./tools/fetch-employee-roster";
 import { computePph21ForEmployee } from "./tools/compute-pph21";
 import { computePayrollRun } from "./tools/compute-payroll-run";
 import { createDraftPayrollRun } from "./tools/create-draft-payroll-run";
+import {
+  approvePayrollRun,
+  cancelPayrollRun,
+  markPayrollRunPaid,
+} from "./tools/run-lifecycle";
 import type { ToolDefinition } from "./tool";
 
 /** Registry the orchestrator exposes to the model. Names are unique. */
@@ -60,4 +71,7 @@ export const AGENT_TOOLS: readonly ToolDefinition<any, any>[] = [
   computePph21ForEmployee,
   computePayrollRun,
   createDraftPayrollRun,
+  approvePayrollRun,
+  cancelPayrollRun,
+  markPayrollRunPaid,
 ];
