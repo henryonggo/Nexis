@@ -33,6 +33,7 @@ const NAV: ReadonlyArray<{ href: string; key: string; roles: readonly Role[] }> 
   { href: "/earnings", key: "earnings", roles: ["owner", "admin"] },
   { href: "/deductions", key: "deductions", roles: ["owner", "admin"] },
   { href: "/payroll", key: "payroll", roles: ["owner", "admin"] },
+  { href: "/approvals", key: "approvals", roles: ["owner", "admin"] },
   { href: "/performance", key: "performance", roles: ["owner", "admin", "manager"] },
   { href: "/analytics", key: "analytics", roles: ["owner", "admin"] },
   { href: "/reports", key: "reports", roles: ["owner", "admin", "manager"] },

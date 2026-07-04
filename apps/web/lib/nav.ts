@@ -8,6 +8,7 @@ import {
   Users,
   Clock,
   CalendarDays,
+  ClipboardCheck,
   ReceiptText,
   Landmark,
   Scissors,
@@ -44,6 +45,7 @@ export const ICONS: Record<string, LucideIcon> = {
   deductions: Scissors,
   payslips: FileDown,
   payroll: Wallet,
+  approvals: ClipboardCheck,
   performance: Target,
   analytics: BarChart3,
   reports: FileText,
@@ -68,7 +70,7 @@ export const PILLAR_ITEMS: Record<string, string[]> = {
   overview: ["dashboard", "analytics", "reports", "audit"],
   people: ["employees", "members"],
   operations: ["attendance", "leave", "performance"],
-  finance: ["payroll", "payslips", "claims", "loans", "earnings", "deductions", "billing"],
+  finance: ["payroll", "approvals", "payslips", "claims", "loans", "earnings", "deductions", "billing"],
   platform: ["access", "developer", "superadmin", "settings"],
 };
 
@@ -76,7 +78,7 @@ export function getActivePillar(pathname: string): string {
   if (pathname.startsWith("/dashboard") || pathname.startsWith("/analytics") || pathname.startsWith("/reports") || pathname.startsWith("/audit")) return "overview";
   if (pathname.startsWith("/employees") || pathname.startsWith("/members")) return "people";
   if (pathname.startsWith("/attendance") || pathname.startsWith("/leave") || pathname.startsWith("/performance")) return "operations";
-  if (pathname.startsWith("/payroll") || pathname.startsWith("/payslips") || pathname.startsWith("/claims") || pathname.startsWith("/loans") || pathname.startsWith("/earnings") || pathname.startsWith("/deductions") || pathname.startsWith("/billing")) return "finance";
+  if (pathname.startsWith("/payroll") || pathname.startsWith("/approvals") || pathname.startsWith("/payslips") || pathname.startsWith("/claims") || pathname.startsWith("/loans") || pathname.startsWith("/earnings") || pathname.startsWith("/deductions") || pathname.startsWith("/billing")) return "finance";
   if (pathname.startsWith("/developer") || pathname.startsWith("/superadmin") || pathname.startsWith("/settings")) return "platform";
   return "overview";
 }

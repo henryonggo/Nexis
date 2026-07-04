@@ -66,6 +66,7 @@
     "earnings": "Allowances",
     "deductions": "Deductions",
     "payroll": "Payroll",
+    "approvals": "Approvals",
     "performance": "Performance",
     "analytics": "Analytics",
     "reports": "Reports",
@@ -322,7 +323,14 @@
     "unknown": "(unknown)",
     "notePlaceholder": "Note",
     "eventLog": "Today's event log",
-    "columns": { "employee": "Employee", "status": "Status", "time": "Time", "event": "Event", "validity": "Validity", "correction": "Correction" },
+    "columns": {
+      "employee": "Employee",
+      "status": "Status",
+      "time": "Time",
+      "event": "Event",
+      "validity": "Validity",
+      "correction": "Correction"
+    },
     "valid": "Valid",
     "outOfArea": "Out of area",
     "livenessFailed": "Face check failed",
@@ -344,14 +352,32 @@
       "reject": "Reject",
       "unknown": "(unknown)"
     },
-    "kind": { "clock_in": "Clock in", "clock_out": "Clock out", "break_start": "Break start", "break_end": "Break end" },
+    "kind": {
+      "clock_in": "Clock in",
+      "clock_out": "Clock out",
+      "break_start": "Break start",
+      "break_end": "Break end"
+    },
     "config": {
       "title": "Attendance Settings",
       "subtitle": "Configure geofence locations, shifts, work schedules, and the holiday calendar.",
       "back": "Back to attendance",
       "delete": "Delete",
-      "tabs": { "geofences": "Locations", "shifts": "Shifts", "schedules": "Work Schedules", "holidays": "Holidays" },
-      "days": { "0": "Sun", "1": "Mon", "2": "Tue", "3": "Wed", "4": "Thu", "5": "Fri", "6": "Sat" },
+      "tabs": {
+        "geofences": "Locations",
+        "shifts": "Shifts",
+        "schedules": "Work Schedules",
+        "holidays": "Holidays"
+      },
+      "days": {
+        "0": "Sun",
+        "1": "Mon",
+        "2": "Tue",
+        "3": "Wed",
+        "4": "Thu",
+        "5": "Fri",
+        "6": "Sat"
+      },
       "geofences": {
         "addTitle": "Add location",
         "hint": "Employees must clock in within this radius for the record to count as valid.",
@@ -425,8 +451,19 @@
     "halfDay": "(half day)",
     "viewAttachment": "View attachment",
     "noHistory": "No leave history yet.",
-    "columns": { "employee": "Employee", "type": "Type", "period": "Period", "days": "Days", "status": "Status" },
-    "status": { "pending": "Pending", "approved": "Approved", "rejected": "Rejected", "cancelled": "Cancelled" }
+    "columns": {
+      "employee": "Employee",
+      "type": "Type",
+      "period": "Period",
+      "days": "Days",
+      "status": "Status"
+    },
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled"
+    }
   },
   "claims": {
     "title": "Reimbursement Claims",
@@ -450,8 +487,18 @@
     "viewReceipt": "View receipt",
     "history": "History",
     "noHistory": "No claim history yet.",
-    "columns": { "employee": "Employee", "type": "Type", "amount": "Amount", "status": "Status" },
-    "status": { "pending": "Pending", "approved": "Approved", "rejected": "Rejected", "paid": "Paid" }
+    "columns": {
+      "employee": "Employee",
+      "type": "Type",
+      "amount": "Amount",
+      "status": "Status"
+    },
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "paid": "Paid"
+    }
   },
   "payslips": {
     "title": "Payslips",
@@ -618,8 +665,21 @@
     "history": "History",
     "noHistory": "No loan history yet.",
     "perMonth": "/mo",
-    "columns": { "employee": "Employee", "principal": "Principal", "installments": "Installments", "next": "Next", "status": "Status" },
-    "status": { "pending": "Pending", "approved": "Approved", "active": "Active", "settled": "Settled", "rejected": "Rejected", "cancelled": "Cancelled" },
+    "columns": {
+      "employee": "Employee",
+      "principal": "Principal",
+      "installments": "Installments",
+      "next": "Next",
+      "status": "Status"
+    },
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "active": "Active",
+      "settled": "Settled",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled"
+    },
     "form": {
       "titleEmpty": "Request a loan",
       "emptyHint": "Add an employee first to request an advance.",
@@ -639,13 +699,39 @@
   "employees": {
     "title": "Employees",
     "seatsUsed": "{used}/{limit} free seats used",
-    "import": "Import CSV",
+    "import": {
+      "title": "Import employees (CSV)",
+      "columnsLabel": "Columns:",
+      "headerNote": ". Header row optional. The free-plan limit still applies (5 employees).",
+      "pasteCsv": "Paste CSV data",
+      "created": "{count} employees added.",
+      "stoppedAtLimit": " Import stopped at the free-seat limit.",
+      "submit": "Import",
+      "skippedRows": "Skipped rows:",
+      "rowLine": "Row {line} ({name}): {reason}"
+    },
     "add": "+ Add employee",
     "limitReached": "You've used all free seats ({limit}).",
     "upgradeCta": "Upgrade plan",
     "toAdd": "to add more employees.",
-    "columns": { "name": "Name", "no": "No.", "position": "Position", "department": "Department", "type": "Type", "status": "Status" },
-    "readiness": { "ready": "Ready for payroll", "attention": "No NPWP (+20% PPh 21)", "incomplete": "Incomplete data", "issue": { "compensation": "compensation", "tax": "tax profile", "bank": "bank account" } },
+    "columns": {
+      "name": "Name",
+      "no": "No.",
+      "position": "Position",
+      "department": "Department",
+      "type": "Type",
+      "status": "Status"
+    },
+    "readiness": {
+      "ready": "Ready for payroll",
+      "attention": "No NPWP (+20% PPh 21)",
+      "incomplete": "Incomplete data",
+      "issue": {
+        "compensation": "compensation",
+        "tax": "tax profile",
+        "bank": "bank account"
+      }
+    },
     "empty": "No employees yet.",
     "emptyAdmin": "Add your first employee.",
     "newTitle": "Add employee",
@@ -653,8 +739,18 @@
     "back": "← Back",
     "inviteToApp": "Invite to app",
     "appLinked": "Linked to app",
-    "employmentType": { "permanent": "Permanent", "contract": "Contract", "intern": "Intern", "daily": "Daily" },
-    "status": { "active": "Active", "probation": "Probation", "inactive": "Inactive", "terminated": "Terminated" },
+    "employmentType": {
+      "permanent": "Permanent",
+      "contract": "Contract",
+      "intern": "Intern",
+      "daily": "Daily"
+    },
+    "status": {
+      "active": "Active",
+      "probation": "Probation",
+      "inactive": "Inactive",
+      "terminated": "Terminated"
+    },
     "form": {
       "fullName": "Full name",
       "employeeNo": "Employee number",
@@ -664,7 +760,7 @@
       "status": "Status",
       "baseSalaryNew": "Base salary (Rp / month)",
       "baseSalaryEdit": "Base salary (Rp/month)",
-      "baseSalaryHint": "Used by the payroll engine in Stage 4.",
+      "baseSalaryHint": "For daily pay, enter the daily rate — payroll multiplies it by attendance days.",
       "save": "Save employee",
       "saveChanges": "Save changes",
       "redirecting": "Redirecting…",
@@ -700,7 +796,6 @@
       "workScheduleTitle": "Working days",
       "workScheduleCustom": "Custom schedule for this employee (part-timer)",
       "workScheduleDefaultHint": "Following the company default working days.",
-      "baseSalaryHint": "For daily pay, enter the daily rate — payroll multiplies it by attendance days.",
       "phone": "Phone",
       "bankSection": "Bank account",
       "bankName": "Bank name",
@@ -708,17 +803,6 @@
       "accountName": "Account holder name",
       "ptkpExplainerTitle": "What is PTKP status?",
       "ptkpExplainerBody": "TK = single (Tidak Kawin), K = married (Kawin); the number is dependents, 0–3. Example: K/2 = married with 2 dependents. PTKP sets the tax-free income threshold used to calculate PPh 21 — picking the wrong code changes the tax."
-    },
-    "import": {
-      "title": "Import employees (CSV)",
-      "columnsLabel": "Columns:",
-      "headerNote": ". Header row optional. The free-plan limit still applies (5 employees).",
-      "pasteCsv": "Paste CSV data",
-      "created": "{count} employees added.",
-      "stoppedAtLimit": " Import stopped at the free-seat limit.",
-      "submit": "Import",
-      "skippedRows": "Skipped rows:",
-      "rowLine": "Row {line} ({name}): {reason}"
     }
   },
   "payroll": {
@@ -726,21 +810,109 @@
     "subtitle": "Run and review monthly payroll for {name}.",
     "runPayroll": "Run payroll",
     "runFirst": "Run your first one",
-    "newRun": { "title": "Run payroll", "subtitle": "Pick a period and run type. You'll review the per-employee breakdown before approving.", "month": "Month", "year": "Year", "runType": "Run type", "monthly": "Monthly salary", "thr": "THR (religious holiday allowance)", "submit": "Create draft run", "cancel": "Cancel", "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"], "readiness": { "heading": "{count} employees not ready for payroll", "hint": "Complete the data below first. A draft can't be created while any are missing.", "issue": { "compensation": "compensation", "tax": "tax profile", "bank": "bank account" }, "warning": { "heading": "{count} employees without an NPWP", "hint": "A draft can still be created, but PPh 21 is charged +20% for these employees." } } },
-    "columns": { "period": "Period", "status": "Status", "gross": "Gross", "net": "Net (take-home)", "employee": "Employee", "pph21": "PPh 21 (TER)", "deductions": "Employee deductions" },
-    "status": { "draft": "Draft", "queued": "Queued", "processing": "Processing", "completed": "Unpaid", "paid": "Paid", "failed": "Failed", "cancelled": "Cancelled" },
+    "newRun": {
+      "title": "Run payroll",
+      "subtitle": "Pick a period and run type. You'll review the per-employee breakdown before approving.",
+      "month": "Month",
+      "year": "Year",
+      "runType": "Run type",
+      "monthly": "Monthly salary",
+      "thr": "THR (religious holiday allowance)",
+      "submit": "Create draft run",
+      "cancel": "Cancel",
+      "months": [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+      ],
+      "readiness": {
+        "heading": "{count} employees not ready for payroll",
+        "hint": "Complete the data below first. A draft can't be created while any are missing.",
+        "issue": {
+          "compensation": "compensation",
+          "tax": "tax profile",
+          "bank": "bank account"
+        },
+        "warning": {
+          "heading": "{count} employees without an NPWP",
+          "hint": "A draft can still be created, but PPh 21 is charged +20% for these employees."
+        }
+      }
+    },
+    "columns": {
+      "period": "Period",
+      "status": "Status",
+      "gross": "Gross",
+      "net": "Net (take-home)",
+      "employee": "Employee",
+      "pph21": "PPh 21 (TER)",
+      "deductions": "Employee deductions"
+    },
+    "status": {
+      "draft": "Draft",
+      "queued": "Queued",
+      "processing": "Processing",
+      "completed": "Unpaid",
+      "paid": "Paid",
+      "failed": "Failed",
+      "cancelled": "Cancelled"
+    },
     "empty": "No payroll runs yet.",
     "review": "Review",
     "estimateNote": "Live estimate — final figures are written when the run is processed.",
     "queuedNote": "Run is queued. Automatic processing (calculation & payslips) will run once the payroll worker is active.",
-    "actions": { "approve": "Approve & process", "markPaid": "Mark as paid", "markPaidBlocked": "Confirm all employees paid first", "cancel": "Cancel run", "reopen": "Reopen to draft" },
-    "cash": { "title": "Cash payment", "paidOf": "{paid} of {total} paid", "confirm": "Confirm cash paid ({count})", "selectAllUnpaid": "Select all unpaid", "paidCash": "Paid (cash)", "paidBank": "Paid (bank)", "unpaid": "Unpaid" },
+    "actions": {
+      "approve": "Approve & process",
+      "markPaid": "Mark as paid",
+      "markPaidBlocked": "Confirm all employees paid first",
+      "cancel": "Cancel run",
+      "reopen": "Reopen to draft"
+    },
+    "cash": {
+      "title": "Cash payment",
+      "paidOf": "{paid} of {total} paid",
+      "confirm": "Confirm cash paid ({count})",
+      "selectAllUnpaid": "Select all unpaid",
+      "paidCash": "Paid (cash)",
+      "paidBank": "Paid (bank)",
+      "unpaid": "Unpaid"
+    },
     "breakdown": "Breakdown",
     "noNpwp": "(+20% without NPWP)",
-    "detail": { "back": "← Payroll", "heading": "Payroll {period}", "noEmployees": "No employees to calculate.", "terCategory": "Category {category} · {rate}", "newBadge": "New", "updateProfile": "Update Profile", "downloadPayslip": "Download payslip", "absence": "{days} unpaid leave day(s) this period", "absenceDaysUnit": "day(s)", "daysWorked": "{days} days", "manualDaysLabel": "Days worked", "manualDaysPlaceholder": "0 – 31", "attendanceDaysLabel": "Days (from attendance)", "manualDaysNotSet": "Not set", "pendingPayslipsNote": "This run is still being finalized, but its payslips have already been generated and are available below." },
+    "detail": {
+      "back": "← Payroll",
+      "heading": "Payroll {period}",
+      "noEmployees": "No employees to calculate.",
+      "terCategory": "Category {category} · {rate}",
+      "newBadge": "New",
+      "updateProfile": "Update Profile",
+      "downloadPayslip": "Download payslip",
+      "absence": "{days} unpaid leave day(s) this period",
+      "absenceDaysUnit": "day(s)",
+      "daysWorked": "{days} days",
+      "manualDaysLabel": "Days worked",
+      "manualDaysPlaceholder": "0 – 31",
+      "attendanceDaysLabel": "Days (from attendance)",
+      "manualDaysNotSet": "Not set",
+      "pendingPayslipsNote": "This run is still being finalized, but its payslips have already been generated and are available below."
+    },
     "monitoring": "monitoring…",
     "connecting": "connecting…",
-    "summary": { "gross": "Gross", "bpjsEmployee": "BPJS (employee)", "pph21": "PPh 21", "net": "Net (take-home)" },
+    "summary": {
+      "gross": "Gross",
+      "bpjsEmployee": "BPJS (employee)",
+      "pph21": "PPh 21",
+      "net": "Net (take-home)"
+    },
     "breakdownRows": {
       "bpjsKesEmployee": "BPJS Kes (employee 1%)",
       "bpjsKesEmployer": "BPJS Kes (employer 4%)",
@@ -796,27 +968,59 @@
     "unitTimes": "times",
     "noPunctuality": "No clock-ins on scheduled days to judge yet.",
     "export": "Export CSV",
-    "period": { "label": "Period", "months": "Last {count} months" }
+    "period": {
+      "label": "Period",
+      "months": "Last {count} months"
+    }
   },
   "audit": {
     "title": "Audit & Compliance",
     "noAccess": "Only owners or admins can view the audit log.",
     "subtitle": "Record of sensitive actions in {name} — approvals, rejections, and corrections.",
     "all": "All",
-    "columns": { "time": "Time", "action": "Action", "object": "Object", "by": "By", "detail": "Detail" },
+    "columns": {
+      "time": "Time",
+      "action": "Action",
+      "object": "Object",
+      "by": "By",
+      "detail": "Detail"
+    },
     "empty": "No audit records yet.",
-    "actions": { "approve_leave": "Leave approved", "reject_leave": "Leave rejected", "approve_claim": "Claim approved", "reject_claim": "Claim rejected", "correct_attendance": "Attendance corrected" },
-    "entities": { "leave_requests": "Leave", "reimbursement_claims": "Claims", "attendance_records": "Attendance", "employees": "Employees", "payroll_runs": "Payroll", "company_billing": "Billing" }
+    "actions": {
+      "approve_leave": "Leave approved",
+      "reject_leave": "Leave rejected",
+      "approve_claim": "Claim approved",
+      "reject_claim": "Claim rejected",
+      "correct_attendance": "Attendance corrected"
+    },
+    "entities": {
+      "leave_requests": "Leave",
+      "reimbursement_claims": "Claims",
+      "attendance_records": "Attendance",
+      "employees": "Employees",
+      "payroll_runs": "Payroll",
+      "company_billing": "Billing"
+    }
   },
   "reports": {
     "title": "Reports & Exports",
     "noAccess": "Only owners, admins, or managers can generate and download reports.",
     "subtitle": "Generate payroll, BPJS, and PPh 21 reports for {name} as Excel files.",
     "history": "Report history",
-    "columns": { "type": "Type", "period": "Period", "created": "Created", "status": "Status" },
+    "columns": {
+      "type": "Type",
+      "period": "Period",
+      "created": "Created",
+      "status": "Status"
+    },
     "empty": "No reports generated yet.",
     "download": "Download Excel",
-    "status": { "pending": "Queued", "processing": "Processing", "completed": "Completed", "failed": "Failed" },
+    "status": {
+      "pending": "Queued",
+      "processing": "Processing",
+      "completed": "Completed",
+      "failed": "Failed"
+    },
     "form": {
       "title": "Generate report",
       "noRuns": "No completed payroll runs yet. Complete a payroll run first to generate reports & exports.",
@@ -827,10 +1031,22 @@
       "submit": "Generate report"
     },
     "types": {
-      "payroll_summary": { "label": "Payroll Summary", "description": "Recap of gross, deductions, BPJS, PPh 21, and net per employee for one run." },
-      "bpjs_contribution": { "label": "BPJS Contributions", "description": "Breakdown of BPJS Kesehatan & Ketenagakerjaan contributions, employee and employer sides." },
-      "pph21_ebupot": { "label": "PPh 21 / e-Bupot", "description": "PPh 21 withholding export in a format ready for DJP e-Bupot reconciliation." },
-      "bpjs_sipp": { "label": "BPJS SIPP", "description": "Wage & contribution format for upload to the BPJS Ketenagakerjaan SIPP app." }
+      "payroll_summary": {
+        "label": "Payroll Summary",
+        "description": "Recap of gross, deductions, BPJS, PPh 21, and net per employee for one run."
+      },
+      "bpjs_contribution": {
+        "label": "BPJS Contributions",
+        "description": "Breakdown of BPJS Kesehatan & Ketenagakerjaan contributions, employee and employer sides."
+      },
+      "pph21_ebupot": {
+        "label": "PPh 21 / e-Bupot",
+        "description": "PPh 21 withholding export in a format ready for DJP e-Bupot reconciliation."
+      },
+      "bpjs_sipp": {
+        "label": "BPJS SIPP",
+        "description": "Wage & contribution format for upload to the BPJS Ketenagakerjaan SIPP app."
+      }
     }
   },
   "developer": {
@@ -848,7 +1064,13 @@
     "active": "Active",
     "inactive": "Inactive",
     "deliveries": "Recent deliveries",
-    "deliveryColumns": { "time": "Time", "event": "Event", "status": "Status", "http": "HTTP", "attempt": "Attempt" },
+    "deliveryColumns": {
+      "time": "Time",
+      "event": "Event",
+      "status": "Status",
+      "http": "HTTP",
+      "attempt": "Attempt"
+    },
     "noDeliveries": "No webhook deliveries yet.",
     "keyForm": {
       "title": "Create API key",
@@ -867,13 +1089,24 @@
       "submit": "Add webhook",
       "secretLabel": "Signing secret"
     },
-    "secret": { "copyNow": "Copy it now — this value won't be shown again." },
-    "rowActions": { "revoke": "Revoke", "deactivate": "Deactivate", "activate": "Activate", "delete": "Delete" }
+    "secret": {
+      "copyNow": "Copy it now — this value won't be shown again."
+    },
+    "rowActions": {
+      "revoke": "Revoke",
+      "deactivate": "Deactivate",
+      "activate": "Activate",
+      "delete": "Delete"
+    }
   },
   "members": {
     "title": "Members",
     "subtitle": "Manage your team for {name}.",
-    "columns": { "name": "Name", "role": "Role", "actions": "Actions" },
+    "columns": {
+      "name": "Name",
+      "role": "Role",
+      "actions": "Actions"
+    },
     "noName": "(no name)",
     "pendingInvites": "Pending invitations",
     "revoke": "Revoke",
@@ -972,10 +1205,20 @@
     "bpjsTk": "BPJS Ketenagakerjaan",
     "ownerOnlyUpgrade": "Only the company owner can change the subscription plan.",
     "invoices": "Invoices",
-    "invoiceColumns": { "date": "Date", "period": "Period", "amount": "Amount", "status": "Status" },
+    "invoiceColumns": {
+      "date": "Date",
+      "period": "Period",
+      "amount": "Amount",
+      "status": "Status"
+    },
     "noInvoices": "No invoices yet.",
     "viewPdf": "View PDF",
-    "invoiceStatus": { "paid": "Paid", "open": "Open", "uncollectible": "Uncollectible", "void": "Void" },
+    "invoiceStatus": {
+      "paid": "Paid",
+      "open": "Open",
+      "uncollectible": "Uncollectible",
+      "void": "Void"
+    },
     "upgrade": {
       "title": "Upgrade plan",
       "subtitle": "Upgrading unlocks more than 5 employees. Company NPWP and BPJS numbers are required for tax & contribution reporting.",
@@ -1010,19 +1253,39 @@
   "planDetails": {
     "free": {
       "description": "Up to 5 employees. No NPWP. Great for trying Nexis.",
-      "features": ["Up to 5 employees", "No NPWP", "Attendance & leave", "1 company"]
+      "features": [
+        "Up to 5 employees",
+        "No NPWP",
+        "Attendance & leave",
+        "1 company"
+      ]
     },
     "starter": {
       "description": "Up to 25 employees. Full payroll, BPJS, and PPh 21.",
-      "features": ["Up to 25 employees", "Automated payroll", "BPJS & PPh 21 (TER)", "PDF payslips"]
+      "features": [
+        "Up to 25 employees",
+        "Automated payroll",
+        "BPJS & PPh 21 (TER)",
+        "PDF payslips"
+      ]
     },
     "growth": {
       "description": "Up to 100 employees. All reports & tax exports.",
-      "features": ["Up to 100 employees", "Everything in Starter", "e-Bupot & SIPP export", "API & webhooks"]
+      "features": [
+        "Up to 100 employees",
+        "Everything in Starter",
+        "e-Bupot & SIPP export",
+        "API & webhooks"
+      ]
     },
     "enterprise": {
       "description": "Unlimited employees, SSO, and dedicated support. Contact us.",
-      "features": ["Unlimited employees", "SSO/SCIM", "Dedicated support", "SLA & onboarding"]
+      "features": [
+        "Unlimited employees",
+        "SSO/SCIM",
+        "Dedicated support",
+        "SLA & onboarding"
+      ]
     }
   },
   "performance": {
@@ -1034,14 +1297,61 @@
     "goalsHeading": "Goals — {cycle}",
     "reviewsHeading": "Reviews",
     "addGoalsFirst": "Add goals first to review employees.",
-    "goalsColumns": { "employee": "Employee", "goal": "Goal", "weight": "Weight", "status": "Status", "progress": "Progress" },
+    "goalsColumns": {
+      "employee": "Employee",
+      "goal": "Goal",
+      "weight": "Weight",
+      "status": "Status",
+      "progress": "Progress"
+    },
     "noGoals": "No goals in this cycle yet.",
-    "goalStatus": { "on_track": "On track", "at_risk": "At risk", "off_track": "Off track", "done": "Done", "cancelled": "Cancelled" },
-    "reviewStatus": { "draft": "Draft", "submitted": "Submitted", "acknowledged": "Acknowledged by employee" },
-    "cycleForm": { "title": "Create review cycle", "subtitle": "A performance review period, e.g. half-year or annual.", "created": "Cycle created.", "name": "Cycle name", "namePlaceholder": "2026 H1", "start": "Start", "end": "End", "submit": "Create cycle" },
-    "goalForm": { "titleEmpty": "Add goal", "emptyHint": "Add an employee first to set goals.", "title": "Add goal (KPI)", "subtitle": "Weight is used to weigh the final score.", "created": "Goal added.", "employee": "Employee", "weight": "Weight (%)", "goal": "Goal", "goalPlaceholder": "e.g. Close 10 deals in Q1", "description": "Description (optional)", "submit": "Add goal" },
-    "goalProgress": { "ariaLabel": "Progress (%)", "save": "Save" },
-    "reviewForm": { "finalScore": "Final score:", "rating": "Rating (1–5)", "summary": "Summary", "summaryPlaceholder": "Review notes", "saveDraft": "Save draft", "submit": "Submit review" }
+    "goalStatus": {
+      "on_track": "On track",
+      "at_risk": "At risk",
+      "off_track": "Off track",
+      "done": "Done",
+      "cancelled": "Cancelled"
+    },
+    "reviewStatus": {
+      "draft": "Draft",
+      "submitted": "Submitted",
+      "acknowledged": "Acknowledged by employee"
+    },
+    "cycleForm": {
+      "title": "Create review cycle",
+      "subtitle": "A performance review period, e.g. half-year or annual.",
+      "created": "Cycle created.",
+      "name": "Cycle name",
+      "namePlaceholder": "2026 H1",
+      "start": "Start",
+      "end": "End",
+      "submit": "Create cycle"
+    },
+    "goalForm": {
+      "titleEmpty": "Add goal",
+      "emptyHint": "Add an employee first to set goals.",
+      "title": "Add goal (KPI)",
+      "subtitle": "Weight is used to weigh the final score.",
+      "created": "Goal added.",
+      "employee": "Employee",
+      "weight": "Weight (%)",
+      "goal": "Goal",
+      "goalPlaceholder": "e.g. Close 10 deals in Q1",
+      "description": "Description (optional)",
+      "submit": "Add goal"
+    },
+    "goalProgress": {
+      "ariaLabel": "Progress (%)",
+      "save": "Save"
+    },
+    "reviewForm": {
+      "finalScore": "Final score:",
+      "rating": "Rating (1–5)",
+      "summary": "Summary",
+      "summaryPlaceholder": "Review notes",
+      "saveDraft": "Save draft",
+      "submit": "Submit review"
+    }
   },
   "invite": {
     "header": "Join invitation",
@@ -1107,5 +1417,26 @@
     "noPayroll": "No payroll runs yet",
     "pendingLeave": "Leave to approve",
     "recentRuns": "Recent runs"
+  },
+  "approvals": {
+    "title": "Agent Approvals",
+    "subtitle": "Review and approve agent-proposed actions before they execute.",
+    "pending": "Awaiting approval",
+    "history": "Decision history",
+    "empty": "No requests awaiting approval.",
+    "approve": "Approve",
+    "reject": "Reject",
+    "requested": "Requested",
+    "expires": "Expires",
+    "payload": "Proposal details",
+    "noSummary": "(no summary)",
+    "notAdmin": "Only the owner/admin can decide requests.",
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "consumed": "Executed",
+      "expired": "Expired"
+    }
   }
 }
