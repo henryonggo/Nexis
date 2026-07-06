@@ -9,10 +9,15 @@
 -- ============================================================================
 
 -- ── Enum ─────────────────────────────────────────────────────────────────────
-create type approval_request_status as enum ('pending', 'approved', 'rejected', 'consumed', 'expired');
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = 'approval_request_status') then
+    create type approval_request_status as enum ('pending', 'approved', 'rejected', 'consumed', 'expired');
+  end if;
+end $$;
 
 -- ── approval_requests ────────────────────────────────────────────────────────
-create table approval_requests (
+create table if not exists approval_requests (
   id            uuid primary key default gen_random_uuid(),
   company_id    uuid not null references companies(id) on delete cascade,
   tool_name     text not null,
@@ -28,17 +33,19 @@ create table approval_requests (
   created_at    timestamptz not null default now()
 );
 
-create index on approval_requests(company_id, status);
+create index if not exists approval_requests_company_id_status_idx on approval_requests(company_id, status);
 
 alter table approval_requests enable row level security;
 
 -- SELECT: any company member can see the approval queue for their company.
+drop policy if exists "approval_requests: members read" on approval_requests;
 create policy "approval_requests: members read" on approval_requests
   for select using (public.user_has_company_access(company_id));
 
 -- INSERT: any company member may propose a request, only in `pending` state,
 -- and only naming themselves as the requester. The agent runtime authenticates
 -- as the tenant user it acts on behalf of, so `requested_by` is that identity.
+drop policy if exists "approval_requests: members create pending" on approval_requests;
 create policy "approval_requests: members create pending" on approval_requests
   for insert with check (
     status = 'pending'
@@ -66,6 +73,7 @@ create policy "approval_requests: members create pending" on approval_requests
 -- admin check inside the with check closes that gap; each policy's with
 -- check is now self-sufficient regardless of which policy's USING admitted
 -- the row.
+drop policy if exists "approval_requests: admin decide" on approval_requests;
 create policy "approval_requests: admin decide" on approval_requests
   for update using (
     public.user_is_company_admin(company_id)
@@ -83,6 +91,7 @@ create policy "approval_requests: admin decide" on approval_requests
 -- The RPC layers the real single-use guarantee (tool_name/payload_hash/
 -- expiry match) on top of this — this policy alone only gates the bare
 -- state transition, matching the ADR's "single RPC verifies" design.
+drop policy if exists "approval_requests: consume" on approval_requests;
 create policy "approval_requests: consume" on approval_requests
   for update using (
     public.user_has_company_access(company_id)
