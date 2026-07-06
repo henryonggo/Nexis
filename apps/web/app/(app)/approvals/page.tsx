@@ -6,6 +6,11 @@ import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { decideApprovalRequest } from "./actions";
+import { AgentPanel } from "./agent-panel";
+
+// Orchestrator cycles make several model calls; give the server action room
+// beyond the default serverless duration (Vercel caps by plan).
+export const maxDuration = 300;
 
 /**
  * The approval gate (PIVOT-PHASE-1: "agent proposes → owner confirms →
@@ -42,9 +47,43 @@ export default async function ApprovalsPage() {
   const decided = requests.filter((r) => r.status !== "pending");
   const fmt = new Intl.DateTimeFormat("id-ID", { dateStyle: "medium", timeStyle: "short" });
 
+  const now = new Date();
+  const periodLabel = new Intl.DateTimeFormat("id-ID", {
+    month: "long",
+    year: "numeric",
+  }).format(now);
+
   return (
     <div className="space-y-6">
       <PageHeader icon={ICONS.approvals} title={t("title")} description={t("subtitle")} />
+
+      {isAdmin && (
+        <AgentPanel
+          defaultInstruction={t("agent.defaultInstruction", { period: periodLabel })}
+          approvedRequests={requests
+            .filter((r) => r.status === "approved")
+            .map((r) => ({ id: r.id, toolName: r.tool_name, summary: r.summary }))}
+          labels={{
+            title: t("agent.title"),
+            description: t("agent.description"),
+            instructionLabel: t("agent.instructionLabel"),
+            run: t("agent.run"),
+            running: t("agent.running"),
+            resume: t("agent.resume"),
+            statusLabel: t("agent.statusLabel"),
+            status: {
+              completed: t("agent.cycleStatus.completed"),
+              awaiting_approval: t("agent.cycleStatus.awaiting_approval"),
+              halted: t("agent.cycleStatus.halted"),
+              refusal: t("agent.cycleStatus.refusal"),
+              max_turns: t("agent.cycleStatus.max_turns"),
+              error: t("agent.cycleStatus.error"),
+            },
+            haltsHeading: t("agent.haltsHeading"),
+            approvalsHeading: t("agent.approvalsHeading"),
+          }}
+        />
+      )}
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold text-ink">{t("pending")}</h2>

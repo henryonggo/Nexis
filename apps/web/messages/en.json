@@ -1437,6 +1437,26 @@
       "rejected": "Rejected",
       "consumed": "Executed",
       "expired": "Expired"
+    },
+    "agent": {
+      "title": "Payroll Agent",
+      "description": "Run the payroll cycle through the agent. It computes first, proposes mutations for approval on this page, and stops when data is missing.",
+      "defaultInstruction": "Run the {period} payroll cycle: compute every employee, then propose creating the payroll draft.",
+      "instructionLabel": "Instruction",
+      "run": "Run agent",
+      "running": "Agent is working…",
+      "resume": "Resume cycle",
+      "statusLabel": "Cycle status",
+      "cycleStatus": {
+        "completed": "Completed",
+        "awaiting_approval": "Awaiting approval",
+        "halted": "Halted — missing data",
+        "refusal": "Declined by model",
+        "max_turns": "Exceeded turn limit",
+        "error": "Failed"
+      },
+      "haltsHeading": "Needs completion",
+      "approvalsHeading": "Proposals awaiting approval"
     }
   }
 }

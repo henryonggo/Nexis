@@ -3,8 +3,10 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import type { CycleResult } from "@nexis/orchestrator";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { runAgentCycleForActiveCompany } from "@/lib/agent-cycle";
 
 /**
  * Owner/admin decision on an agent approval request (ADR 0002 step 2).
@@ -48,4 +50,50 @@ export async function decideApprovalRequest(formData: FormData): Promise<void> {
     .eq("status", "pending");
 
   revalidatePath("/approvals");
+}
+
+/** Serializable slice of a CycleResult for the client panel. */
+export interface AgentCycleState {
+  error?: string;
+  result?: Pick<CycleResult, "status" | "finalText" | "halts" | "pendingApprovals">;
+}
+
+const cycleSchema = z.object({
+  instruction: z.string().trim().min(4).max(500),
+  /** Resume: an approved approval_requests id, paired with its tool name. */
+  resumeRequestId: z.string().uuid().optional().or(z.literal("")),
+  resumeTool: z.string().optional().or(z.literal("")),
+});
+
+/**
+ * Start or resume one orchestrator cycle (ADR 0004). Resume hands the
+ * approved request id to its tool as a single-use token; consume_approval
+ * enforces single use + payload binding server-side.
+ */
+export async function runAgentCycle(
+  _prev: AgentCycleState,
+  formData: FormData,
+): Promise<AgentCycleState> {
+  const parsed = cycleSchema.safeParse({
+    instruction: formData.get("instruction"),
+    resumeRequestId: formData.get("resumeRequestId") ?? "",
+    resumeTool: formData.get("resumeTool") ?? "",
+  });
+  if (!parsed.success) return { error: "Instruksi tidak valid." };
+
+  const approvalTokens =
+    parsed.data.resumeRequestId && parsed.data.resumeTool
+      ? { [parsed.data.resumeTool]: parsed.data.resumeRequestId }
+      : undefined;
+
+  const outcome = await runAgentCycleForActiveCompany({
+    instruction: parsed.data.instruction,
+    approvalTokens,
+  });
+  if ("error" in outcome) return { error: outcome.error };
+
+  revalidatePath("/approvals");
+  revalidatePath("/payroll");
+  const { status, finalText, halts, pendingApprovals } = outcome.result;
+  return { result: { status, finalText, halts, pendingApprovals } };
 }

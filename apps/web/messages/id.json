@@ -1437,6 +1437,26 @@
       "rejected": "Ditolak",
       "consumed": "Dieksekusi",
       "expired": "Kedaluwarsa"
+    },
+    "agent": {
+      "title": "Agen Payroll",
+      "description": "Jalankan siklus payroll melalui agen. Agen menghitung dulu, mengusulkan mutasi untuk disetujui di halaman ini, dan berhenti jika ada data yang kurang.",
+      "defaultInstruction": "Jalankan siklus payroll {period}: hitung seluruh karyawan, lalu usulkan pembuatan draf payroll.",
+      "instructionLabel": "Instruksi",
+      "run": "Jalankan agen",
+      "running": "Agen sedang bekerja…",
+      "resume": "Lanjutkan siklus",
+      "statusLabel": "Status siklus",
+      "cycleStatus": {
+        "completed": "Selesai",
+        "awaiting_approval": "Menunggu persetujuan",
+        "halted": "Terhenti — data kurang",
+        "refusal": "Ditolak model",
+        "max_turns": "Melebihi batas langkah",
+        "error": "Gagal"
+      },
+      "haltsHeading": "Perlu dilengkapi",
+      "approvalsHeading": "Usulan menunggu persetujuan"
     }
   }
 }
