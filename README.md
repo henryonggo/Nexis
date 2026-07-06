@@ -157,6 +157,33 @@ The following features and improvements have shipped in the latest update:
 
 **Statutory & Roster Tools** — Added agent tools for checking staging readiness, computing payroll runs, fetching rosters, and computing PPh 21 compliance calculations.
 
+---
+
+## Recent Changes (June 2026)
+
+The following features and improvements have shipped since the last README update:
+
+**UI Design System v3** — Complete restyle with token-driven theming (brand, surface ladder,
+elevation, motion, density). All hardcoded colors migrated to CSS custom properties; dark mode
+ready. Icon-rail sidebar nav with collapse toggle; floating-layer elevation system for dropdowns
+and modals (glass-panel opt-in). All routes now inherit the v3 look without per-file rewrites.
+
+**Multi-company portal** — Accountant/owner view at `/portal` showing summaries across all
+managed companies (headcount, payroll status, active seats); powered by `portal_company_summaries()` RPC.
+
+**Cloud Tasks worker integration** — Payroll run enqueue now uses Google Cloud Tasks with OIDC
+auth (OpenID Connect service-account sign), replacing direct HTTP calls. Lazy-loaded to prevent
+startup failures; marked as server-external package.
+
+**Configurable salary deductions** — Admin UI for managing deduction groups (insurance, loans,
+savings, etc.) with per-employee amounts/rates; automatic deduction in payroll runs.
+
+**Weekly work schedules & absence deductions** — Per-employee weekly schedule grids; daily/mixed
+salary calculation; absence-triggered deductions (e.g. unpaid leave, half-day absence).
+
+**Vercel deploy fix** — Root `output-file-tracing` configuration resolves symlink issues on
+Vercel (`.nft.json` collection during build).
+
 See `docs/ROADMAP-NOTES.md` for the full living handoff notes and open items.
 
 ---
