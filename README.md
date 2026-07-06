@@ -124,14 +124,10 @@ list below reflects what's implemented today.
 - Billing & subscriptions: plan-comparison upgrade flow, seat-based pricing, invoice history,
   NPWP/BPJS capture on upgrade. (Real payment gateway is specced for handoff.)
 
-**Advanced (Stage 7)**
-- Analytics dashboard: headcount, payroll-cost trend, approvals, leave usage, plus a
-  **3/6/12-month period filter**, approved-overtime-per-month, **employer-cost by department**,
-  clock-in **punctuality** (on-time vs late vs scheduled shift), and a **CSV export**.
 - Audit & compliance center (filterable log of sensitive actions).
 - Loans & advances (kasbon) with automatic payroll deduction.
 - Performance & KPI (review cycles, weighted goals with progress, employee reviews).
-- Public **API & webhooks**: scoped API keys (bearer auth) and HMAC-signed webhooks with a
+- Public **API & webhooks** — scoped API keys (bearer auth) and HMAC-signed webhooks with a
   delivery log.
 
 **Platform & UX (recent enhancements)**
@@ -144,6 +140,22 @@ list below reflects what's implemented today.
 - **WhatsApp notification opt-in** (phone capture + opt-in in Settings).
 - Playwright e2e: unauthenticated route guards (run unattended) plus signed-in happy-path
   money flows (payroll approve, leave approval).
+
+**Agent Collaboration & Approvals (Phase 1 Pivot)**
+- **Agent Orchestrator & Tools:** Integrated runtime in `packages/orchestrator` and tool helper library in `packages/agent-tools` enabling AI agents to check staging readiness, query rosters, and perform calculations.
+- **Approval Queue UX:** Dedicated portal at `/approvals` for company owners and admins to review, approve, or reject proposed agent operations via cryptographic token signatures.
+
+---
+
+## Recent Changes (July 2026)
+
+The following features and improvements have shipped in the latest update:
+
+**Agent Architecture & Orchestrator** — Implemented a core multi-agent orchestrator runtime (`packages/orchestrator`) and tool collection (`packages/agent-tools`) for secure, cooperative task execution loops.
+
+**Human-in-the-loop Agent Approvals** — Created a secure approval page at `/approvals` app-side, allowing admins to approve agent-proposed state mutations (such as drafting or running payroll) via cryptographic token signatures.
+
+**Statutory & Roster Tools** — Added agent tools for checking staging readiness, computing payroll runs, fetching rosters, and computing PPh 21 compliance calculations.
 
 ---
 
@@ -186,6 +198,8 @@ Nexis is built as a Turborepo monorepo with the following services:
 * **packages/money:** Safe integer-only IDR currency utility. All money is stored as `bigint` (no floating-point decimals) to prevent rounding errors.
 * **packages/payroll:** Pure, unit-tested Indonesian payroll engine (PPh 21 TER, BPJS, overtime, THR).
 * **packages/leave:** Pure leave-balance / accrual logic, unit-tested.
+* **packages/agent-tools:** Tool helpers and test suites allowing AI agents to interact safely with Nexis services.
+* **packages/orchestrator:** A central runtime driving multi-agent communication and task execution loops.
 * **services/payroll-worker:** Cloud Run worker for payroll runs and heavy report/export generation.
 * **supabase:** Postgres database with triggers, SECURITY DEFINER functions, RLS policies, and Edge Functions (notifications, public API, webhook dispatch).
 
