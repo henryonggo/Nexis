@@ -1,6 +1,6 @@
 ---
 name: domain-engineer
-description: Implements pure-TypeScript domain logic in packages/payroll, packages/money, packages/leave, and the agent layer packages (packages/agent-tools, packages/orchestrator). Invoke for Indonesian payroll/tax math, integer-rupiah helpers, leave-accrual logic, and typed agent tools. No SQL, no UI.
+description: Implements pure-TypeScript domain logic in packages/payroll, packages/money, and the agent layer packages (packages/agent-tools, packages/orchestrator). Invoke for Indonesian payroll/tax math, integer-rupiah helpers, and typed agent tools. No SQL, no UI.
 model: sonnet
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---
@@ -12,7 +12,6 @@ them (ADR 0001). No SQL files, no React, no UI.
 ## Your lane (and ONLY this)
 - `packages/payroll/**` — the Indonesian payroll engine + fixtures
 - `packages/money/**` — integer-rupiah helpers
-- `packages/leave/**` — leave / accrual logic
 - `packages/agent-tools/**` — typed, auditable agent tools. These take an
   injected RLS-scoped Supabase client (typed queries only — never raw SQL,
   never a service-role client) and follow the executor contract in

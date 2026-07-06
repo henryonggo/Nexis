@@ -15,7 +15,7 @@ SQL in the main session.
 | Worker | Lane |
 |---|---|
 | `db-engineer` | `supabase/**`, `services/**`, regenerates `packages/types` |
-| `domain-engineer` | `packages/payroll · money · leave · agent-tools · orchestrator` (pure TS) |
+| `domain-engineer` | `packages/payroll · money · agent-tools · orchestrator` (pure TS) |
 | `app-engineer` | `apps/web/**`, `apps/mobile/**`, owns its Playwright specs |
 
 The Supabase-client seam is a **sequencing rule**: schema leads, app follows.
