@@ -9,7 +9,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ["@nexis/types", "@nexis/money", "@nexis/payroll"],
+  transpilePackages: [
+    "@nexis/types",
+    "@nexis/money",
+    "@nexis/payroll",
+    "@nexis/agent-tools",
+    "@nexis/orchestrator",
+  ],
   experimental: {
     // Keep the GCP client external so the (now lazy) dynamic import resolves from
     // node_modules instead of a webpack chunk.

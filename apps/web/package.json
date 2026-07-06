@@ -11,9 +11,12 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.88.0",
     "@google-cloud/tasks": "^6.2.0",
     "@hookform/resolvers": "^3.9.0",
+    "@nexis/agent-tools": "workspace:*",
     "@nexis/money": "workspace:*",
+    "@nexis/orchestrator": "workspace:*",
     "@nexis/payroll": "workspace:*",
     "@nexis/types": "workspace:*",
     "@radix-ui/react-avatar": "^1.1.0",
