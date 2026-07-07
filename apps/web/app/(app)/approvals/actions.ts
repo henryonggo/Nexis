@@ -86,14 +86,26 @@ export async function runAgentCycle(
       ? { [parsed.data.resumeTool]: parsed.data.resumeRequestId }
       : undefined;
 
-  const outcome = await runAgentCycleForActiveCompany({
-    instruction: parsed.data.instruction,
-    approvalTokens,
-  });
+  // Any throw (Anthropic 5xx, network, tool bug) must land in the panel's
+  // error state, not Next's generic error page — the owner runs the dry run
+  // from here (CODE-REVIEW-2026-07 §Fix 1).
+  let outcome: Awaited<ReturnType<typeof runAgentCycleForActiveCompany>>;
+  try {
+    outcome = await runAgentCycleForActiveCompany({
+      instruction: parsed.data.instruction,
+      approvalTokens,
+    });
+  } catch (err) {
+    console.error("runAgentCycle failed", err);
+    return {
+      error: `Siklus agen gagal: ${err instanceof Error ? err.message : "kesalahan tak terduga"}. Coba lagi.`,
+    };
+  }
   if ("error" in outcome) return { error: outcome.error };
 
   revalidatePath("/approvals");
   revalidatePath("/payroll");
+  revalidatePath("/dashboard");
   const { status, finalText, halts, pendingApprovals } = outcome.result;
   return { result: { status, finalText, halts, pendingApprovals } };
 }
