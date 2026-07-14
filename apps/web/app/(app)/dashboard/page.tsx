@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isAdminRole } from "@/lib/roles";
 import { getCompanyLeaveRequests } from "@/lib/leave";
 import { getEmployeeAccess } from "@/lib/access";
 import { SetupChecklist } from "./setup-checklist";
@@ -344,7 +345,7 @@ export default async function DashboardPage() {
   // Employees get a self-scoped overview; the company aggregates below are admin/manager-only.
   if (active.role === "employee") return <EmployeeDashboard companyId={active.id} />;
 
-  const isAdmin = active.role === "owner" || active.role === "admin";
+  const isAdmin = isAdminRole(active.role);
 
   const [
     { data: statusRows },

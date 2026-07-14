@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isManagerRole } from "@/lib/roles";
 import {
   createCycle,
   createGoal,
@@ -15,7 +16,7 @@ import {
 export type PerfActionState = { error?: string; ok?: boolean };
 
 function canManage(role: string): boolean {
-  return role === "owner" || role === "admin" || role === "manager";
+  return isManagerRole(role);
 }
 
 const cycleSchema = z

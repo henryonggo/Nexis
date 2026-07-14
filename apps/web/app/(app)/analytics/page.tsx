@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { formatRupiah } from "@nexis/money";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isAdminRole } from "@/lib/roles";
 import {
   getHeadcountStats,
   getPayrollTrend,
@@ -34,7 +35,7 @@ export default async function AnalyticsPage({
     : 12;
 
   const t = await getTranslations("analytics");
-  const isAdmin = active.role === "owner" || active.role === "admin";
+  const isAdmin = isAdminRole(active.role);
   if (!isAdmin) {
     return (
       <div className="space-y-6">

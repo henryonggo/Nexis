@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isAdminRole } from "@/lib/roles";
 import {
   generateApiKey,
   revokeApiKey,
@@ -18,7 +19,7 @@ import {
 export type DeveloperActionState = { error?: string; ok?: boolean; secret?: string };
 
 function isOwnerAdmin(role: string): boolean {
-  return role === "owner" || role === "admin";
+  return isAdminRole(role);
 }
 
 async function guard(): Promise<{ companyId: string } | { error: string }> {

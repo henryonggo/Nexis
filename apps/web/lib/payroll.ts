@@ -9,7 +9,13 @@ import {
   computeMonthlyPayroll,
   computeOvertimePayFromEntries,
   computeThr,
+  effectiveOn,
+  periodEnd as periodEndDate,
+  periodStart as periodEffectiveDate,
   ptkpCategory,
+  sumFixedAllowances,
+  JKK_RISK_CLASSES,
+  PTKP_STATUSES,
   type EmployeePayrollInput,
   type JkkRiskClass,
   type PayFrequency,
@@ -43,23 +49,6 @@ export class PayrollConfigError extends Error {
     super(message);
     this.name = "PayrollConfigError";
   }
-}
-
-const PTKP_STATUSES = new Set<PtkpStatus>([
-  "TK/0", "TK/1", "TK/2", "TK/3", "K/0", "K/1", "K/2", "K/3",
-]);
-const JKK_RISK_CLASSES = new Set<JkkRiskClass>([
-  "very_low", "low", "medium", "high", "very_high",
-]);
-
-/** SQL predicate for "this reference row is in force on `date`" (YYYY-MM-DD). */
-function effectiveOn<T extends { effective_from: string; effective_to: string | null }>(
-  rows: T[],
-  date: string,
-): T[] {
-  return rows.filter(
-    (r) => r.effective_from <= date && (r.effective_to == null || r.effective_to >= date),
-  );
 }
 
 /**
@@ -101,24 +90,6 @@ export async function loadPayrollConfig(
       `Gagal menyusun konfigurasi payroll: ${err instanceof Error ? err.message : "kesalahan tak terduga"}`,
     );
   }
-}
-
-/** A `fixed_allowances` JSON blob can be a number, an array of {amount}, or a map. */
-export function sumFixedAllowances(value: unknown): Rupiah {
-  if (typeof value === "number") return Math.round(value);
-  if (Array.isArray(value)) {
-    return value.reduce<number>((acc, item) => {
-      const amount = typeof item === "number" ? item : Number((item as { amount?: unknown })?.amount ?? 0);
-      return acc + (Number.isFinite(amount) ? Math.round(amount) : 0);
-    }, 0);
-  }
-  if (value && typeof value === "object") {
-    return Object.values(value as Record<string, unknown>).reduce<number>((acc, v) => {
-      const amount = Number(v);
-      return acc + (Number.isFinite(amount) ? Math.round(amount) : 0);
-    }, 0);
-  }
-  return 0;
 }
 
 interface CompensationRow {
@@ -185,17 +156,6 @@ export interface RunPreview {
   notices: string[];
   /** Snapshot persisted to payroll_runs.config_snapshot for reproducibility. */
   configSnapshot: unknown;
-}
-
-/** First day of the run period, used as the reference effective-date (YYYY-MM-DD). */
-function periodEffectiveDate(year: number, month: number): string {
-  return `${year}-${String(month).padStart(2, "0")}-01`;
-}
-
-/** Last day of the run period (YYYY-MM-DD), for period-bounded queries. */
-function periodEndDate(year: number, month: number): string {
-  const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
-  return `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
 }
 
 /** Load manually-entered days for a run (if it exists). Returns a map of employee_id → days_worked. TODO(db): type this against packages/types once regenerated. */
@@ -805,3 +765,7 @@ export async function computeEmployeeReadiness(
 // Re-export client-safe formatters so server components can keep importing them
 // from "@/lib/payroll".
 export { MONTH_NAMES_ID, formatPeriod, formatRupiah } from "./payroll-format";
+
+// Re-exported so existing importers of `sumFixedAllowances` from "@/lib/payroll"
+// don't break now that it lives in @nexis/payroll.
+export { sumFixedAllowances } from "@nexis/payroll";

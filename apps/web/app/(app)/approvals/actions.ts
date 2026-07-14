@@ -6,6 +6,7 @@ import { z } from "zod";
 import type { CycleResult } from "@nexis/orchestrator";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isAdminRole } from "@/lib/roles";
 import { runAgentCycleForActiveCompany } from "@/lib/agent-cycle";
 
 /**
@@ -30,7 +31,7 @@ export async function decideApprovalRequest(formData: FormData): Promise<void> {
 
   const active = await getActiveCompany();
   if (!active) redirect("/onboarding");
-  if (active.role !== "owner" && active.role !== "admin") return;
+  if (!isAdminRole(active.role)) return;
 
   const supabase = createClient();
   const {

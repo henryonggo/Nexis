@@ -2,6 +2,12 @@ import type { Rupiah } from "@nexis/money";
 import {
   computeMonthlyPayroll,
   ptkpCategory,
+  PTKP_STATUSES,
+  JKK_RISK_CLASSES,
+  periodStart,
+  periodEnd,
+  effectiveOn,
+  sumFixedAllowances,
   type JkkRiskClass,
   type PayrollConfig,
   type PayrollResult,
@@ -18,52 +24,13 @@ import type { HaltReason } from "../result";
  *
  * Never estimates (pivot ground rule 1): any missing/ambiguous input returns
  * halt reasons instead of a number.
+ *
+ * PTKP_STATUSES / JKK_RISK_CLASSES / periodStart / periodEnd / effectiveOn /
+ * sumFixedAllowances live in @nexis/payroll (NEXT-1: one statutory source,
+ * shared with apps/web/lib/payroll.ts) — re-exported here so existing
+ * imports from "./statutory" keep working.
  */
-
-export const PTKP_STATUSES = new Set<PtkpStatus>([
-  "TK/0", "TK/1", "TK/2", "TK/3", "K/0", "K/1", "K/2", "K/3",
-]);
-export const JKK_RISK_CLASSES = new Set<JkkRiskClass>([
-  "very_low", "low", "medium", "high", "very_high",
-]);
-
-export function periodStart(year: number, month: number): string {
-  return `${year}-${String(month).padStart(2, "0")}-01`;
-}
-
-export function periodEnd(year: number, month: number): string {
-  const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
-  return `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
-}
-
-/** Reference row is in force on `date` (same rule as apps/web/lib/payroll.ts). */
-export function effectiveOn<T extends { effective_from: string; effective_to: string | null }>(
-  rows: T[],
-  date: string,
-): T[] {
-  return rows.filter(
-    (r) => r.effective_from <= date && (r.effective_to == null || r.effective_to >= date),
-  );
-}
-
-/** Sum a compensation.fixed_allowances JSON blob (number | {amount}[] | map). */
-export function sumFixedAllowances(value: unknown): Rupiah {
-  if (typeof value === "number") return Math.round(value);
-  if (Array.isArray(value)) {
-    return value.reduce<number>((acc, item) => {
-      const amount =
-        typeof item === "number" ? item : Number((item as { amount?: unknown })?.amount ?? 0);
-      return acc + (Number.isFinite(amount) ? Math.round(amount) : 0);
-    }, 0);
-  }
-  if (value && typeof value === "object") {
-    return Object.values(value as Record<string, unknown>).reduce<number>((acc, v) => {
-      const amount = Number(v);
-      return acc + (Number.isFinite(amount) ? Math.round(amount) : 0);
-    }, 0);
-  }
-  return 0;
-}
+export { PTKP_STATUSES, JKK_RISK_CLASSES, periodStart, periodEnd, effectiveOn, sumFixedAllowances };
 
 // Row shapes matching the columns the tools select (subset of generated Rows).
 export interface CompRow {

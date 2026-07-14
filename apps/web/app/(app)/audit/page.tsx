@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isAdminRole } from "@/lib/roles";
 import { ExportCsvButton } from "@/components/export-csv-button";
 import { getAuditLog, actionTone, AUDIT_ENTITIES } from "@/lib/audit";
 import { Card } from "@/components/ui/card";
@@ -65,7 +66,7 @@ export default async function AuditPage({
   const entLabel = (e: string | null) =>
     !e ? "—" : (AUDIT_ENTITIES as readonly string[]).includes(e) ? tEntities(e) : e;
 
-  const isAdmin = active.role === "owner" || active.role === "admin";
+  const isAdmin = isAdminRole(active.role);
   if (!isAdmin) {
     return (
       <div className="space-y-6">

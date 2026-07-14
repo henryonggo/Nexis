@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isAdminRole } from "@/lib/roles";
 
 export type ConfigState = { error?: string; success?: string };
 
@@ -11,7 +12,7 @@ export type ConfigState = { error?: string; success?: string };
 async function requireAdmin() {
   const active = await getActiveCompany();
   if (!active) return { error: "Tidak ada perusahaan aktif." as string };
-  if (active.role !== "owner" && active.role !== "admin") {
+  if (!isAdminRole(active.role)) {
     return { error: "Hanya pemilik/admin yang dapat mengatur kehadiran." as string };
   }
   return { active };

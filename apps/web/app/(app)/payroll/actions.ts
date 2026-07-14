@@ -6,6 +6,7 @@ import { z } from "zod";
 import type { Database } from "@nexis/types";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isAdminRole } from "@/lib/roles";
 import { computeRunPreview, computeRunReadiness, PayrollConfigError, type RunType } from "@/lib/payroll";
 import { enqueuePayrollRun } from "@/lib/payroll-worker";
 
@@ -20,7 +21,7 @@ const createRunSchema = z.object({
 export type RunActionState = { error?: string };
 
 function isAdmin(role: string): boolean {
-  return role === "owner" || role === "admin";
+  return isAdminRole(role);
 }
 
 /**

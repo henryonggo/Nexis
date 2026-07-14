@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { formatRupiah } from "@nexis/money";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isManagerRole } from "@/lib/roles";
 import { guardEmployeeAccess } from "@/lib/access";
 import { getCompanyClaims, getReceiptUrl, type ClaimView } from "@/lib/claims";
 import { ICONS } from "@/lib/nav";
@@ -27,8 +28,7 @@ export default async function ClaimsPage() {
   await guardEmployeeAccess(active.role, active.id, "claims");
 
   const t = await getTranslations("claims");
-  const canApprove =
-    active.role === "owner" || active.role === "admin" || active.role === "manager";
+  const canApprove = isManagerRole(active.role);
 
   const claims = await getCompanyClaims(supabase, active.id);
   const pending = claims.filter((c) => c.status === "pending");

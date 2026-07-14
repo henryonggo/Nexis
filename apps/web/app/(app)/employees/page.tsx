@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isAdminRole } from "@/lib/roles";
 import { computeEmployeeReadiness, readinessStatus, type ReadinessStatus } from "@/lib/payroll";
 import { ICONS } from "@/lib/nav";
 import { PageHeader } from "@/components/page-header";
@@ -58,7 +59,7 @@ export default async function EmployeesPage() {
   const readinessById = new Map(readiness.map((r) => [r.employeeId, r]));
 
   const rows = (employees as Partial<EmployeeRow>[] | null) ?? [];
-  const isAdmin = active.role === "owner" || active.role === "admin";
+  const isAdmin = isAdminRole(active.role);
   const seatsUsed = billing?.active_seats ?? rows.length;
   const limit = billing?.free_seat_limit ?? 5;
   const atLimit = billing?.plan === "free" && seatsUsed >= limit;

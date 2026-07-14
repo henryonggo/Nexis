@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isAdminRole } from "@/lib/roles";
 import { ICONS } from "@/lib/nav";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
@@ -27,7 +28,7 @@ export default async function ApprovalsPage() {
   const active = await getActiveCompany();
   if (!active) return null;
   const t = await getTranslations("approvals");
-  const isAdmin = active.role === "owner" || active.role === "admin";
+  const isAdmin = isAdminRole(active.role);
 
   const supabase = createClient();
   const { data } = await supabase
