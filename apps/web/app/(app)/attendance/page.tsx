@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isAdminRole } from "@/lib/roles";
 import { guardEmployeeAccess } from "@/lib/access";
 import type { Database } from "@nexis/types";
 import { ICONS } from "@/lib/nav";
@@ -36,7 +37,7 @@ export default async function AttendancePage() {
   await guardEmployeeAccess(active.role, active.id, "attendance");
 
   const canCorrect = active.role !== "employee";
-  const canConfigure = active.role === "owner" || active.role === "admin";
+  const canConfigure = isAdminRole(active.role);
   // Overtime writes allow owner/admin/manager (user_is_company_manager_or_admin RLS).
   const canApproveOvertime = canCorrect;
   const since = startOfTodayJakartaIso();

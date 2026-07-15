@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isAdminRole } from "@/lib/roles";
 import { ICONS } from "@/lib/nav";
 import { PageHeader } from "@/components/page-header";
 import {
@@ -68,7 +69,7 @@ export default async function EmployeeDetailPage({ params }: { params: { id: str
     .neq("id", params.id)
     .order("full_name", { ascending: true });
 
-  const canEdit = active.role === "owner" || active.role === "admin";
+  const canEdit = isAdminRole(active.role);
   const t = await getTranslations("employees");
 
   // Configurable deductions: groups + custom types for the picker, and the

@@ -2,6 +2,7 @@ import { Download } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isAdminRole } from "@/lib/roles";
 import { ICONS } from "@/lib/nav";
 import {
   getBilling,
@@ -40,7 +41,7 @@ export default async function BillingPage() {
   const tPlans = await getTranslations("plans");
   const tDetails = await getTranslations("planDetails");
 
-  const isAdmin = active.role === "owner" || active.role === "admin";
+  const isAdmin = isAdminRole(active.role);
   const isOwner = active.role === "owner";
   if (!isAdmin) {
     return (

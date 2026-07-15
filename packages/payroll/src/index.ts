@@ -459,3 +459,15 @@ export {
   type PtkpRateRow,
   type TaxBracketRow,
 } from "./config";
+
+// ───────────────────────────────────────────────────────────────────────────
+// Shared statutory-reference helpers (NEXT-1: one statutory source).
+// ───────────────────────────────────────────────────────────────────────────
+export {
+  PTKP_STATUSES,
+  JKK_RISK_CLASSES,
+  periodStart,
+  periodEnd,
+  effectiveOn,
+  sumFixedAllowances,
+} from "./statutory";

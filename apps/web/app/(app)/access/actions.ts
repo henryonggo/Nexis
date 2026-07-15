@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isAdminRole } from "@/lib/roles";
 
 export type AccessState = { error?: string; ok?: boolean };
 
@@ -14,7 +15,7 @@ export async function updateEmployeeAccess(
 ): Promise<AccessState> {
   const active = await getActiveCompany();
   if (!active) redirect("/onboarding");
-  if (active.role !== "owner" && active.role !== "admin") {
+  if (!isAdminRole(active.role)) {
     return { error: "Not allowed." };
   }
 

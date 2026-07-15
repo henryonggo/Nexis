@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isManagerRole } from "@/lib/roles";
 import { guardEmployeeAccess } from "@/lib/access";
 import {
   getCompanyLeaveRequests,
@@ -30,8 +31,7 @@ export default async function LeavePage() {
   await guardEmployeeAccess(active.role, active.id, "leave");
 
   const t = await getTranslations("leave");
-  const canApprove =
-    active.role === "owner" || active.role === "admin" || active.role === "manager";
+  const canApprove = isManagerRole(active.role);
 
   const requests = await getCompanyLeaveRequests(supabase, active.id);
   const pending = requests.filter((r) => r.status === "pending");

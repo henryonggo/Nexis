@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { getActiveCompany } from "@/lib/company";
+import { isAdminRole } from "@/lib/roles";
 import { ICONS } from "@/lib/nav";
 import { PageHeader } from "@/components/page-header";
 import { ImportForm } from "./form";
@@ -11,7 +12,7 @@ import { ArrowLeft } from "lucide-react";
 export default async function ImportEmployeesPage() {
   const active = await getActiveCompany();
   if (!active) redirect("/onboarding");
-  if (active.role !== "owner" && active.role !== "admin") redirect("/employees");
+  if (!isAdminRole(active.role)) redirect("/employees");
   const t = await getTranslations("employees");
 
   return (

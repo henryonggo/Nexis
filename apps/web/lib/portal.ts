@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getMemberships } from "@/lib/company";
 import { getCompanyLeaveRequests } from "@/lib/leave";
 import { planMeta } from "@/lib/billing-plans";
+import { isManagerRole } from "@/lib/roles";
 
 /** Run statuses that mean a payroll run is mid-flight and wants admin attention. */
 const ACTIONABLE_RUN_STATUSES = ["draft", "queued", "processing", "failed"];
@@ -19,7 +20,7 @@ function canReadBilling(role: Role): boolean {
 
 /** A company whose approval queue (pending leave) the role can read. */
 function canReadApprovals(role: Role): boolean {
-  return role === "owner" || role === "admin" || role === "manager";
+  return isManagerRole(role);
 }
 
 /** One company's at-a-glance summary on the cross-company portal. */

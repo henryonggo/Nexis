@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { Download } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isManagerRole } from "@/lib/roles";
 import {
   getReportJobs,
   getReportableRuns,
@@ -37,8 +38,7 @@ export default async function ReportsPage() {
 
   const t = await getTranslations("reports");
   const tt = await getTranslations("reports.types");
-  const canExport =
-    active.role === "owner" || active.role === "admin" || active.role === "manager";
+  const canExport = isManagerRole(active.role);
   if (!canExport) {
     return (
       <div className="space-y-6">

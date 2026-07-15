@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isManagerRole } from "@/lib/roles";
 import { enqueueReportJob } from "@/lib/report-worker";
 
 const createReportSchema = z.object({
@@ -14,7 +15,7 @@ const createReportSchema = z.object({
 export type ReportActionState = { error?: string; ok?: boolean };
 
 function canExport(role: string): boolean {
-  return role === "owner" || role === "admin" || role === "manager";
+  return isManagerRole(role);
 }
 
 /**

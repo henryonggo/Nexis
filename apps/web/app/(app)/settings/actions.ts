@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isAdminRole } from "@/lib/roles";
 import { normalizeWorkDays } from "@/lib/work-schedule";
 
 export type SettingsState = { error?: string };
@@ -76,7 +77,7 @@ export async function updatePayrollSettings(
 ): Promise<PayrollSettingsState> {
   const active = await getActiveCompany();
   if (!active) redirect("/onboarding");
-  if (active.role !== "owner" && active.role !== "admin") {
+  if (!isAdminRole(active.role)) {
     return { error: "Hanya pemilik/admin yang dapat mengubah pengaturan payroll." };
   }
 

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isManagerRole } from "@/lib/roles";
 import {
   getCycles,
   getCycleGoals,
@@ -36,8 +37,7 @@ export default async function PerformancePage({
   if (!active) return null;
 
   const t = await getTranslations("performance");
-  const canManage =
-    active.role === "owner" || active.role === "admin" || active.role === "manager";
+  const canManage = isManagerRole(active.role);
   if (!canManage) {
     return (
       <Card className="max-w-lg p-8">

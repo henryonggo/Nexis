@@ -4,6 +4,7 @@ import { Trash2 } from "lucide-react";
 import { formatRupiah } from "@nexis/money";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isAdminRole } from "@/lib/roles";
 import {
   listCustomEarnings,
   listEarningGroups,
@@ -21,7 +22,7 @@ import { deleteCustomEarning, deleteEarningGroup } from "./actions";
 export default async function EarningsPage() {
   const active = await getActiveCompany();
   if (!active) redirect("/onboarding");
-  if (active.role !== "owner" && active.role !== "admin") redirect("/dashboard");
+  if (!isAdminRole(active.role)) redirect("/dashboard");
 
   const supabase = createClient();
   const t = await getTranslations("earnings");
