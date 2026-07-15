@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import type { Database } from "@nexis/types";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isAdminRole } from "@/lib/roles";
 import { formatPeriod, formatRupiah } from "@/lib/payroll";
 import { ICONS } from "@/lib/nav";
 import { ExportCsvButton } from "@/components/export-csv-button";
@@ -31,7 +32,7 @@ export default async function PayrollPage() {
   const active = await getActiveCompany();
   if (!active) return null;
 
-  const isAdmin = active.role === "owner" || active.role === "admin";
+  const isAdmin = isAdminRole(active.role);
   const t = await getTranslations("payroll");
 
   const { data: runs } = await supabase

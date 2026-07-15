@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isAdminRole } from "@/lib/roles";
 import { getCompanyLeaveRequests } from "@/lib/leave";
 import { Card } from "@/components/ui/card";
 import { StatusBadge } from "../payroll/status-badge";
@@ -59,7 +60,7 @@ export default async function GlancePage() {
   // Employees already have a tailored self-service dashboard; glance is the
   // company overview for owner/admin/manager.
   if (active.role === "employee") redirect("/dashboard");
-  const isAdmin = active.role === "owner" || active.role === "admin";
+  const isAdmin = isAdminRole(active.role);
 
   const [{ data: statusRows }, { data: billing }, { data: payrollRuns }, { data: todayRecords }] =
     await Promise.all([

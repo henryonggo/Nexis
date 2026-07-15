@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isAdminRole } from "@/lib/roles";
 import { ICONS } from "@/lib/nav";
 import { PageHeader } from "@/components/page-header";
 import { ConfigTabs } from "./config-tabs";
@@ -12,7 +13,7 @@ export default async function AttendanceConfigPage() {
   const active = await getActiveCompany();
   if (!active) return null;
   // Config is admin-level; oversight roles bounce back to the live board.
-  if (active.role !== "owner" && active.role !== "admin") redirect("/attendance");
+  if (!isAdminRole(active.role)) redirect("/attendance");
 
   const supabase = createClient();
   const t = await getTranslations("attendance.config");

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getActiveCompany } from "@/lib/company";
+import { isAdminRole } from "@/lib/roles";
 import { sendInviteEmail } from "@/lib/email";
 import type { CompanyRole } from "@nexis/types";
 
@@ -30,7 +31,7 @@ export async function inviteMember(
   const supabase = createClient();
   const active = await getActiveCompany();
   if (!active) return { error: "Tidak ada perusahaan aktif." };
-  if (active.role !== "owner" && active.role !== "admin") {
+  if (!isAdminRole(active.role)) {
     return { error: "Hanya pemilik/admin yang dapat mengundang anggota." };
   }
 
@@ -117,7 +118,7 @@ export async function rotateJoinCode(): Promise<void> {
   const supabase = createClient();
   const active = await getActiveCompany();
   if (!active) return;
-  if (active.role !== "owner" && active.role !== "admin") return;
+  if (!isAdminRole(active.role)) return;
   await supabase.rpc("rotate_company_join_code", { p_company_id: active.id });
   revalidatePath("/members");
 }
@@ -152,7 +153,7 @@ export async function approveJoinRequest(
   const supabase = createClient();
   const active = await getActiveCompany();
   if (!active) return { error: "Tidak ada perusahaan aktif." };
-  if (active.role !== "owner" && active.role !== "admin") {
+  if (!isAdminRole(active.role)) {
     return { error: "Hanya pemilik/admin yang dapat menyetujui permintaan." };
   }
 
@@ -177,7 +178,7 @@ export async function rejectJoinRequest(
   const supabase = createClient();
   const active = await getActiveCompany();
   if (!active) return { error: "Tidak ada perusahaan aktif." };
-  if (active.role !== "owner" && active.role !== "admin") {
+  if (!isAdminRole(active.role)) {
     return { error: "Hanya pemilik/admin yang dapat menolak permintaan." };
   }
 
@@ -212,7 +213,7 @@ export async function removeMember(
     .eq("user_id", user.id)
     .single();
 
-  if (!currentUserMember || (currentUserMember.role !== "owner" && currentUserMember.role !== "admin")) {
+  if (!currentUserMember || !isAdminRole(currentUserMember.role)) {
     return { error: "Akses ditolak." };
   }
 
@@ -229,7 +230,7 @@ export async function removeMember(
   }
 
   // Role hierarchy restrictions
-  if (currentUserMember.role === "admin" && (targetMember.role === "owner" || targetMember.role === "admin")) {
+  if (currentUserMember.role === "admin" && isAdminRole(targetMember.role)) {
     return { error: "Akses ditolak." };
   }
 
@@ -277,7 +278,7 @@ export async function updateMemberRole(
     .eq("user_id", user.id)
     .single();
 
-  if (!currentUserMember || (currentUserMember.role !== "owner" && currentUserMember.role !== "admin")) {
+  if (!currentUserMember || !isAdminRole(currentUserMember.role)) {
     return { error: "Akses ditolak." };
   }
 
@@ -296,7 +297,7 @@ export async function updateMemberRole(
   // Role hierarchy restrictions
   if (currentUserMember.role === "admin") {
     // Admins cannot edit owners or other admins, nor promote anyone to owner/admin
-    if (targetMember.role === "owner" || targetMember.role === "admin" || role === "owner" || role === "admin") {
+    if (isAdminRole(targetMember.role) || isAdminRole(role)) {
       return { error: "Akses ditolak." };
     }
   }

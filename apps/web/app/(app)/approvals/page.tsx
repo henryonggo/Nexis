@@ -1,12 +1,16 @@
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isAdminRole } from "@/lib/roles";
 import { ICONS } from "@/lib/nav";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/empty-state";
+import { ClipboardCheck } from "lucide-react";
 import { decideApprovalRequest } from "./actions";
 import { AgentPanel } from "./agent-panel";
+import { ApprovalStatusBadge } from "./status-badge";
 
 // Orchestrator cycles make several model calls; give the server action room
 // beyond the default serverless duration (Vercel caps by plan).
@@ -20,19 +24,11 @@ export const maxDuration = 300;
  * bound) via packages/agent-tools when it re-runs the tool.
  */
 
-const STATUS_TONE: Record<string, string> = {
-  pending: "bg-amber-100 text-amber-800",
-  approved: "bg-emerald-100 text-emerald-800",
-  rejected: "bg-red-100 text-red-700",
-  consumed: "bg-slate-200 text-slate-700",
-  expired: "bg-slate-100 text-slate-500",
-};
-
 export default async function ApprovalsPage() {
   const active = await getActiveCompany();
   if (!active) return null;
   const t = await getTranslations("approvals");
-  const isAdmin = active.role === "owner" || active.role === "admin";
+  const isAdmin = isAdminRole(active.role);
 
   const supabase = createClient();
   const { data } = await supabase
@@ -88,7 +84,9 @@ export default async function ApprovalsPage() {
       <section className="space-y-3">
         <h2 className="text-sm font-semibold text-ink">{t("pending")}</h2>
         {pending.length === 0 && (
-          <Card className="p-5 text-center text-sm text-muted">{t("empty")}</Card>
+          <Card className="p-5">
+            <EmptyState icon={ClipboardCheck} title={t("empty")} />
+          </Card>
         )}
         {pending.map((req) => (
           <Card key={req.id} className="p-5">
@@ -96,9 +94,7 @@ export default async function ApprovalsPage() {
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="font-mono text-xs text-muted">{req.tool_name}</span>
-                  <span className={`rounded px-2 py-0.5 text-xs ${STATUS_TONE[req.status]}`}>
-                    {t(`status.${req.status}`)}
-                  </span>
+                  <ApprovalStatusBadge status={req.status} />
                 </div>
                 <p className="mt-1 text-sm font-medium text-ink">
                   {req.summary ?? t("noSummary")}
@@ -150,9 +146,7 @@ export default async function ApprovalsPage() {
                   <p className="truncate text-sm text-ink">{req.summary ?? t("noSummary")}</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className={`rounded px-2 py-0.5 text-xs ${STATUS_TONE[req.status] ?? ""}`}>
-                    {t(`status.${req.status}`)}
-                  </span>
+                  <ApprovalStatusBadge status={req.status} />
                   <span className="text-xs text-muted">
                     {fmt.format(new Date(req.decided_at ?? req.created_at))}
                   </span>

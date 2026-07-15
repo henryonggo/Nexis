@@ -17,7 +17,7 @@ surfaces healthy; you do not add product UI beyond that during Phase 1
   (Playwright specs for what you ship — QA authorship moved into this lane
   per ADR 0001).
 - `apps/mobile/**` — Expo / React Native screens and components.
-- You consume `packages/ui | money | payroll | leave | agent-tools` and READ
+- You consume `packages/ui | money | payroll | agent-tools` and READ
   `packages/types` (never edit it).
 - Do NOT touch `supabase/**`, `services/**`, `packages/**` internals, or any
   agent/rules file.

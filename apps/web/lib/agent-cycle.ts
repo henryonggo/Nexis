@@ -9,6 +9,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
 import { enqueuePayrollRun } from "@/lib/payroll-worker";
+import { isAdminRole } from "@/lib/roles";
 
 /**
  * The apps/web half of ADR 0004: construct the environment the orchestrator
@@ -24,7 +25,7 @@ export async function runAgentCycleForActiveCompany(args: {
 }): Promise<{ error: string } | { result: CycleResult }> {
   const active = await getActiveCompany();
   if (!active) return { error: "Tidak ada perusahaan aktif." };
-  if (active.role !== "owner" && active.role !== "admin") {
+  if (!isAdminRole(active.role)) {
     return { error: "Hanya pemilik/admin yang dapat menjalankan agen payroll." };
   }
   if (!process.env.ANTHROPIC_API_KEY) {

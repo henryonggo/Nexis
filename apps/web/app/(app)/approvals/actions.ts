@@ -6,6 +6,7 @@ import { z } from "zod";
 import type { CycleResult } from "@nexis/orchestrator";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isAdminRole } from "@/lib/roles";
 import { runAgentCycleForActiveCompany } from "@/lib/agent-cycle";
 
 /**
@@ -30,7 +31,7 @@ export async function decideApprovalRequest(formData: FormData): Promise<void> {
 
   const active = await getActiveCompany();
   if (!active) redirect("/onboarding");
-  if (active.role !== "owner" && active.role !== "admin") return;
+  if (!isAdminRole(active.role)) return;
 
   const supabase = createClient();
   const {
@@ -86,14 +87,26 @@ export async function runAgentCycle(
       ? { [parsed.data.resumeTool]: parsed.data.resumeRequestId }
       : undefined;
 
-  const outcome = await runAgentCycleForActiveCompany({
-    instruction: parsed.data.instruction,
-    approvalTokens,
-  });
+  // Any throw (Anthropic 5xx, network, tool bug) must land in the panel's
+  // error state, not Next's generic error page — the owner runs the dry run
+  // from here (CODE-REVIEW-2026-07 §Fix 1).
+  let outcome: Awaited<ReturnType<typeof runAgentCycleForActiveCompany>>;
+  try {
+    outcome = await runAgentCycleForActiveCompany({
+      instruction: parsed.data.instruction,
+      approvalTokens,
+    });
+  } catch (err) {
+    console.error("runAgentCycle failed", err);
+    return {
+      error: `Siklus agen gagal: ${err instanceof Error ? err.message : "kesalahan tak terduga"}. Coba lagi.`,
+    };
+  }
   if ("error" in outcome) return { error: outcome.error };
 
   revalidatePath("/approvals");
   revalidatePath("/payroll");
+  revalidatePath("/dashboard");
   const { status, finalText, halts, pendingApprovals } = outcome.result;
   return { result: { status, finalText, halts, pendingApprovals } };
 }

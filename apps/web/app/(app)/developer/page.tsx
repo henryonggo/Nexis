@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isAdminRole } from "@/lib/roles";
 import { ICONS } from "@/lib/nav";
 import {
   getApiKeys,
@@ -45,7 +46,7 @@ export default async function DeveloperPage() {
   if (!active) return null;
 
   const t = await getTranslations("developer");
-  const isOwnerAdmin = active.role === "owner" || active.role === "admin";
+  const isOwnerAdmin = isAdminRole(active.role);
   if (!isOwnerAdmin) {
     return (
       <Card className="max-w-lg p-8">

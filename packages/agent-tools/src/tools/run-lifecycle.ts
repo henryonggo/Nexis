@@ -97,18 +97,25 @@ export const approvePayrollRun = defineTool<z.infer<typeof runInput>, RunTransit
     const enqueued = await enqueue(input.runId);
     if (!enqueued.ok) {
       // Worker unreachable — roll back (only if the worker hasn't already
-      // moved it past queued) so approval can be retried.
-      await ctx.supabase
+      // moved it past queued) so approval can be retried. Verify the rollback
+      // actually matched a row before claiming it happened: if the worker
+      // advanced the run in the meantime, saying "rolled back" would be a lie
+      // (CODE-REVIEW-2026-07 §Fix 2).
+      const { data: rolledBack } = await ctx.supabase
         .from("payroll_runs")
         .update({ status: "draft" })
         .eq("id", input.runId)
         .eq("company_id", ctx.companyId)
-        .eq("status", "queued");
+        .eq("status", "queued")
+        .select("id")
+        .maybeSingle();
       return {
         halt: [
           {
             code: "worker_unreachable",
-            message: `Payroll worker could not be reached (${enqueued.error}). Run rolled back to draft — retry approval.`,
+            message: rolledBack
+              ? `Payroll worker could not be reached (${enqueued.error}). Run rolled back to draft — retry approval.`
+              : `Payroll worker enqueue failed (${enqueued.error}), but the run already moved past queued — check the run's current status before retrying.`,
           },
         ],
       };

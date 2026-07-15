@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isAdminRole } from "@/lib/roles";
 import {
   isStatutoryCode,
   resolveEmployeeDeductions,
@@ -46,7 +47,7 @@ export async function updateEmployee(_prev: EditState, formData: FormData): Prom
   const supabase = createClient();
   const active = await getActiveCompany();
   if (!active) return { error: "Tidak ada perusahaan aktif." };
-  if (active.role !== "owner" && active.role !== "admin") {
+  if (!isAdminRole(active.role)) {
     return { error: "Hanya pemilik/admin yang dapat mengubah karyawan." };
   }
 
@@ -162,7 +163,7 @@ export async function updateEmployeeDeductions(
 
   const active = await getActiveCompany();
   if (!active) return { error: "Tidak ada perusahaan aktif." };
-  if (active.role !== "owner" && active.role !== "admin") {
+  if (!isAdminRole(active.role)) {
     return { error: "Hanya pemilik/admin yang dapat mengubah potongan gaji." };
   }
 
@@ -250,7 +251,7 @@ export async function updateEmployeeEarnings(
 
   const active = await getActiveCompany();
   if (!active) return { error: "Tidak ada perusahaan aktif." };
-  if (active.role !== "owner" && active.role !== "admin") {
+  if (!isAdminRole(active.role)) {
     return { error: "Hanya pemilik/admin yang dapat mengubah tunjangan." };
   }
 
@@ -315,7 +316,7 @@ export async function createManualDeduction(
 
   const active = await getActiveCompany();
   if (!active) return { error: "Tidak ada perusahaan aktif." };
-  if (active.role !== "owner" && active.role !== "admin") {
+  if (!isAdminRole(active.role)) {
     return { error: "Hanya pemilik/admin yang dapat menambah potongan." };
   }
 
@@ -343,7 +344,7 @@ export async function deleteManualDeduction(formData: FormData): Promise<void> {
   if (!id) return;
 
   const active = await getActiveCompany();
-  if (!active || (active.role !== "owner" && active.role !== "admin")) return;
+  if (!active || !isAdminRole(active.role)) return;
 
   const supabase = createClient();
   await supabase

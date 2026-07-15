@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getActiveCompany } from "@/lib/company";
+import { isAdminRole } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/server";
 import { computeRunReadiness } from "@/lib/payroll";
 import { NewRunForm } from "./form";
@@ -14,7 +15,7 @@ function previousMonth(): { year: number; month: number } {
 export default async function NewPayrollRunPage() {
   const active = await getActiveCompany();
   if (!active) return null;
-  if (active.role !== "owner" && active.role !== "admin") {
+  if (!isAdminRole(active.role)) {
     redirect("/payroll");
   }
 

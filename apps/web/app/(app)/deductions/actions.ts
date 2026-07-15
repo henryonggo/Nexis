@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isAdminRole } from "@/lib/roles";
 import { isStatutoryCode } from "@/lib/deductions";
 
 export type DeductionState = { error?: string; ok?: boolean };
@@ -13,7 +14,7 @@ export type DeductionState = { error?: string; ok?: boolean };
 async function requireManager(): Promise<{ id: string } | null> {
   const active = await getActiveCompany();
   if (!active) redirect("/onboarding");
-  if (active.role !== "owner" && active.role !== "admin") return null;
+  if (!isAdminRole(active.role)) return null;
   return { id: active.id };
 }
 

@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isAdminRole } from "@/lib/roles";
 import { normalizeWorkDays } from "@/lib/work-schedule";
 import { ICONS } from "@/lib/nav";
 import { PageHeader } from "@/components/page-header";
@@ -27,7 +28,7 @@ export default async function SettingsPage() {
 
   // Company-level payroll settings (owner/admin only).
   const active = await getActiveCompany();
-  const canManageCompany = active?.role === "owner" || active?.role === "admin";
+  const canManageCompany = isAdminRole(active?.role ?? "");
   const { data: companySettings } = canManageCompany
     ? await supabase
         .from("company_settings")

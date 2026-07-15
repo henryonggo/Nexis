@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isAdminRole } from "@/lib/roles";
 
 export type ImportResult = {
   error?: string;
@@ -45,7 +46,7 @@ export async function importEmployees(_prev: ImportResult, formData: FormData): 
   const supabase = createClient();
   const active = await getActiveCompany();
   if (!active) return { error: "Tidak ada perusahaan aktif." };
-  if (active.role !== "owner" && active.role !== "admin") {
+  if (!isAdminRole(active.role)) {
     return { error: "Hanya pemilik/admin yang dapat mengimpor karyawan." };
   }
 

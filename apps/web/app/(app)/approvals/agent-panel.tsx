@@ -3,6 +3,7 @@
 import { useFormState, useFormStatus } from "react-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { runAgentCycle, type AgentCycleState } from "./actions";
 
 /**
@@ -69,10 +70,10 @@ export function AgentPanel({
       <form action={formAction} className="mt-3 flex flex-wrap items-end gap-2">
         <label className="min-w-64 flex-1">
           <span className="text-xs text-muted">{labels.instructionLabel}</span>
-          <input
+          <Input
             name="instruction"
             defaultValue={defaultInstruction}
-            className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm"
+            className="mt-1"
             maxLength={500}
           />
         </label>

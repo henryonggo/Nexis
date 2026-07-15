@@ -4,11 +4,12 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCompany } from "@/lib/company";
+import { isManagerRole } from "@/lib/roles";
 
 export type DecisionState = { error?: string; ok?: boolean };
 
 function canApprove(role: string): boolean {
-  return role === "owner" || role === "admin" || role === "manager";
+  return isManagerRole(role);
 }
 
 const requestSchema = z.object({
