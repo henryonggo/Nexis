@@ -95,7 +95,8 @@
       "signUpLink": "Sign up",
       "resetDone": "Password updated. Please sign in.",
       "timedOut": "You were signed out due to inactivity.",
-      "deactivated": "Your account has been deactivated."
+      "deactivated": "Your account has been deactivated.",
+      "callbackFailed": "The link is invalid or has expired. Please try again."
     },
     "signUp": {
       "title": "Create account",

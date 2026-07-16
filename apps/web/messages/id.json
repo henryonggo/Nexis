@@ -95,7 +95,8 @@
       "signUpLink": "Daftar",
       "resetDone": "Kata sandi diperbarui. Silakan masuk.",
       "timedOut": "Anda keluar otomatis karena tidak aktif.",
-      "deactivated": "Akun Anda telah dinonaktifkan."
+      "deactivated": "Akun Anda telah dinonaktifkan.",
+      "callbackFailed": "Tautan tidak valid atau sudah kedaluwarsa. Silakan coba lagi."
     },
     "signUp": {
       "title": "Buat akun",
