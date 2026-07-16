@@ -14,6 +14,17 @@ import {
 
 export type ActionState = { error?: string; success?: string };
 
+/** Maps common Supabase signUp errors to Indonesian copy; falls back to a generic message. */
+function mapSignUpError(error: { code?: string; message: string }): string {
+  if (error.code === "user_already_exists" || /already registered/i.test(error.message)) {
+    return "Email sudah terdaftar. Silakan masuk atau gunakan email lain.";
+  }
+  if (error.code === "weak_password") {
+    return "Kata sandi terlalu lemah. Gunakan minimal 8 karakter dengan kombinasi huruf dan angka.";
+  }
+  return "Gagal membuat akun. Silakan coba lagi.";
+}
+
 function siteUrl() {
   const h = headers();
   const origin =
@@ -50,13 +61,13 @@ export async function signUp(_prev: ActionState, formData: FormData): Promise<Ac
       password,
       options: { data: { full_name: fullName }, redirectTo: verifyRedirect },
     });
-    if (error) return { error: error.message };
+    if (error) return { error: mapSignUpError(error) };
 
     const link = data.properties?.action_link;
     if (link) {
       await sendVerificationEmail({ to: email, verifyUrl: link, fullName });
     }
-    return { success: "Account created. Check your email to verify your account." };
+    return { success: "Akun berhasil dibuat. Periksa email Anda untuk verifikasi." };
   }
 
   // Fallback for local dev without service-role / Resend: Supabase sends its default
@@ -68,8 +79,8 @@ export async function signUp(_prev: ActionState, formData: FormData): Promise<Ac
     options: { data: { full_name: fullName }, emailRedirectTo: verifyRedirect },
   });
 
-  if (error) return { error: error.message };
-  return { success: "Account created. Check your email to verify your account." };
+  if (error) return { error: mapSignUpError(error) };
+  return { success: "Akun berhasil dibuat. Periksa email Anda untuk verifikasi." };
 }
 
 export async function signIn(_prev: ActionState, formData: FormData): Promise<ActionState> {
@@ -84,6 +95,9 @@ export async function signIn(_prev: ActionState, formData: FormData): Promise<Ac
   const supabase = createClient();
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) {
+    if (error.code === "email_not_confirmed") {
+      return { error: "Email belum diverifikasi. Periksa kotak masuk Anda untuk tautan verifikasi." };
+    }
     return { error: "Email atau kata sandi salah." };
   }
 
