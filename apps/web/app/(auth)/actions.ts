@@ -14,15 +14,36 @@ import {
 
 export type ActionState = { error?: string; success?: string };
 
+const WEAK_PASSWORD_MESSAGE =
+  "Kata sandi terlalu lemah. Gunakan minimal 8 karakter dengan kombinasi huruf dan angka.";
+
 /** Maps common Supabase signUp errors to Indonesian copy; falls back to a generic message. */
 function mapSignUpError(error: { code?: string; message: string }): string {
   if (error.code === "user_already_exists" || /already registered/i.test(error.message)) {
     return "Email sudah terdaftar. Silakan masuk atau gunakan email lain.";
   }
   if (error.code === "weak_password") {
-    return "Kata sandi terlalu lemah. Gunakan minimal 8 karakter dengan kombinasi huruf dan angka.";
+    return WEAK_PASSWORD_MESSAGE;
   }
   return "Gagal membuat akun. Silakan coba lagi.";
+}
+
+/** Maps common Supabase resetPassword (updateUser) errors to Indonesian copy. */
+function mapResetPasswordError(error: { code?: string; message: string }): string {
+  if (
+    error.code === "session_not_found" ||
+    error.code === "session_expired" ||
+    /session/i.test(error.message)
+  ) {
+    return "Tautan reset tidak valid atau sudah kedaluwarsa. Silakan minta tautan baru.";
+  }
+  if (error.code === "weak_password") {
+    return WEAK_PASSWORD_MESSAGE;
+  }
+  if (error.code === "same_password") {
+    return "Kata sandi baru tidak boleh sama dengan kata sandi lama.";
+  }
+  return "Gagal memperbarui kata sandi. Silakan coba lagi.";
 }
 
 function siteUrl() {
@@ -134,7 +155,7 @@ export async function resetPassword(
 
   const supabase = createClient();
   const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
-  if (error) return { error: error.message };
+  if (error) return { error: mapResetPasswordError(error) };
 
   redirect("/sign-in?reset=1");
 }

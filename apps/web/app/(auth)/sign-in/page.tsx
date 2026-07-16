@@ -25,6 +25,7 @@ function SignInForm() {
   const justReset = params.get("reset") === "1";
   const timedOut = params.get("timeout") === "1";
   const deactivated = params.get("deactivated") === "1";
+  const callbackFailed = params.get("error") === "auth_callback_failed";
 
   return (
     <Card className="w-full max-w-md p-8">
@@ -34,6 +35,7 @@ function SignInForm() {
       {justReset && <Alert variant="success" className="mb-4">{t("resetDone")}</Alert>}
       {timedOut && <Alert variant="success" className="mb-4">{t("timedOut")}</Alert>}
       {deactivated && <Alert variant="success" className="mb-4">{t("deactivated")}</Alert>}
+      {callbackFailed && <Alert variant="destructive" className="mb-4">{t("callbackFailed")}</Alert>}
       {state.error && <Alert variant="destructive" className="mb-4">{state.error}</Alert>}
 
       <form action={action} className="space-y-4">
