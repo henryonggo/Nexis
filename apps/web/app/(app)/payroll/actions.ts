@@ -24,6 +24,16 @@ function isAdmin(role: string): boolean {
   return isAdminRole(role);
 }
 
+// enqueuePayrollRun's error is already sanitized (no raw HTML) but still a
+// low-level string like "Worker responded 503" — turn it into the short
+// "HTTP <status>[: reason]" fragment used in the user-facing rollback message.
+function summarizeWorkerFailure(error: string): string {
+  const match = error.match(/^Worker responded (\d+)(?::\s*(.+))?$/);
+  if (!match) return error;
+  const [, status, reason] = match;
+  return reason ? `HTTP ${status}: ${reason}` : `HTTP ${status}`;
+}
+
 /**
  * Create a draft payroll run for a period. Computes a preview to snapshot the
  * effective rate config onto the run (reproducibility, AC #5) and pre-fill the
@@ -197,7 +207,7 @@ export async function approveRun(
     revalidatePath("/payroll");
     revalidatePath(`/payroll/${runId.data}`);
     return {
-      error: `Worker payroll belum dapat dihubungi (${enqueued.error}). Run dikembalikan ke draf — coba setujui lagi.`,
+      error: `Worker payroll tidak merespons (${summarizeWorkerFailure(enqueued.error)}). Kemungkinan layanan sedang dingin/di-restart — run dikembalikan ke draf. Tunggu ±1 menit lalu setujui lagi.`,
     };
   }
 

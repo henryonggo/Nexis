@@ -25,6 +25,29 @@ export type { EnqueueResult };
 const DEFAULT_WORKER_URL = "http://localhost:3001";
 const TRIGGER_TIMEOUT_MS = 10_000;
 
+// Cloud Run cold start commonly 503s the first request while the instance
+// boots — retry transient statuses/network errors a couple of times before
+// giving up (each attempt keeps its own TRIGGER_TIMEOUT_MS).
+const RETRYABLE_STATUSES = new Set([429, 500, 502, 503, 504]);
+const RETRY_DELAYS_MS = [3_000, 6_000];
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Never surface a worker's raw response body to the user — Cloud Run's own
+// error pages are full HTML documents. Only pass through short plain-text/JSON
+// bodies (the worker's own structured errors); drop anything else.
+function sanitizeWorkerBody(text: string): string | null {
+  const trimmed = text.trim();
+  if (!trimmed || trimmed.startsWith("<") || trimmed.length > 200) return null;
+  return trimmed;
+}
+
+function formatWorkerError(status: number, body: string | null): string {
+  return `Worker responded ${status}${body ? `: ${body}` : ""}`;
+}
+
 export async function enqueuePayrollRun(runId: string): Promise<EnqueueResult> {
   const config = cloudTasksConfig();
   if (config) {
@@ -41,29 +64,43 @@ export async function enqueuePayrollRun(runId: string): Promise<EnqueueResult> {
   const base = (process.env.PAYROLL_WORKER_URL ?? DEFAULT_WORKER_URL).replace(/\/$/, "");
   const token = process.env.PAYROLL_WORKER_TOKEN;
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), TRIGGER_TIMEOUT_MS);
-  try {
-    const res = await fetch(`${base}/process`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({ runId }),
-      signal: controller.signal,
-      cache: "no-store",
-    });
+  let lastError = "";
+  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), TRIGGER_TIMEOUT_MS);
+    try {
+      const res = await fetch(`${base}/process`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ runId }),
+        signal: controller.signal,
+        cache: "no-store",
+      });
 
-    // 409 = run already past queued (concurrent/duplicate trigger) — idempotent OK.
-    if (res.ok || res.status === 409) return { ok: true };
+      // 409 = run already past queued (concurrent/duplicate trigger) — idempotent OK.
+      if (res.ok || res.status === 409) return { ok: true };
 
-    const text = await res.text().catch(() => "");
-    return { ok: false, error: `Worker responded ${res.status}${text ? `: ${text}` : ""}` };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "unknown error";
-    return { ok: false, error: `Could not reach payroll worker: ${message}` };
-  } finally {
-    clearTimeout(timeout);
+      const body = sanitizeWorkerBody(await res.text().catch(() => ""));
+      lastError = formatWorkerError(res.status, body);
+      if (RETRYABLE_STATUSES.has(res.status) && attempt < RETRY_DELAYS_MS.length) {
+        await sleep(RETRY_DELAYS_MS[attempt]!);
+        continue;
+      }
+      return { ok: false, error: lastError };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "unknown error";
+      lastError = `Could not reach payroll worker: ${message}`;
+      if (attempt < RETRY_DELAYS_MS.length) {
+        await sleep(RETRY_DELAYS_MS[attempt]!);
+        continue;
+      }
+      return { ok: false, error: lastError };
+    } finally {
+      clearTimeout(timeout);
+    }
   }
+  return { ok: false, error: lastError };
 }
