@@ -64,22 +64,33 @@ list — do not burn the week the log was meant to steer.
 1. ✔ **One statutory source** — `effectiveOn`/`sumFixedAllowances`/PTKP-JKK
    sets/period helpers moved into `@nexis/payroll`; preview and agent engines
    now import the same module. (domain-engineer)
-2. **Tool-loader dedupe + `transitionRun` helper + TER B/C tool fixtures +
-   resume driver test** (same-named double proposal). Pre-dry-run eligible.
+2. ✔ **Tool-loader dedupe + `transitionRun` helper + TER B/C tool fixtures +
+   resume driver test** — one `loadStatutoryInputs` shared by both compute
+   tools, lifecycle tools share `transitionRun`, nonzero-band B/C tests with
+   seed-derived numbers, plus (from the pre-flight) the new
+   `mid_period_compensation` halt. (domain-engineer, 2026-07-19)
+3. **Approval-token keying fix** — surfaced by the NEXT-2 driver test:
+   `approvalTokens` is keyed by tool name, so when the model proposes the
+   same tool twice in one turn, a resume can carry only one token; the other
+   already-approved request is orphaned and a duplicate is opened. Key
+   tokens by request id (or call index). Not a dry-run blocker — one
+   proposal per turn today; rank confirmed by the dry run.
    (domain-engineer)
-3. **`agent_cycles` table + approval expiry sweep + shared
+4. **`agent_cycles` table + approval expiry sweep + shared
    `PayrollConfigSnapshot` type**; tighten worker to `queued|processing`.
    (db-engineer)
-4. **Widen the agent's gross** — percentage earnings + earning groups, then
+5. **Widen the agent's gross** — percentage earnings + earning groups, then
    daily/mixed pay and approved overtime, so fewer rosters halt. Each halts
    until built — never estimates. Not needed by customer zero's current
-   roster; rises the day a roster (or the failure log) demands it.
-   (domain-engineer)
-5. ✔ **`requireAdmin` sweep** — duplicated owner/admin checks replaced with
+   roster; rises the day a roster (or the failure log) demands it. A
+   sub-item joins it from the pre-flight: **mid-period proration**, so
+   `mid_period_compensation` halts can eventually resolve instead of
+   requiring a backdated compensation row. (domain-engineer)
+6. ✔ **`requireAdmin` sweep** — duplicated owner/admin checks replaced with
    `lib/roles.ts` across apps/web. (app-engineer)
-6. **Approval queue niceties** — formatted payload (money as Rp, not JSON),
-   cycle history view fed by `agent_cycles` (after item 3). (app-engineer)
-7. **WhatsApp/email approval digest** — the pivot's v0 alternative surface;
+7. **Approval queue niceties** — formatted payload (money as Rp, not JSON),
+   cycle history view fed by `agent_cycles` (after item 4). (app-engineer)
+8. **WhatsApp/email approval digest** — the pivot's v0 alternative surface;
    decide→approve via link. Needs an ADR first. (orchestrator → ADR 0005)
 
 ## LATER — workflow N (each reuses the workflow-zero template)

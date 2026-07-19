@@ -82,13 +82,20 @@ export const BPJS_CONFIG = [
   { key: "jkk_very_high", rate_bps: 174, amount: null, ...REF },
 ];
 
+// B/C nonzero bands mirror the first nonzero rows of the real ter_rates seed
+// (supabase/seed.sql) — the tool-layer fixtures only exercised the 0% band
+// for these two categories until NEXT-2 (docs/pivot/ROADMAP.md).
 export const TER_RATES = [
   { category: "A", income_lower: 0, rate_bps: 0, ...REF },
   { category: "A", income_lower: 5_400_001, rate_bps: 25, ...REF },
   { category: "A", income_lower: 5_650_001, rate_bps: 50, ...REF },
   { category: "A", income_lower: 5_950_001, rate_bps: 75, ...REF },
   { category: "B", income_lower: 0, rate_bps: 0, ...REF },
+  { category: "B", income_lower: 6_200_001, rate_bps: 25, ...REF },
+  { category: "B", income_lower: 6_500_001, rate_bps: 50, ...REF },
   { category: "C", income_lower: 0, rate_bps: 0, ...REF },
+  { category: "C", income_lower: 6_600_001, rate_bps: 25, ...REF },
+  { category: "C", income_lower: 6_950_001, rate_bps: 50, ...REF },
 ];
 
 /**
