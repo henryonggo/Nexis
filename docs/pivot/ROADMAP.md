@@ -30,7 +30,8 @@ log. No second workflow starts until workflow zero has run live.
    parallel against the frozen contract.
 4. **GATE** — orchestrator reviews every diff; `pnpm typecheck` + `pnpm
    test` green across the workspace, web builds, both locales, e2e intact.
-5. **SHIP** — push the branch, open a draft PR; the owner merges.
+5. **SHIP** — push the branch, open a draft PR **into `dev`** (owner rule
+   2026-07-19: never straight to `main`; the owner promotes dev → main).
 6. **LOG** — tick items here, append halts/misbehavior to the failure log,
    write an ADR for any architecture change. Go to 1.
 
@@ -45,7 +46,7 @@ file, the failure log, and git — never in a chat transcript.
 | 2 | ✔ Delete `packages/leave` (dead) — PR #69 | orchestrator |
 | 3 | `ANTHROPIC_API_KEY` into Vercel env (Pro plan for 300s actions). Sole hard blocker for the live run; the **dry run must not wait on it** — fall back to running `/approvals` from local dev against staging | **Boss** |
 | 4 | ✔ Staging has `20260704020000_agent_approvals` applied (verified via Supabase migration list, 2026-07-14) | db-engineer |
-| 5 | **Dry-run pre-flight** (read-only, same checks as `week1-staging-readiness.md` re-run for July): roster still computes 6/6 clean, rates in force on the period, and `audit.recorded` now `true` post-policy | orchestrator |
+| 5 | ✔ **Dry-run pre-flight** done 2026-07-19 → `dry-run-preflight-2026-07.md`. Rates/profiles/policy all green, **but roster is now 7 employees** — a hire with compensation effective **2026-07-17** would have been paid a silent full month (engine had no proration and no halt). Fixed same day: new `mid_period_compensation` halt. Dry run should expect 6/7 clean + 1 designed halt for E-7 | orchestrator |
 | 6 | **Week 3 dry run (by Jul 24)**: `/approvals` → Jalankan agen → approve → resume → draft created; log every discrepancy vs manual calc + every halt into the failure log; check `audit.recorded` gaps | Boss + orchestrator |
 | 7 | **Week 4 live run (by Jul 31)**: July payroll executed via agent with owner approval; review failure log; scope Phase 2 from it | Boss + orchestrator |
 
