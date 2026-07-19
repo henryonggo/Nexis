@@ -1,5 +1,8 @@
 import { z } from "zod";
-import { defineTool } from "../tool";
+import type { Database } from "@nexis/types";
+import { defineTool, type ToolContext } from "../tool";
+
+type RunStatus = Database["public"]["Enums"]["pay_period_status"];
 
 /**
  * Payroll-run lifecycle mutations (all requires_approval), mirroring the
@@ -25,6 +28,30 @@ export interface RunTransitionOutput {
   status: string;
 }
 
+/**
+ * The update-and-verify pattern every lifecycle transition (and the approve
+ * rollback) repeats: move payroll_runs.status from an allowed current status
+ * to a new one, scoped to this company, and report whether a row actually
+ * matched — an update matching zero rows means "not in an expected state",
+ * never a silent no-op. Callers keep deciding what a matched/unmatched/error
+ * result means (halt code, rethrow, or best-effort rollback) — this only
+ * dedupes the query construction, not the per-tool semantics.
+ */
+async function transitionRun(
+  ctx: ToolContext,
+  runId: string,
+  from: RunStatus | readonly RunStatus[],
+  to: RunStatus,
+): Promise<{ data: { id: string } | null; error: { message: string } | null }> {
+  const base = ctx.supabase
+    .from("payroll_runs")
+    .update({ status: to })
+    .eq("id", runId)
+    .eq("company_id", ctx.companyId);
+  const scoped = typeof from === "string" ? base.eq("status", from) : base.in("status", from);
+  return scoped.select("id").maybeSingle();
+}
+
 export const approvePayrollRun = defineTool<z.infer<typeof runInput>, RunTransitionOutput>({
   name: "approve_payroll_run",
   description:
@@ -48,14 +75,8 @@ export const approvePayrollRun = defineTool<z.infer<typeof runInput>, RunTransit
       };
     }
 
-    const { data: transitioned, error } = await ctx.supabase
-      .from("payroll_runs")
-      .update({ status: "queued" })
-      .eq("id", input.runId)
-      .eq("company_id", ctx.companyId)
-      .eq("status", "draft") // only a draft can be approved (idempotent)
-      .select("id")
-      .maybeSingle();
+    // only a draft can be approved (idempotent)
+    const { data: transitioned, error } = await transitionRun(ctx, input.runId, "draft", "queued");
 
     if (error) {
       // Business gates from enforce_payroll_run_gating → structured halts.
@@ -101,14 +122,7 @@ export const approvePayrollRun = defineTool<z.infer<typeof runInput>, RunTransit
       // actually matched a row before claiming it happened: if the worker
       // advanced the run in the meantime, saying "rolled back" would be a lie
       // (CODE-REVIEW-2026-07 §Fix 2).
-      const { data: rolledBack } = await ctx.supabase
-        .from("payroll_runs")
-        .update({ status: "draft" })
-        .eq("id", input.runId)
-        .eq("company_id", ctx.companyId)
-        .eq("status", "queued")
-        .select("id")
-        .maybeSingle();
+      const { data: rolledBack } = await transitionRun(ctx, input.runId, "queued", "draft");
       return {
         halt: [
           {
@@ -132,16 +146,14 @@ export const cancelPayrollRun = defineTool<z.infer<typeof runInput>, RunTransiti
   requiresApproval: true,
   input: runInput,
   async run(input, ctx) {
-    const { data: transitioned, error } = await ctx.supabase
-      .from("payroll_runs")
-      .update({ status: "cancelled" })
-      .eq("id", input.runId)
-      .eq("company_id", ctx.companyId)
-      // "processing" included so a run stuck on a dead worker can be cleared,
-      // then reactivated via create_draft_payroll_run. Never a paid run.
-      .in("status", ["draft", "queued", "processing", "failed"])
-      .select("id")
-      .maybeSingle();
+    // "processing" included so a run stuck on a dead worker can be cleared,
+    // then reactivated via create_draft_payroll_run. Never a paid run.
+    const { data: transitioned, error } = await transitionRun(
+      ctx,
+      input.runId,
+      ["draft", "queued", "processing", "failed"],
+      "cancelled",
+    );
 
     if (error) throw new Error(`payroll_runs update: ${error.message}`);
     if (!transitioned) {
@@ -183,14 +195,8 @@ export const markPayrollRunPaid = defineTool<z.infer<typeof runInput>, RunTransi
       };
     }
 
-    const { data: transitioned, error } = await ctx.supabase
-      .from("payroll_runs")
-      .update({ status: "paid" })
-      .eq("id", input.runId)
-      .eq("company_id", ctx.companyId)
-      .eq("status", "completed") // only completed → paid
-      .select("id")
-      .maybeSingle();
+    // only completed → paid
+    const { data: transitioned, error } = await transitionRun(ctx, input.runId, "completed", "paid");
 
     if (error) throw new Error(`payroll_runs update: ${error.message}`);
     if (!transitioned) {

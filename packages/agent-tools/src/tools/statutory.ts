@@ -110,6 +110,8 @@ export interface StatutoryInput {
   hasGroupAssignment: boolean;
   hasApprovedOvertime: boolean;
   config: PayrollConfig;
+  /** YYYY-MM-DD start of the run period. */
+  periodStart: string;
   /** YYYY-MM-DD end of the run period. */
   periodEnd: string;
 }
@@ -139,6 +141,16 @@ export function computeEmployeeStatutory(input: StatutoryInput): StatutoryOutcom
     halts.push({
       code: "unsupported_pay_frequency",
       message: `${employee.full_name} is paid "${comp.pay_frequency}"; v0 computes monthly-paid employees only (daily/mixed needs attendance-derived earned base).`,
+    });
+  } else if (comp.effective_from > input.periodStart) {
+    // Mid-period hire/comp change (dry-run pre-flight 2026-07-19, staging
+    // employee E-7 effective 2026-07-17): the selected row is not in force
+    // for the whole period, so a full month's pay is an estimate — forbidden
+    // (pivot ground rule 1). Halt instead of silently paying the whole month.
+    halts.push({
+      code: "mid_period_compensation",
+      message: `${employee.full_name}'s compensation is effective ${comp.effective_from}, after the period start ${input.periodStart} — a full month would be estimated.`,
+      needs: "compensation effective on/before the period start, or proration support (not built — v0 computes whole months only)",
     });
   }
 

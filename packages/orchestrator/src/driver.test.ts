@@ -192,6 +192,87 @@ describe("runPayrollCycle", () => {
     expect(okEvent).toMatchObject({ status: "ok" });
   });
 
+  // CONSTRAINT (NEXT-2, docs/pivot/ROADMAP.md): `approvalTokens` is a
+  // Record<toolName, requestId> — ONE slot per tool name. When the model
+  // proposes the SAME mutating tool twice in one turn (two different runIds,
+  // say), both proposals open their own approval_requests row, but a resume
+  // call can only carry ONE of their two tokens under the shared
+  // "create_draft" key. This test asserts CURRENT behavior — it does not fix
+  // it; the fix (e.g. keying tokens by request id, or by a tool-call index)
+  // is a separate decision for the orchestrator to make.
+  it("same-named double proposal: two approval requests open, but a resume can only carry one token per tool name", async () => {
+    const db = fakeDb({ consumeResult: true });
+    const client = fakeModel([
+      {
+        stop_reason: "tool_use",
+        content: [
+          { type: "tool_use", id: "tu_1", name: "create_draft", input: { year: 2026, month: 7 } },
+          { type: "tool_use", id: "tu_2", name: "create_draft", input: { year: 2026, month: 8 } },
+        ],
+      },
+      {
+        stop_reason: "end_turn",
+        content: [{ type: "text", text: "Menunggu persetujuan pemilik untuk dua periode." }],
+      },
+    ]);
+
+    const proposeResult = await runPayrollCycle({
+      client,
+      toolContext: ctxWith(db),
+      instruction: "Buat draf payroll Juli dan Agustus 2026.",
+      tools: [readTool, mutateTool],
+    });
+
+    expect(proposeResult.status).toBe("awaiting_approval");
+    // Both proposals get their own row — no clobbering while OPENING requests.
+    expect(proposeResult.pendingApprovals).toHaveLength(2);
+    const opened = db.inserts.approval_requests!;
+    expect(opened).toHaveLength(2);
+    expect(opened[0]).toMatchObject({ tool_name: "create_draft", payload: { year: 2026, month: 7 } });
+    expect(opened[1]).toMatchObject({ tool_name: "create_draft", payload: { year: 2026, month: 8 } });
+
+    // Suppose the owner approves BOTH. A resume call still has only one
+    // "create_draft" key to carry a token in — pass the July request's id.
+    const julyRequestId = opened[0]!.id as string;
+    const client2 = fakeModel([
+      {
+        stop_reason: "tool_use",
+        content: [
+          { type: "tool_use", id: "tu_3", name: "create_draft", input: { year: 2026, month: 7 } },
+          { type: "tool_use", id: "tu_4", name: "create_draft", input: { year: 2026, month: 8 } },
+        ],
+      },
+      {
+        stop_reason: "end_turn",
+        content: [{ type: "text", text: "Draf Juli dibuat; Agustus masih menunggu." }],
+      },
+    ]);
+
+    const resumeResult = await runPayrollCycle({
+      client: client2,
+      toolContext: ctxWith(db),
+      instruction: "Lanjutkan siklus payroll.",
+      approvalTokens: { create_draft: julyRequestId },
+      tools: [readTool, mutateTool],
+    });
+
+    // July's call consumed the one available token and executed.
+    const julyOk = resumeResult.events.find(
+      (e) => e.type === "tool_result" && e.tool === "create_draft" && e.status === "ok",
+    );
+    expect(julyOk).toBeDefined();
+
+    // August's call ran with NO token — the single "create_draft" slot was
+    // already spent on July — so it is denied again and the driver opens a
+    // THIRD approval_requests row, even though the owner already approved
+    // August's original (second) request. That already-approved request is
+    // never consumed; a duplicate is created instead.
+    expect(resumeResult.status).toBe("awaiting_approval");
+    expect(resumeResult.pendingApprovals).toHaveLength(1);
+    expect(resumeResult.pendingApprovals[0]).toMatchObject({ tool: "create_draft" });
+    expect(db.inserts.approval_requests).toHaveLength(3);
+  });
+
   it("collects halts and reports a halted cycle", async () => {
     const db = fakeDb();
     const client = fakeModel([

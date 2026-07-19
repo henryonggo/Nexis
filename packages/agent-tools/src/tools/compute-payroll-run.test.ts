@@ -99,4 +99,46 @@ describe("compute_payroll_run", () => {
     if (result.status !== "halt") return;
     expect(result.reasons[0]!.code).toBe("missing_rate_config");
   });
+
+  // dry-run pre-flight 2026-07-19 (docs/pivot/dry-run-preflight-2026-07.md):
+  // staging's 7th active employee's only compensation row is effective
+  // mid-period (hired 2026-07-17). Paying a full month would be a silently
+  // wrong number (pivot ground rule 1) — the run must halt, not compute.
+  it("halts on a mid-period compensation change — no line leaks out", async () => {
+    const tables = completedTables();
+    const EMP_HIRE = "20000000-0000-0000-0000-000000000007";
+    tables.employees.push({
+      id: EMP_HIRE,
+      company_id: COMPANY_ID,
+      employee_no: "BW-007",
+      full_name: "Rina Marlina",
+      status: "active",
+      join_date: "2026-07-17",
+    });
+    tables.compensation.push({
+      company_id: COMPANY_ID,
+      employee_id: EMP_HIRE,
+      base_salary: 5_000_000,
+      pay_frequency: "monthly",
+      fixed_allowances: 0,
+      bpjs_kes_enrolled: true,
+      jht_enrolled: true,
+      jp_enrolled: true,
+      effective_from: "2026-07-17",
+    });
+    tables.tax_profile.push({
+      company_id: COMPANY_ID,
+      employee_id: EMP_HIRE,
+      ptkp_status: "TK/0",
+      has_npwp: true,
+    });
+    const result = await executeTool(computePayrollRun, PERIOD, makeCtx(tables));
+    expect(result.status).toBe("halt");
+    if (result.status !== "halt") return;
+    expect(result.reasons.map((r) => r.code)).toEqual(["mid_period_compensation"]);
+    expect(result.reasons[0]!.message).toContain("Rina Marlina");
+    expect(result.reasons[0]!.message).toContain("2026-07-17");
+    // Budi + Siti's clean lines must NOT leak out as a partial answer.
+    expect("data" in result).toBe(false);
+  });
 });

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { buildPayrollConfig } from "@nexis/payroll";
 import { defineTool } from "../tool";
 import type { HaltReason } from "../result";
+import { loadStatutoryInputs } from "./load-inputs";
 import {
   computeEmployeeStatutory,
   effectiveOn,
@@ -56,78 +57,8 @@ export const computePph21ForEmployee = defineTool<z.infer<typeof inputSchema>, P
     const start = periodStart(input.year, input.month);
     const end = periodEnd(input.year, input.month);
 
-    const [empRes, compRes, taxRes, settingsRes, bpjsRes, terRes, otRes, earnTypesRes, earnRes, earnGroupRes] =
-      await Promise.all([
-        ctx.supabase
-          .from("employees")
-          .select("id, full_name, status")
-          .eq("company_id", ctx.companyId)
-          .eq("id", input.employeeId)
-          .maybeSingle(),
-        ctx.supabase
-          .from("compensation")
-          .select(
-            "employee_id, base_salary, pay_frequency, fixed_allowances, bpjs_kes_enrolled, jht_enrolled, jp_enrolled, effective_from",
-          )
-          .eq("company_id", ctx.companyId)
-          .eq("employee_id", input.employeeId),
-        ctx.supabase
-          .from("tax_profile")
-          .select("ptkp_status, has_npwp")
-          .eq("company_id", ctx.companyId)
-          .eq("employee_id", input.employeeId)
-          .maybeSingle(),
-        ctx.supabase
-          .from("company_settings")
-          .select("jkk_risk_class")
-          .eq("company_id", ctx.companyId)
-          .maybeSingle(),
-        ctx.supabase
-          .from("bpjs_config")
-          .select("key, rate_bps, amount, effective_from, effective_to"),
-        ctx.supabase
-          .from("ter_rates")
-          .select("category, income_lower, rate_bps, effective_from, effective_to"),
-        ctx.supabase
-          .from("overtime_entries")
-          .select("id")
-          .eq("company_id", ctx.companyId)
-          .eq("employee_id", input.employeeId)
-          .eq("is_approved", true)
-          .gte("date", start)
-          .lte("date", end)
-          .limit(1),
-        ctx.supabase
-          .from("custom_earning_types")
-          .select("id, name, calc, amount, rate_bps, base, taxable, active")
-          .eq("company_id", ctx.companyId),
-        ctx.supabase
-          .from("employee_earning")
-          .select("custom_type_id, amount_override, enabled")
-          .eq("company_id", ctx.companyId)
-          .eq("employee_id", input.employeeId),
-        ctx.supabase
-          .from("employee_earning_group")
-          .select("group_id")
-          .eq("company_id", ctx.companyId)
-          .eq("employee_id", input.employeeId)
-          .maybeSingle(),
-      ]);
-
-    for (const [label, res] of [
-      ["employees", empRes],
-      ["compensation", compRes],
-      ["tax_profile", taxRes],
-      ["company_settings", settingsRes],
-      ["bpjs_config", bpjsRes],
-      ["ter_rates", terRes],
-      ["overtime_entries", otRes],
-      ["custom_earning_types", earnTypesRes],
-      ["employee_earning", earnRes],
-      ["employee_earning_group", earnGroupRes],
-    ] as const) {
-      if (res.error) throw new Error(`${label}: ${res.error.message}`);
-    }
+    const { empRes, compRes, taxRes, settingsRes, bpjsRes, terRes, otRes, earnTypesRes, earnRes, earnGroupRes } =
+      await loadStatutoryInputs(ctx, { start, end }, input.employeeId);
 
     const employee = empRes.data;
     if (!employee) {
@@ -171,6 +102,7 @@ export const computePph21ForEmployee = defineTool<z.infer<typeof inputSchema>, P
       hasGroupAssignment: Boolean(earnGroupRes.data?.group_id),
       hasApprovedOvertime: (otRes.data ?? []).length > 0,
       config: buildPayrollConfig(bpjsRows, terRows),
+      periodStart: start,
       periodEnd: end,
     });
 
