@@ -116,3 +116,26 @@ RPC); `packages/types` picks up the new table when db-engineer regenerates.
 - Canonical-JSON hashing must be deterministic across the orchestrator and
   the verifier; the hash is computed in `packages/agent-tools` (single
   implementation, unit-tested) and stored at request creation.
+
+## Amendment 2026-07-19 — token resolution by payload hash
+
+The driver originally received approved request ids as
+`approvalTokens: Record<toolName, requestId>` and handed the token to the
+first call with that tool name. The NEXT-2 driver test proved two defects:
+two same-named proposals in one turn fight over one slot (the second
+already-approved request is orphaned and a duplicate is opened), and even a
+single token can be handed to the wrong same-named call when the model
+re-issues calls in a different order (consumption then fails on hash
+mismatch).
+
+Resolution now mirrors the binding the mechanism already enforces: for each
+`requiresApproval` call, the driver computes `approvalPayloadHash(tool,
+payload)` and looks up the oldest **approved** `approval_requests` row
+matching `(company_id, tool_name, payload_hash)`; that row's id is the
+token. The legacy `approvalTokens` parameter remains accepted as a
+fallback hint only. Before opening a new request on the denied path, the
+driver also reuses an existing **pending** row with the same
+`(tool_name, payload_hash)` instead of inserting a duplicate. Guarantees
+unchanged: single-use, hash-bound, RLS-scoped, owner decides —
+`consume_approval` still verifies everything server-side; discovery only
+fixes *which* approved request a call consumes.
