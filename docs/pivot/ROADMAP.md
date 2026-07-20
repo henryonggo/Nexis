@@ -74,9 +74,17 @@ list — do not burn the week the log was meant to steer.
    (oldest approved row wins; pending rows are reused, never duplicated);
    the tool-name-keyed `approvalTokens` param is deprecated to a fallback
    hint. ADR 0002 amended. (domain-engineer, 2026-07-19)
-4. **`agent_cycles` table + approval expiry sweep + shared
-   `PayrollConfigSnapshot` type**; tighten worker to `queued|processing`.
-   (db-engineer)
+4. ✔ **`agent_cycles` table + approval expiry sweep + shared
+   `PayrollConfigSnapshot` type** — append-only per-cycle log (driver now
+   records every cycle, `CycleResult.recorded` mirrors the audit pattern);
+   expired requests can no longer be approved (trigger) and a
+   `expire_stale_approval_requests()` sweep exists (scheduling =
+   deploy-time decision, no pg_cron precedent); snapshot type shared
+   writer↔worker via `@nexis/payroll` (`terRateBps` correctly omitted —
+   functions don't serialize). Worker tightening to `queued|processing`
+   **deferred**: `draft` stays until the legacy manual path is retired
+   (post-dry-run decision). Migration `20260720143000` needs staging
+   apply. (db-engineer + domain-engineer, 2026-07-20)
 5. **Widen the agent's gross** — percentage earnings + earning groups, then
    daily/mixed pay and approved overtime, so fewer rosters halt. Each halts
    until built — never estimates. Not needed by customer zero's current

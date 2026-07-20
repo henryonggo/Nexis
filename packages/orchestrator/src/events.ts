@@ -30,4 +30,6 @@ export interface CycleResult {
   halts: HaltReason[];
   /** Approval requests opened this cycle; resume once the owner decides. */
   pendingApprovals: { requestId: string; tool: string; summary: string }[];
+  /** Whether the `agent_cycles` audit row for this cycle was persisted. */
+  recorded: boolean;
 }
