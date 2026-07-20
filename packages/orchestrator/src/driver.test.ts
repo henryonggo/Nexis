@@ -11,7 +11,7 @@ import { toAnthropicTools } from "./tool-adapter";
  * select (for the payload-hash finders), consume RPC. Inserted rows default
  * to `status: "pending"`, matching the real table's column default.
  */
-function fakeDb(opts: { consumeResult?: boolean } = {}) {
+function fakeDb(opts: { consumeResult?: boolean; agentCyclesInsertError?: string } = {}) {
   const inserts: Record<string, Record<string, unknown>[]> = {};
   const db = {
     inserts,
@@ -24,11 +24,15 @@ function fakeDb(opts: { consumeResult?: boolean } = {}) {
             ...row,
           };
           (inserts[table] ??= []).push(stored);
+          const error =
+            table === "agent_cycles" && opts.agentCyclesInsertError
+              ? { message: opts.agentCyclesInsertError }
+              : null;
           return {
             then: (
-              onfulfilled?: (v: { error: null }) => unknown,
+              onfulfilled?: (v: { error: typeof error }) => unknown,
               onrejected?: (e: unknown) => unknown,
-            ) => Promise.resolve({ error: null }).then(onfulfilled, onrejected),
+            ) => Promise.resolve({ error }).then(onfulfilled, onrejected),
             select: () => ({
               single: () => Promise.resolve({ data: stored, error: null }),
             }),
@@ -440,6 +444,100 @@ describe("runPayrollCycle", () => {
     });
 
     expect(result.status).toBe("max_turns");
+  });
+
+  it("records one agent_cycles row for a completed cycle", async () => {
+    const db = fakeDb();
+    const client = fakeModel([
+      {
+        stop_reason: "tool_use",
+        content: [
+          { type: "tool_use", id: "tu_1", name: "read_numbers", input: { year: 2026 } },
+        ],
+      },
+      {
+        stop_reason: "end_turn",
+        content: [{ type: "text", text: "Total bruto Rp15.000.000." }],
+      },
+    ]);
+
+    const result = await runPayrollCycle({
+      client,
+      toolContext: ctxWith(db),
+      instruction: "Jalankan siklus payroll Juli 2026.",
+      tools: [readTool, mutateTool],
+    });
+
+    expect(result.status).toBe("completed");
+    expect(result.recorded).toBe(true);
+    expect(db.inserts.agent_cycles).toHaveLength(1);
+    expect(db.inserts.agent_cycles![0]).toMatchObject({
+      company_id: "10000000-0000-0000-0000-000000000001",
+      instruction: "Jalankan siklus payroll Juli 2026.",
+      status: "completed",
+      pending_request_ids: [],
+    });
+  });
+
+  it("records pending_request_ids for an awaiting_approval cycle", async () => {
+    const db = fakeDb();
+    const client = fakeModel([
+      {
+        stop_reason: "tool_use",
+        content: [
+          { type: "tool_use", id: "tu_1", name: "create_draft", input: { year: 2026, month: 7 } },
+        ],
+      },
+      {
+        stop_reason: "end_turn",
+        content: [{ type: "text", text: "Menunggu persetujuan pemilik." }],
+      },
+    ]);
+
+    const result = await runPayrollCycle({
+      client,
+      toolContext: ctxWith(db),
+      instruction: "Buat draf payroll Juli 2026.",
+      tools: [readTool, mutateTool],
+    });
+
+    expect(result.status).toBe("awaiting_approval");
+    expect(result.recorded).toBe(true);
+    expect(db.inserts.agent_cycles).toHaveLength(1);
+    const row = db.inserts.agent_cycles![0]!;
+    expect(row.status).toBe("awaiting_approval");
+    expect(row.pending_request_ids).toEqual([result.pendingApprovals[0]!.requestId]);
+  });
+
+  it("swallows an agent_cycles insert failure: recorded false, cycle result otherwise unchanged", async () => {
+    const db = fakeDb({ agentCyclesInsertError: "relation locked" });
+    const client = fakeModel([
+      {
+        stop_reason: "tool_use",
+        content: [
+          { type: "tool_use", id: "tu_1", name: "read_numbers", input: { year: 2026 } },
+        ],
+      },
+      {
+        stop_reason: "end_turn",
+        content: [{ type: "text", text: "Total bruto Rp15.000.000." }],
+      },
+    ]);
+
+    const result = await runPayrollCycle({
+      client,
+      toolContext: ctxWith(db),
+      instruction: "Jalankan siklus payroll Juli 2026.",
+      tools: [readTool, mutateTool],
+    });
+
+    expect(result.status).toBe("completed");
+    expect(result.finalText).toBe("Total bruto Rp15.000.000.");
+    expect(result.recorded).toBe(false);
+    expect(result.events).toContainEqual({
+      type: "error",
+      message: "agent_cycles insert failed: relation locked",
+    });
   });
 });
 

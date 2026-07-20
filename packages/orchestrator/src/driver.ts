@@ -113,11 +113,16 @@ export async function runPayrollCycle(options: CycleOptions): Promise<CycleResul
     onEvent,
   } = options;
   const approvalTokens = { ...(options.approvalTokens ?? {}) };
+  const startedAt = new Date().toISOString();
 
   const events: OrchestratorEvent[] = [];
   const halts: HaltReason[] = [];
   const pendingApprovals: CycleResult["pendingApprovals"] = [];
   let finalText = "";
+  // Set exactly once, on the single path that ends the cycle below; null
+  // means "still running" so the post-loop fallback (maxTurns exhausted)
+  // can tell it apart from an explicit "max_turns" outcome.
+  let status: CycleResult["status"] | null = null;
   const emit = (event: OrchestratorEvent) => {
     events.push(event);
     onEvent?.(event);
@@ -150,7 +155,8 @@ export async function runPayrollCycle(options: CycleOptions): Promise<CycleResul
     } catch (err) {
       const message = err instanceof Error ? err.message : "model request failed";
       emit({ type: "error", message });
-      return { status: "error", finalText, events, halts, pendingApprovals };
+      status = "error";
+      break;
     }
 
     for (const block of response.content) {
@@ -167,7 +173,8 @@ export async function runPayrollCycle(options: CycleOptions): Promise<CycleResul
     // owner; content may be empty or partial — discard partials.
     if (response.stop_reason === "refusal") {
       emit({ type: "refusal", detail: response.stop_details?.explanation ?? null });
-      return { status: "refusal", finalText, events, halts, pendingApprovals };
+      status = "refusal";
+      break;
     }
 
     // Echo the full assistant content back (thinking blocks included, per
@@ -183,14 +190,15 @@ export async function runPayrollCycle(options: CycleOptions): Promise<CycleResul
     if (toolUses.length === 0) {
       if (response.stop_reason === "max_tokens") {
         emit({ type: "error", message: "Model output truncated (max_tokens)." });
-        return { status: "error", finalText, events, halts, pendingApprovals };
+        status = "error";
+        break;
       }
-      const status = pendingApprovals.length > 0
+      status = pendingApprovals.length > 0
         ? "awaiting_approval"
         : halts.length > 0
           ? "halted"
           : "completed";
-      return { status, finalText, events, halts, pendingApprovals };
+      break;
     }
 
     // Execute every tool call in the batch; ALL results go back in ONE user
@@ -337,6 +345,38 @@ export async function runPayrollCycle(options: CycleOptions): Promise<CycleResul
     messages.push({ role: "user", content: toolResults });
   }
 
-  emit({ type: "error", message: `Cycle exceeded ${maxTurns} turns.` });
-  return { status: "max_turns", finalText, events, halts, pendingApprovals };
+  if (status === null) {
+    emit({ type: "error", message: `Cycle exceeded ${maxTurns} turns.` });
+    status = "max_turns";
+  }
+
+  // Single exit point: record one agent_cycles row per cycle, best-effort —
+  // mirrors the tool executor's audit insert (packages/agent-tools/src/tool.ts,
+  // recordAudit). A failed insert never changes the cycle outcome; it only
+  // flips `recorded` to false and emits an "error" event so it's visible to
+  // the caller/failure log.
+  let recorded = false;
+  try {
+    const { error } = await toolContext.supabase.from("agent_cycles").insert({
+      company_id: toolContext.companyId,
+      instruction,
+      status,
+      final_text: finalText || null,
+      halts: halts as never,
+      pending_request_ids: pendingApprovals.map((p) => p.requestId),
+      started_at: startedAt,
+    });
+    if (error) {
+      emit({ type: "error", message: `agent_cycles insert failed: ${error.message}` });
+    } else {
+      recorded = true;
+    }
+  } catch (err) {
+    emit({
+      type: "error",
+      message: `agent_cycles insert failed: ${err instanceof Error ? err.message : "unknown error"}`,
+    });
+  }
+
+  return { status, finalText, events, halts, pendingApprovals, recorded };
 }

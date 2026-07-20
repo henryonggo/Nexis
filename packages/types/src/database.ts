@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_cycles: {
+        Row: {
+          company_id: string
+          final_text: string | null
+          finished_at: string
+          halts: Json
+          id: string
+          instruction: string
+          pending_request_ids: string[]
+          started_at: string
+          started_by: string
+          status: Database["public"]["Enums"]["agent_cycle_status"]
+        }
+        Insert: {
+          company_id: string
+          final_text?: string | null
+          finished_at?: string
+          halts?: Json
+          id?: string
+          instruction: string
+          pending_request_ids?: string[]
+          started_at: string
+          started_by?: string
+          status: Database["public"]["Enums"]["agent_cycle_status"]
+        }
+        Update: {
+          company_id?: string
+          final_text?: string | null
+          finished_at?: string
+          halts?: Json
+          id?: string
+          instruction?: string
+          pending_request_ids?: string[]
+          started_at?: string
+          started_by?: string
+          status?: Database["public"]["Enums"]["agent_cycle_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_cycles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       api_request_logs: {
         Row: {
           created_at: string
@@ -3375,6 +3422,7 @@ export type Database = {
         Returns: string
       }
       deactivate_current_user: { Args: never; Returns: undefined }
+      expire_stale_approval_requests: { Args: never; Returns: number }
       generate_api_key: {
         Args: {
           p_company_id: string
@@ -3541,6 +3589,13 @@ export type Database = {
       }
     }
     Enums: {
+      agent_cycle_status:
+        | "completed"
+        | "awaiting_approval"
+        | "halted"
+        | "error"
+        | "refusal"
+        | "max_turns"
       application_stage:
         | "applied"
         | "screening"
@@ -3708,6 +3763,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      agent_cycle_status: [
+        "completed",
+        "awaiting_approval",
+        "halted",
+        "error",
+        "refusal",
+        "max_turns",
+      ],
       application_stage: [
         "applied",
         "screening",

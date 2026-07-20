@@ -19,6 +19,7 @@ import {
   type JkkRiskClass,
   type PtkpStatus,
   type TerCategory,
+  type PayrollConfigSnapshot,
 } from "@nexis/payroll";
 
 // Load environment variables
@@ -48,38 +49,36 @@ const supabase = createClient<Database>(supabaseUrl, supabaseServiceKey, {
   },
 });
 
-function convertToIdr(amountMinor: number, currencyCode: string, currencies: any[], exchangeRates: any[], effectiveDateStr: string, configSnapshot: any): number {
+// `configSnapshot` is accepted for parity with its call sites and future use,
+// but PayrollConfigSnapshot (the frozen @nexis/payroll contract) carries only
+// BPJS/TER config — never FX rates — so the rate always comes from the
+// `exchange_rates` table as of the run's effective date.
+function convertToIdr(amountMinor: number, currencyCode: string, currencies: any[], exchangeRates: any[], effectiveDateStr: string, _configSnapshot: PayrollConfigSnapshot | null): number {
   if (currencyCode === "IDR") return amountMinor;
   const currency = currencies.find(c => c.code === currencyCode);
   const decimals = currency ? currency.decimals : 2;
-  
-  let rate = configSnapshot?.exchangeRates?.[currencyCode];
-  if (rate === undefined) {
-    const activeRates = (exchangeRates || [])
-      .filter(r => r.quote === currencyCode && r.base === "IDR" && r.effective_from <= effectiveDateStr)
-      .sort((a, b) => b.effective_from.localeCompare(a.effective_from));
-    const exRate = activeRates[0];
-    rate = exRate ? Number(exRate.rate) : 1;
-  }
-  
+
+  const activeRates = (exchangeRates || [])
+    .filter(r => r.quote === currencyCode && r.base === "IDR" && r.effective_from <= effectiveDateStr)
+    .sort((a, b) => b.effective_from.localeCompare(a.effective_from));
+  const exRate = activeRates[0];
+  const rate = exRate ? Number(exRate.rate) : 1;
+
   const amountMajor = amountMinor / Math.pow(10, decimals);
   return Math.round(amountMajor * rate);
 }
 
-function convertFromIdr(amountIdr: number, currencyCode: string, currencies: any[], exchangeRates: any[], effectiveDateStr: string, configSnapshot: any): number {
+function convertFromIdr(amountIdr: number, currencyCode: string, currencies: any[], exchangeRates: any[], effectiveDateStr: string, _configSnapshot: PayrollConfigSnapshot | null): number {
   if (currencyCode === "IDR") return amountIdr;
   const currency = currencies.find(c => c.code === currencyCode);
   const decimals = currency ? currency.decimals : 2;
-  
-  let rate = configSnapshot?.exchangeRates?.[currencyCode];
-  if (rate === undefined) {
-    const activeRates = (exchangeRates || [])
-      .filter(r => r.quote === currencyCode && r.base === "IDR" && r.effective_from <= effectiveDateStr)
-      .sort((a, b) => b.effective_from.localeCompare(a.effective_from));
-    const exRate = activeRates[0];
-    rate = exRate ? Number(exRate.rate) : 1;
-  }
-  
+
+  const activeRates = (exchangeRates || [])
+    .filter(r => r.quote === currencyCode && r.base === "IDR" && r.effective_from <= effectiveDateStr)
+    .sort((a, b) => b.effective_from.localeCompare(a.effective_from));
+  const exRate = activeRates[0];
+  const rate = exRate ? Number(exRate.rate) : 1;
+
   const amountMajor = amountIdr / rate;
   return Math.round(amountMajor * Math.pow(10, decimals));
 }
@@ -125,6 +124,26 @@ function getJakartaDate(timestamptzStr: string | Date): string {
     day: "2-digit"
   });
   return formatter.format(d);
+}
+
+/**
+ * Narrow `payroll_runs.config_snapshot` (untyped jsonb) to the frozen
+ * PayrollConfigSnapshot contract (@nexis/payroll) instead of trusting it
+ * blind. Rows written before this contract existed, or corrupted rows,
+ * safely fall through to `null` rather than propagating a bad shape.
+ */
+function asPayrollConfigSnapshot(value: unknown): PayrollConfigSnapshot | null {
+  if (!value || typeof value !== "object") return null;
+  const v = value as Record<string, unknown>;
+  if (
+    typeof v.effectiveDate !== "string" ||
+    (v.runType !== "monthly" && v.runType !== "thr") ||
+    typeof v.config !== "object" ||
+    v.config === null
+  ) {
+    return null;
+  }
+  return v as unknown as PayrollConfigSnapshot;
 }
 
 /** Filter rows by effective date range */
@@ -265,6 +284,7 @@ app.post("/process", async (req, res) => {
     // (the container was killed before it could finalize) can be recovered by a
     // retry — otherwise it would 409 forever and never complete. Re-processing is
     // idempotent: step 3 clears any payroll_items the prior attempt wrote.
+    // `draft` stays in this list until the legacy manual path is retired (post-dry-run decision) — not tightened here.
     const { data: run, error: runError } = await supabase
       .from("payroll_runs")
       .update({ status: "processing" })
@@ -284,9 +304,11 @@ app.post("/process", async (req, res) => {
     const year = run.period_year;
     const month = run.period_month;
     const runType = run.status === "draft" ? "monthly" : "monthly"; // default, check if we want THR later
-    // Actually the payroll_runs might not store runType directly in columns. Let's infer runType:
-    // If the snapshot has runType or we can check the config_snapshot
-    const configSnapshot = run.config_snapshot as any;
+    // payroll_runs has no run_type column — the run's type is carried in
+    // config_snapshot (apps/web/lib/payroll.ts writes it at draft creation),
+    // narrowed here against the frozen PayrollConfigSnapshot shape rather
+    // than trusted blind (config_snapshot is untyped jsonb).
+    const configSnapshot = asPayrollConfigSnapshot(run.config_snapshot);
     const isThr = configSnapshot?.runType === "thr" || run.total_bpjs_employee === 0 && run.total_pph21 === 0 && run.total_gross > 0; // fallback check
     const inferredRunType = isThr ? "thr" : "monthly";
 
