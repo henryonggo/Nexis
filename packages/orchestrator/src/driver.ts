@@ -1,7 +1,10 @@
 import {
+  approvalPayloadHash,
   canonicalJson,
   createApprovalRequest,
   executeTool,
+  findConsumableApprovalRequest,
+  findPendingApprovalRequest,
   AGENT_TOOLS,
   type ToolContext,
 } from "@nexis/agent-tools";
@@ -83,9 +86,11 @@ export interface CycleOptions {
   /** The kickoff instruction, e.g. "Jalankan siklus payroll Juli 2026." */
   instruction: string;
   /**
-   * Owner-approved request ids by tool name, for RESUMING a paused cycle.
-   * Each token is handed to its tool exactly once (consume_approval enforces
-   * single use server-side as well).
+   * @deprecated Hint only. Discovery by payload hash (`findConsumableApprovalRequest`,
+   * NEXT-3) is authoritative and resolves same-named proposals correctly
+   * regardless of call order; this Record<toolName, requestId> has only one
+   * slot per tool name, so it cannot disambiguate two same-named proposals.
+   * Kept as a fallback because apps/web still sends it.
    */
   approvalTokens?: Record<string, string>;
   tools?: readonly AnyTool[];
@@ -206,9 +211,33 @@ export async function runPayrollCycle(options: CycleOptions): Promise<CycleResul
         continue;
       }
 
-      // Hand a resume token to its tool exactly once.
-      const approvalToken = approvalTokens[call.name];
-      if (approvalToken) delete approvalTokens[call.name];
+      // Approval-gated tools: parse once — the same payload feeds the hash
+      // lookup below, a freshly opened approval_requests row (denied path),
+      // and (via executeTool, which re-parses call.input itself) the run.
+      let approvalToken: string | undefined;
+      let payload: unknown = call.input;
+      let payloadHash: string | undefined;
+      if (tool.requiresApproval) {
+        const parsed = tool.input.safeParse(call.input);
+        payload = parsed.success ? parsed.data : call.input;
+        payloadHash = await approvalPayloadHash(call.name, payload);
+
+        // Resolve by payload hash first (NEXT-3): the oldest APPROVED
+        // request that authorizes this exact call, regardless of call order
+        // or how many same-named proposals are in flight. Falls back to the
+        // legacy tool-name slot only if no hash match is found.
+        const consumable = await findConsumableApprovalRequest({
+          supabase: toolContext.supabase,
+          companyId: toolContext.companyId,
+          toolName: call.name,
+          payloadHash,
+        });
+        approvalToken = consumable?.requestId;
+        if (!approvalToken) {
+          approvalToken = approvalTokens[call.name];
+          if (approvalToken) delete approvalTokens[call.name];
+        }
+      }
 
       const result = await executeTool(tool, call.input, { ...toolContext, approvalToken });
 
@@ -236,19 +265,25 @@ export async function runPayrollCycle(options: CycleOptions): Promise<CycleResul
         case "denied": {
           emit({ type: "tool_result", tool: call.name, status: "denied", detail: result.reason });
           if (tool.requiresApproval && !approvalToken) {
-            // Open the approval request (ADR 0002 step 1) with the tool's own
-            // parse of the input, so the stored hash matches what executeTool
-            // recomputes at consume time.
-            const parsed = tool.input.safeParse(call.input);
-            const payload = parsed.success ? parsed.data : call.input;
             const summary = `Agen mengusulkan ${call.name}: ${canonicalJson(payload)}`;
-            const request = await createApprovalRequest({
+            // A same-named, same-payload request may already be pending
+            // (e.g. this call was proposed earlier and the owner hasn't
+            // decided yet) — reuse it instead of opening a duplicate row.
+            const pending = await findPendingApprovalRequest({
               supabase: toolContext.supabase,
               companyId: toolContext.companyId,
               toolName: call.name,
-              payload,
-              summary,
+              payloadHash: payloadHash!,
             });
+            const request = pending
+              ? { ok: true as const, requestId: pending.requestId }
+              : await createApprovalRequest({
+                  supabase: toolContext.supabase,
+                  companyId: toolContext.companyId,
+                  toolName: call.name,
+                  payload,
+                  summary,
+                });
             if (request.ok) {
               pendingApprovals.push({ requestId: request.requestId, tool: call.name, summary });
               emit({

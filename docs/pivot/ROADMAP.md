@@ -69,13 +69,11 @@ list — do not burn the week the log was meant to steer.
    tools, lifecycle tools share `transitionRun`, nonzero-band B/C tests with
    seed-derived numbers, plus (from the pre-flight) the new
    `mid_period_compensation` halt. (domain-engineer, 2026-07-19)
-3. **Approval-token keying fix** — surfaced by the NEXT-2 driver test:
-   `approvalTokens` is keyed by tool name, so when the model proposes the
-   same tool twice in one turn, a resume can carry only one token; the other
-   already-approved request is orphaned and a duplicate is opened. Key
-   tokens by request id (or call index). Not a dry-run blocker — one
-   proposal per turn today; rank confirmed by the dry run.
-   (domain-engineer)
+3. ✔ **Approval-token resolution fix** — driver now resolves approvals by
+   `(tool_name, payload_hash)` discovery against `approval_requests`
+   (oldest approved row wins; pending rows are reused, never duplicated);
+   the tool-name-keyed `approvalTokens` param is deprecated to a fallback
+   hint. ADR 0002 amended. (domain-engineer, 2026-07-19)
 4. **`agent_cycles` table + approval expiry sweep + shared
    `PayrollConfigSnapshot` type**; tighten worker to `queued|processing`.
    (db-engineer)
