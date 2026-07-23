@@ -94,8 +94,13 @@ list — do not burn the week the log was meant to steer.
    requiring a backdated compensation row. (domain-engineer)
 6. ✔ **`requireAdmin` sweep** — duplicated owner/admin checks replaced with
    `lib/roles.ts` across apps/web. (app-engineer)
-7. **Approval queue niceties** — formatted payload (money as Rp, not JSON),
-   cycle history view fed by `agent_cycles` (after item 4). (app-engineer)
+7. ✔ **Approval queue niceties** — approval cards lead with a human-readable
+   line (period via `formatPeriod`, or a compact run id) with raw JSON kept
+   collapsed; new **Riwayat agen** history section reads `agent_cycles`.
+   Scope correction: the "money as Rp" framing didn't apply — every
+   approval-gated tool takes `{year,month}` or `{runId}`, so no payload
+   carries money; `formatRupiah` stays a fallback for a future money field.
+   (app-engineer, 2026-07-20)
 8. **WhatsApp/email approval digest** — the pivot's v0 alternative surface;
    decide→approve via link. Needs an ADR first. (orchestrator → ADR 0005)
 
