@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { PayrollConfigSnapshot } from "@nexis/payroll";
 import { defineTool } from "../tool";
 import type { HaltReason } from "../result";
 import { loadAndComputeRun, type PayrollRunOutput } from "./compute-payroll-run";
@@ -90,7 +91,9 @@ export const createDraftPayrollRun = defineTool<z.infer<typeof inputSchema>, Cre
 
     const runFields = {
       status: "draft" as const,
-      // Exact shape computeRunPreview snapshots and the worker reads.
+      // Exact shape computeRunPreview snapshots and the worker reads —
+      // checked against @nexis/payroll's PayrollConfigSnapshot so drift
+      // between this writer and the reader fails at typecheck.
       config_snapshot: {
         effectiveDate: computed.effectiveDate,
         runType: "monthly",
@@ -106,7 +109,7 @@ export const createDraftPayrollRun = defineTool<z.infer<typeof inputSchema>, Cre
           bpjsKesCap: computed.config.bpjsKesCap,
           jpCap: computed.config.jpCap,
         },
-      },
+      } satisfies PayrollConfigSnapshot,
       total_gross: computed.totals.gross,
       total_bpjs_employee: computed.totals.bpjsEmployee,
       total_bpjs_employer: computed.totals.bpjsEmployer,

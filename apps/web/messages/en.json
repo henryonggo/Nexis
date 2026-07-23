@@ -1432,6 +1432,16 @@
     "payload": "Proposal details",
     "noSummary": "(no summary)",
     "notAdmin": "Only the owner/admin can decide requests.",
+    "payloadDescription": {
+      "createDraftPayrollRun": "Create the draft payroll run for {period}.",
+      "runId": "Run ID: {runId}"
+    },
+    "agentHistory": {
+      "title": "Agent activity",
+      "empty": "No agent cycles yet.",
+      "haltsCount": "{count} to complete",
+      "pendingCount": "{count} proposal(s)"
+    },
     "status": {
       "pending": "Pending",
       "approved": "Approved",

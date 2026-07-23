@@ -75,6 +75,20 @@ describe("compute_pph21_for_employee", () => {
     expect(haltCodes(result)).toContain("missing_compensation");
   });
 
+  it("halts on a mid-period compensation change instead of paying a full month (staging E-7, hired 2026-07-17)", async () => {
+    const tables = baseTables();
+    tables.compensation[0]!.effective_from = "2026-07-17"; // mid-month hire
+    const result = await executeTool(computePph21ForEmployee, PERIOD, makeCtx(tables));
+    expect(result.status).toBe("halt");
+    expect(haltCodes(result)).toEqual(["mid_period_compensation"]);
+    if (result.status !== "halt") return;
+    expect(result.reasons[0]!.message).toContain("Budi Santoso");
+    expect(result.reasons[0]!.message).toContain("2026-07-17");
+    expect(result.reasons[0]!.needs).toBe(
+      "compensation effective on/before the period start, or proration support (not built — v0 computes whole months only)",
+    );
+  });
+
   it("halts for non-monthly pay frequencies in v0", async () => {
     const tables = baseTables();
     tables.compensation[0]!.pay_frequency = "daily";
@@ -295,5 +309,100 @@ describe("compute_pph21_for_employee", () => {
     const codes = haltCodes(result);
     expect(codes).toContain("missing_tax_profile");
     expect(codes).toContain("missing_jkk_risk_class");
+  });
+
+  // NEXT-2 (docs/pivot/ROADMAP.md): fixtures previously only exercised TER
+  // B/C in the 0% band. Bands below mirror the first nonzero rows of the
+  // real ter_rates seed (supabase/seed.sql) — numbers are derived from the
+  // fixture bands, never invented.
+  const EMP_CITRA = "20000000-0000-0000-0000-000000000004";
+  const EMP_DEWI = "20000000-0000-0000-0000-000000000005";
+
+  it("computes a TER category B employee in a nonzero band (TK/2)", async () => {
+    const tables = baseTables();
+    tables.employees.push({
+      id: EMP_CITRA,
+      company_id: COMPANY_ID,
+      employee_no: "BW-004",
+      full_name: "Citra Lestari",
+      status: "active",
+      join_date: "2025-03-01",
+    });
+    tables.compensation.push({
+      company_id: COMPANY_ID,
+      employee_id: EMP_CITRA,
+      base_salary: 6_300_000,
+      pay_frequency: "monthly",
+      fixed_allowances: 0,
+      bpjs_kes_enrolled: true,
+      jht_enrolled: true,
+      jp_enrolled: true,
+      effective_from: "2025-03-01",
+    });
+    tables.tax_profile.push({
+      company_id: COMPANY_ID,
+      employee_id: EMP_CITRA,
+      ptkp_status: "TK/2",
+      has_npwp: true,
+    });
+    const result = await executeTool(
+      computePph21ForEmployee,
+      { employeeId: EMP_CITRA, year: 2026, month: 7 },
+      makeCtx(tables),
+    );
+    expect(result.status).toBe("ok");
+    if (result.status !== "ok") return;
+    // TER category B, band 6,200,001–6,500,000 -> 25 bps (supabase/seed.sql).
+    expect(result.data.inputs.terCategory).toBe("B");
+    expect(result.data.result.terRateBps).toBe(25);
+    expect(result.data.result.pph21).toBe(15_750); // 6,300,000 * 25 bps
+    expect(result.data.result.bpjsKesEmployee).toBe(63_000);
+    expect(result.data.result.jhtEmployee).toBe(126_000);
+    expect(result.data.result.jpEmployee).toBe(63_000);
+    expect(result.data.result.netPay).toBe(6_032_250);
+  });
+
+  it("computes a TER category C employee in a nonzero band (K/3)", async () => {
+    const tables = baseTables();
+    tables.employees.push({
+      id: EMP_DEWI,
+      company_id: COMPANY_ID,
+      employee_no: "BW-005",
+      full_name: "Dewi Anggraini",
+      status: "active",
+      join_date: "2024-11-01",
+    });
+    tables.compensation.push({
+      company_id: COMPANY_ID,
+      employee_id: EMP_DEWI,
+      base_salary: 6_700_000,
+      pay_frequency: "monthly",
+      fixed_allowances: 0,
+      bpjs_kes_enrolled: true,
+      jht_enrolled: true,
+      jp_enrolled: true,
+      effective_from: "2024-11-01",
+    });
+    tables.tax_profile.push({
+      company_id: COMPANY_ID,
+      employee_id: EMP_DEWI,
+      ptkp_status: "K/3",
+      has_npwp: true,
+    });
+    const result = await executeTool(
+      computePph21ForEmployee,
+      { employeeId: EMP_DEWI, year: 2026, month: 7 },
+      makeCtx(tables),
+    );
+    expect(result.status).toBe("ok");
+    if (result.status !== "ok") return;
+    // TER category C, band 6,600,001–6,950,000 -> 25 bps (supabase/seed.sql).
+    expect(result.data.inputs.terCategory).toBe("C");
+    expect(result.data.result.terRateBps).toBe(25);
+    expect(result.data.result.pph21).toBe(16_750); // 6,700,000 * 25 bps
+    expect(result.data.result.bpjsKesEmployee).toBe(67_000);
+    expect(result.data.result.jhtEmployee).toBe(134_000);
+    expect(result.data.result.jpEmployee).toBe(67_000);
+    expect(result.data.result.netPay).toBe(6_415_250);
   });
 });

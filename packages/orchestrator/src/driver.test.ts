@@ -6,25 +6,58 @@ import { defineTool, type ToolContext } from "@nexis/agent-tools";
 import { runPayrollCycle, type ModelClient, type ModelResponse } from "./driver";
 import { toAnthropicTools } from "./tool-adapter";
 
-/** Minimal DB stub: audit inserts, approval-request insert, consume RPC. */
-function fakeDb(opts: { consumeResult?: boolean } = {}) {
+/**
+ * Minimal DB stub: audit inserts, approval-request insert + eq-filtered
+ * select (for the payload-hash finders), consume RPC. Inserted rows default
+ * to `status: "pending"`, matching the real table's column default.
+ */
+function fakeDb(opts: { consumeResult?: boolean; agentCyclesInsertError?: string } = {}) {
   const inserts: Record<string, Record<string, unknown>[]> = {};
   const db = {
     inserts,
     from(table: string) {
       return {
         insert(row: Record<string, unknown>) {
-          const stored = { id: `fake-${table}-${(inserts[table]?.length ?? 0) + 1}`, ...row };
+          const stored = {
+            id: `fake-${table}-${(inserts[table]?.length ?? 0) + 1}`,
+            status: "pending",
+            ...row,
+          };
           (inserts[table] ??= []).push(stored);
+          const error =
+            table === "agent_cycles" && opts.agentCyclesInsertError
+              ? { message: opts.agentCyclesInsertError }
+              : null;
           return {
             then: (
-              onfulfilled?: (v: { error: null }) => unknown,
+              onfulfilled?: (v: { error: typeof error }) => unknown,
               onrejected?: (e: unknown) => unknown,
-            ) => Promise.resolve({ error: null }).then(onfulfilled, onrejected),
+            ) => Promise.resolve({ error }).then(onfulfilled, onrejected),
             select: () => ({
               single: () => Promise.resolve({ data: stored, error: null }),
             }),
           };
+        },
+        select(_columns?: string) {
+          let rows = [...(inserts[table] ?? [])];
+          const builder = {
+            eq(column: string, value: unknown) {
+              rows = rows.filter((r) => r[column] === value);
+              return builder;
+            },
+            // Insert order == created_at order in this stub — no-op.
+            order() {
+              return builder;
+            },
+            limit(n: number) {
+              rows = rows.slice(0, n);
+              return builder;
+            },
+            maybeSingle() {
+              return Promise.resolve({ data: rows[0] ?? null, error: null });
+            },
+          };
+          return builder;
         },
       };
     },
@@ -192,6 +225,161 @@ describe("runPayrollCycle", () => {
     expect(okEvent).toMatchObject({ status: "ok" });
   });
 
+  // FIX (NEXT-3, docs/pivot/ROADMAP.md): approvals resolve by payload hash,
+  // not by a Record<toolName, requestId> slot — so two same-named proposals
+  // each consume their OWN approved request, regardless of the order the
+  // model re-issues the calls in on resume.
+  function proposeTwoDrafts() {
+    const db = fakeDb({ consumeResult: true });
+    const client = fakeModel([
+      {
+        stop_reason: "tool_use",
+        content: [
+          { type: "tool_use", id: "tu_1", name: "create_draft", input: { year: 2026, month: 7 } },
+          { type: "tool_use", id: "tu_2", name: "create_draft", input: { year: 2026, month: 8 } },
+        ],
+      },
+      {
+        stop_reason: "end_turn",
+        content: [{ type: "text", text: "Menunggu persetujuan pemilik untuk dua periode." }],
+      },
+    ]);
+    return { db, client };
+  }
+
+  async function expectDoublePropose(db: ReturnType<typeof fakeDb>, client: ModelClient) {
+    const proposeResult = await runPayrollCycle({
+      client,
+      toolContext: ctxWith(db),
+      instruction: "Buat draf payroll Juli dan Agustus 2026.",
+      tools: [readTool, mutateTool],
+    });
+    expect(proposeResult.status).toBe("awaiting_approval");
+    // Both proposals get their own row — no clobbering while OPENING requests.
+    expect(proposeResult.pendingApprovals).toHaveLength(2);
+    const opened = db.inserts.approval_requests!;
+    expect(opened).toHaveLength(2);
+    expect(opened[0]).toMatchObject({ tool_name: "create_draft", payload: { year: 2026, month: 7 } });
+    expect(opened[1]).toMatchObject({ tool_name: "create_draft", payload: { year: 2026, month: 8 } });
+    return opened;
+  }
+
+  it("same-named double proposal: owner approves both, resume consumes each request exactly once", async () => {
+    const { db, client } = proposeTwoDrafts();
+    const opened = await expectDoublePropose(db, client);
+
+    // Owner approves both on /approvals.
+    opened[0]!.status = "approved";
+    opened[1]!.status = "approved";
+
+    const client2 = fakeModel([
+      {
+        stop_reason: "tool_use",
+        content: [
+          { type: "tool_use", id: "tu_3", name: "create_draft", input: { year: 2026, month: 7 } },
+          { type: "tool_use", id: "tu_4", name: "create_draft", input: { year: 2026, month: 8 } },
+        ],
+      },
+      {
+        stop_reason: "end_turn",
+        content: [{ type: "text", text: "Draf Juli dan Agustus dibuat." }],
+      },
+    ]);
+
+    const resumeResult = await runPayrollCycle({
+      client: client2,
+      toolContext: ctxWith(db),
+      instruction: "Lanjutkan siklus payroll.",
+      // No legacy approvalTokens hint needed — hash lookup finds both.
+      tools: [readTool, mutateTool],
+    });
+
+    expect(resumeResult.status).toBe("completed");
+    expect(resumeResult.pendingApprovals).toHaveLength(0);
+    const okResults = resumeResult.events.filter(
+      (e) => e.type === "tool_result" && e.tool === "create_draft" && e.status === "ok",
+    );
+    expect(okResults).toHaveLength(2);
+    // No duplicate opened — the two approved rows from propose are all there is.
+    expect(db.inserts.approval_requests).toHaveLength(2);
+  });
+
+  it("same-named double proposal, calls re-issued in SWAPPED order: each call still finds its own request", async () => {
+    const { db, client } = proposeTwoDrafts();
+    const opened = await expectDoublePropose(db, client);
+    opened[0]!.status = "approved";
+    opened[1]!.status = "approved";
+
+    // August's call comes first this time, July's second.
+    const client2 = fakeModel([
+      {
+        stop_reason: "tool_use",
+        content: [
+          { type: "tool_use", id: "tu_3", name: "create_draft", input: { year: 2026, month: 8 } },
+          { type: "tool_use", id: "tu_4", name: "create_draft", input: { year: 2026, month: 7 } },
+        ],
+      },
+      {
+        stop_reason: "end_turn",
+        content: [{ type: "text", text: "Draf Agustus dan Juli dibuat." }],
+      },
+    ]);
+
+    const resumeResult = await runPayrollCycle({
+      client: client2,
+      toolContext: ctxWith(db),
+      instruction: "Lanjutkan siklus payroll.",
+      tools: [readTool, mutateTool],
+    });
+
+    expect(resumeResult.status).toBe("completed");
+    expect(resumeResult.pendingApprovals).toHaveLength(0);
+    const okResults = resumeResult.events.filter(
+      (e) => e.type === "tool_result" && e.tool === "create_draft" && e.status === "ok",
+    );
+    expect(okResults).toHaveLength(2);
+    expect(db.inserts.approval_requests).toHaveLength(2);
+  });
+
+  it("same-named double proposal, one still pending on resume: it is denied again, no duplicate row", async () => {
+    const { db, client } = proposeTwoDrafts();
+    const opened = await expectDoublePropose(db, client);
+
+    // Owner approves only August; July is left pending.
+    opened[1]!.status = "approved";
+
+    const client2 = fakeModel([
+      {
+        stop_reason: "tool_use",
+        content: [
+          { type: "tool_use", id: "tu_3", name: "create_draft", input: { year: 2026, month: 7 } },
+          { type: "tool_use", id: "tu_4", name: "create_draft", input: { year: 2026, month: 8 } },
+        ],
+      },
+      {
+        stop_reason: "end_turn",
+        content: [{ type: "text", text: "Agustus dibuat; Juli masih menunggu." }],
+      },
+    ]);
+
+    const resumeResult = await runPayrollCycle({
+      client: client2,
+      toolContext: ctxWith(db),
+      instruction: "Lanjutkan siklus payroll.",
+      tools: [readTool, mutateTool],
+    });
+
+    expect(resumeResult.status).toBe("awaiting_approval");
+    const augustOk = resumeResult.events.find(
+      (e) => e.type === "tool_result" && e.tool === "create_draft" && e.status === "ok",
+    );
+    expect(augustOk).toBeDefined();
+    // July was denied again but reused its ORIGINAL pending row.
+    expect(resumeResult.pendingApprovals).toHaveLength(1);
+    expect(resumeResult.pendingApprovals[0]!.requestId).toBe(opened[0]!.id);
+    expect(db.inserts.approval_requests).toHaveLength(2);
+  });
+
   it("collects halts and reports a halted cycle", async () => {
     const db = fakeDb();
     const client = fakeModel([
@@ -256,6 +444,100 @@ describe("runPayrollCycle", () => {
     });
 
     expect(result.status).toBe("max_turns");
+  });
+
+  it("records one agent_cycles row for a completed cycle", async () => {
+    const db = fakeDb();
+    const client = fakeModel([
+      {
+        stop_reason: "tool_use",
+        content: [
+          { type: "tool_use", id: "tu_1", name: "read_numbers", input: { year: 2026 } },
+        ],
+      },
+      {
+        stop_reason: "end_turn",
+        content: [{ type: "text", text: "Total bruto Rp15.000.000." }],
+      },
+    ]);
+
+    const result = await runPayrollCycle({
+      client,
+      toolContext: ctxWith(db),
+      instruction: "Jalankan siklus payroll Juli 2026.",
+      tools: [readTool, mutateTool],
+    });
+
+    expect(result.status).toBe("completed");
+    expect(result.recorded).toBe(true);
+    expect(db.inserts.agent_cycles).toHaveLength(1);
+    expect(db.inserts.agent_cycles![0]).toMatchObject({
+      company_id: "10000000-0000-0000-0000-000000000001",
+      instruction: "Jalankan siklus payroll Juli 2026.",
+      status: "completed",
+      pending_request_ids: [],
+    });
+  });
+
+  it("records pending_request_ids for an awaiting_approval cycle", async () => {
+    const db = fakeDb();
+    const client = fakeModel([
+      {
+        stop_reason: "tool_use",
+        content: [
+          { type: "tool_use", id: "tu_1", name: "create_draft", input: { year: 2026, month: 7 } },
+        ],
+      },
+      {
+        stop_reason: "end_turn",
+        content: [{ type: "text", text: "Menunggu persetujuan pemilik." }],
+      },
+    ]);
+
+    const result = await runPayrollCycle({
+      client,
+      toolContext: ctxWith(db),
+      instruction: "Buat draf payroll Juli 2026.",
+      tools: [readTool, mutateTool],
+    });
+
+    expect(result.status).toBe("awaiting_approval");
+    expect(result.recorded).toBe(true);
+    expect(db.inserts.agent_cycles).toHaveLength(1);
+    const row = db.inserts.agent_cycles![0]!;
+    expect(row.status).toBe("awaiting_approval");
+    expect(row.pending_request_ids).toEqual([result.pendingApprovals[0]!.requestId]);
+  });
+
+  it("swallows an agent_cycles insert failure: recorded false, cycle result otherwise unchanged", async () => {
+    const db = fakeDb({ agentCyclesInsertError: "relation locked" });
+    const client = fakeModel([
+      {
+        stop_reason: "tool_use",
+        content: [
+          { type: "tool_use", id: "tu_1", name: "read_numbers", input: { year: 2026 } },
+        ],
+      },
+      {
+        stop_reason: "end_turn",
+        content: [{ type: "text", text: "Total bruto Rp15.000.000." }],
+      },
+    ]);
+
+    const result = await runPayrollCycle({
+      client,
+      toolContext: ctxWith(db),
+      instruction: "Jalankan siklus payroll Juli 2026.",
+      tools: [readTool, mutateTool],
+    });
+
+    expect(result.status).toBe("completed");
+    expect(result.finalText).toBe("Total bruto Rp15.000.000.");
+    expect(result.recorded).toBe(false);
+    expect(result.events).toContainEqual({
+      type: "error",
+      message: "agent_cycles insert failed: relation locked",
+    });
   });
 });
 

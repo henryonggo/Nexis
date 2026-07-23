@@ -37,6 +37,24 @@ export interface PayrollConfig {
   terRateBps: (status: PtkpStatus, grossMonthly: Rupiah) => number;
 }
 
+/**
+ * Snapshot of the rate config used for one payroll run — the exact shape
+ * persisted to `payroll_runs.config_snapshot` (both the create_draft_payroll_run
+ * tool and the legacy computeRunPreview action write it) and read by the Cloud
+ * Run worker to reproduce that run's numbers later (Stage 4 AC #5).
+ *
+ * `config` omits `terRateBps`: a function cannot survive JSON storage, so
+ * readers rebuild the TER lookup from the `ter_rates` rows in force on
+ * `effectiveDate` (see `buildPayrollConfig`) rather than reading it off the
+ * snapshot.
+ */
+export interface PayrollConfigSnapshot {
+  /** YYYY-MM-DD the rate rows were resolved on. */
+  effectiveDate: string;
+  runType: "monthly" | "thr";
+  config: Omit<PayrollConfig, "terRateBps">;
+}
+
 export interface EmployeePayrollInput {
   baseSalary: Rupiah;
   fixedAllowances: Rupiah;

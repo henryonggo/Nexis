@@ -1,7 +1,10 @@
 import {
+  approvalPayloadHash,
   canonicalJson,
   createApprovalRequest,
   executeTool,
+  findConsumableApprovalRequest,
+  findPendingApprovalRequest,
   AGENT_TOOLS,
   type ToolContext,
 } from "@nexis/agent-tools";
@@ -83,9 +86,11 @@ export interface CycleOptions {
   /** The kickoff instruction, e.g. "Jalankan siklus payroll Juli 2026." */
   instruction: string;
   /**
-   * Owner-approved request ids by tool name, for RESUMING a paused cycle.
-   * Each token is handed to its tool exactly once (consume_approval enforces
-   * single use server-side as well).
+   * @deprecated Hint only. Discovery by payload hash (`findConsumableApprovalRequest`,
+   * NEXT-3) is authoritative and resolves same-named proposals correctly
+   * regardless of call order; this Record<toolName, requestId> has only one
+   * slot per tool name, so it cannot disambiguate two same-named proposals.
+   * Kept as a fallback because apps/web still sends it.
    */
   approvalTokens?: Record<string, string>;
   tools?: readonly AnyTool[];
@@ -108,11 +113,16 @@ export async function runPayrollCycle(options: CycleOptions): Promise<CycleResul
     onEvent,
   } = options;
   const approvalTokens = { ...(options.approvalTokens ?? {}) };
+  const startedAt = new Date().toISOString();
 
   const events: OrchestratorEvent[] = [];
   const halts: HaltReason[] = [];
   const pendingApprovals: CycleResult["pendingApprovals"] = [];
   let finalText = "";
+  // Set exactly once, on the single path that ends the cycle below; null
+  // means "still running" so the post-loop fallback (maxTurns exhausted)
+  // can tell it apart from an explicit "max_turns" outcome.
+  let status: CycleResult["status"] | null = null;
   const emit = (event: OrchestratorEvent) => {
     events.push(event);
     onEvent?.(event);
@@ -145,7 +155,8 @@ export async function runPayrollCycle(options: CycleOptions): Promise<CycleResul
     } catch (err) {
       const message = err instanceof Error ? err.message : "model request failed";
       emit({ type: "error", message });
-      return { status: "error", finalText, events, halts, pendingApprovals };
+      status = "error";
+      break;
     }
 
     for (const block of response.content) {
@@ -162,7 +173,8 @@ export async function runPayrollCycle(options: CycleOptions): Promise<CycleResul
     // owner; content may be empty or partial — discard partials.
     if (response.stop_reason === "refusal") {
       emit({ type: "refusal", detail: response.stop_details?.explanation ?? null });
-      return { status: "refusal", finalText, events, halts, pendingApprovals };
+      status = "refusal";
+      break;
     }
 
     // Echo the full assistant content back (thinking blocks included, per
@@ -178,14 +190,15 @@ export async function runPayrollCycle(options: CycleOptions): Promise<CycleResul
     if (toolUses.length === 0) {
       if (response.stop_reason === "max_tokens") {
         emit({ type: "error", message: "Model output truncated (max_tokens)." });
-        return { status: "error", finalText, events, halts, pendingApprovals };
+        status = "error";
+        break;
       }
-      const status = pendingApprovals.length > 0
+      status = pendingApprovals.length > 0
         ? "awaiting_approval"
         : halts.length > 0
           ? "halted"
           : "completed";
-      return { status, finalText, events, halts, pendingApprovals };
+      break;
     }
 
     // Execute every tool call in the batch; ALL results go back in ONE user
@@ -206,9 +219,33 @@ export async function runPayrollCycle(options: CycleOptions): Promise<CycleResul
         continue;
       }
 
-      // Hand a resume token to its tool exactly once.
-      const approvalToken = approvalTokens[call.name];
-      if (approvalToken) delete approvalTokens[call.name];
+      // Approval-gated tools: parse once — the same payload feeds the hash
+      // lookup below, a freshly opened approval_requests row (denied path),
+      // and (via executeTool, which re-parses call.input itself) the run.
+      let approvalToken: string | undefined;
+      let payload: unknown = call.input;
+      let payloadHash: string | undefined;
+      if (tool.requiresApproval) {
+        const parsed = tool.input.safeParse(call.input);
+        payload = parsed.success ? parsed.data : call.input;
+        payloadHash = await approvalPayloadHash(call.name, payload);
+
+        // Resolve by payload hash first (NEXT-3): the oldest APPROVED
+        // request that authorizes this exact call, regardless of call order
+        // or how many same-named proposals are in flight. Falls back to the
+        // legacy tool-name slot only if no hash match is found.
+        const consumable = await findConsumableApprovalRequest({
+          supabase: toolContext.supabase,
+          companyId: toolContext.companyId,
+          toolName: call.name,
+          payloadHash,
+        });
+        approvalToken = consumable?.requestId;
+        if (!approvalToken) {
+          approvalToken = approvalTokens[call.name];
+          if (approvalToken) delete approvalTokens[call.name];
+        }
+      }
 
       const result = await executeTool(tool, call.input, { ...toolContext, approvalToken });
 
@@ -236,19 +273,25 @@ export async function runPayrollCycle(options: CycleOptions): Promise<CycleResul
         case "denied": {
           emit({ type: "tool_result", tool: call.name, status: "denied", detail: result.reason });
           if (tool.requiresApproval && !approvalToken) {
-            // Open the approval request (ADR 0002 step 1) with the tool's own
-            // parse of the input, so the stored hash matches what executeTool
-            // recomputes at consume time.
-            const parsed = tool.input.safeParse(call.input);
-            const payload = parsed.success ? parsed.data : call.input;
             const summary = `Agen mengusulkan ${call.name}: ${canonicalJson(payload)}`;
-            const request = await createApprovalRequest({
+            // A same-named, same-payload request may already be pending
+            // (e.g. this call was proposed earlier and the owner hasn't
+            // decided yet) — reuse it instead of opening a duplicate row.
+            const pending = await findPendingApprovalRequest({
               supabase: toolContext.supabase,
               companyId: toolContext.companyId,
               toolName: call.name,
-              payload,
-              summary,
+              payloadHash: payloadHash!,
             });
+            const request = pending
+              ? { ok: true as const, requestId: pending.requestId }
+              : await createApprovalRequest({
+                  supabase: toolContext.supabase,
+                  companyId: toolContext.companyId,
+                  toolName: call.name,
+                  payload,
+                  summary,
+                });
             if (request.ok) {
               pendingApprovals.push({ requestId: request.requestId, tool: call.name, summary });
               emit({
@@ -302,6 +345,38 @@ export async function runPayrollCycle(options: CycleOptions): Promise<CycleResul
     messages.push({ role: "user", content: toolResults });
   }
 
-  emit({ type: "error", message: `Cycle exceeded ${maxTurns} turns.` });
-  return { status: "max_turns", finalText, events, halts, pendingApprovals };
+  if (status === null) {
+    emit({ type: "error", message: `Cycle exceeded ${maxTurns} turns.` });
+    status = "max_turns";
+  }
+
+  // Single exit point: record one agent_cycles row per cycle, best-effort —
+  // mirrors the tool executor's audit insert (packages/agent-tools/src/tool.ts,
+  // recordAudit). A failed insert never changes the cycle outcome; it only
+  // flips `recorded` to false and emits an "error" event so it's visible to
+  // the caller/failure log.
+  let recorded = false;
+  try {
+    const { error } = await toolContext.supabase.from("agent_cycles").insert({
+      company_id: toolContext.companyId,
+      instruction,
+      status,
+      final_text: finalText || null,
+      halts: halts as never,
+      pending_request_ids: pendingApprovals.map((p) => p.requestId),
+      started_at: startedAt,
+    });
+    if (error) {
+      emit({ type: "error", message: `agent_cycles insert failed: ${error.message}` });
+    } else {
+      recorded = true;
+    }
+  } catch (err) {
+    emit({
+      type: "error",
+      message: `agent_cycles insert failed: ${err instanceof Error ? err.message : "unknown error"}`,
+    });
+  }
+
+  return { status, finalText, events, halts, pendingApprovals, recorded };
 }
