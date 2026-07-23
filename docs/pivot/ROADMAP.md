@@ -47,7 +47,7 @@ file, the failure log, and git — never in a chat transcript.
 | 3 | `ANTHROPIC_API_KEY` into Vercel env (Pro plan for 300s actions). Sole hard blocker for the live run; the **dry run must not wait on it** — fall back to running `/approvals` from local dev against staging | **Boss** |
 | 4 | ✔ Staging has `20260704020000_agent_approvals` applied (verified via Supabase migration list, 2026-07-14) | db-engineer |
 | 5 | ✔ **Dry-run pre-flight** done 2026-07-19 → `dry-run-preflight-2026-07.md`. Rates/profiles/policy all green, **but roster is now 7 employees** — a hire with compensation effective **2026-07-17** would have been paid a silent full month (engine had no proration and no halt). Fixed same day: new `mid_period_compensation` halt. Dry run should expect 6/7 clean + 1 designed halt for E-7 | orchestrator |
-| 6 | **Week 3 dry run (by Jul 24)**: `/approvals` → Jalankan agen → approve → resume → draft created; log every discrepancy vs manual calc + every halt into the failure log; check `audit.recorded` gaps | Boss + orchestrator |
+| 6 | **Week 3 dry run (by Jul 24)** — step-by-step in `dry-run-runbook.md`: `/approvals` → Jalankan agen → verify numbers → approve → resume → draft created; log every discrepancy vs manual calc + every halt (incl. the designed E-7 `mid_period_compensation`) into the failure log; check `audit.recorded` + `agent_cycles` gaps. **Surface is ready** (NEXT 1–4, 7 merged); this now needs Boss to drive | Boss + orchestrator |
 | 7 | **Week 4 live run (by Jul 31)**: July payroll executed via agent with owner approval; review failure log; scope Phase 2 from it | Boss + orchestrator |
 
 ## NEXT — Phase 2 candidates (order by failure log; provisional ranking)
