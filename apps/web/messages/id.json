@@ -1432,6 +1432,16 @@
     "payload": "Detail usulan",
     "noSummary": "(tanpa ringkasan)",
     "notAdmin": "Hanya pemilik/admin yang dapat memutuskan permintaan.",
+    "payloadDescription": {
+      "createDraftPayrollRun": "Buat draf payroll untuk {period}.",
+      "runId": "ID run: {runId}"
+    },
+    "agentHistory": {
+      "title": "Riwayat agen",
+      "empty": "Belum ada siklus agen yang berjalan.",
+      "haltsCount": "{count} perlu dilengkapi",
+      "pendingCount": "{count} usulan"
+    },
     "status": {
       "pending": "Menunggu",
       "approved": "Disetujui",
