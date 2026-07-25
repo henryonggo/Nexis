@@ -142,8 +142,10 @@ list below reflects what's implemented today.
   money flows (payroll approve, leave approval).
 
 **Agent Collaboration & Approvals (Phase 1 Pivot)**
-- **Agent Orchestrator & Tools:** Integrated runtime in `packages/orchestrator` and tool helper library in `packages/agent-tools` enabling AI agents to check staging readiness, query rosters, and perform calculations.
-- **Approval Queue UX:** Dedicated portal at `/approvals` for company owners and admins to review, approve, or reject proposed agent operations via cryptographic token signatures.
+- **Agent Orchestrator & Tools:** Fable 5 orchestrator runtime in `packages/orchestrator` drives a payroll cycle end to end, calling typed tools in `packages/agent-tools` (fetch roster, compute PPh 21 for one employee, compute a full payroll run, create/approve/cancel/mark-paid a run). Every tool runs RLS-scoped as the tenant user — no service role, no bypass.
+- **Halt, never estimate:** a missing or ambiguous input (no compensation, no tax profile, a **mid-period hire** whose contract starts after the period begins) returns a structured *halt* the owner can act on, never a defaulted number.
+- **Approval gate (`/approvals`):** agent proposes → owner/admin approves → system executes. Each mutating call is authorized by a **single-use, payload-hash-bound** `approval_requests` row consumed via `consume_approval` (RLS-enforced, hash-verified server-side) — resolved by payload hash so two same-named proposals never collide. Approvals that lapse are swept to `expired` and can't be revived.
+- **Readable queue + run history:** approval cards lead with a human-readable line (e.g. "Buat draf payroll untuk Juli 2026") with raw JSON kept collapsed; a **Riwayat agen** section lists every agent cycle and its outcome from the append-only `agent_cycles` log.
 
 ---
 
@@ -156,6 +158,10 @@ The following features and improvements have shipped in the latest update:
 **Human-in-the-loop Agent Approvals** — Created a secure approval page at `/approvals` app-side, allowing admins to approve agent-proposed state mutations (such as drafting or running payroll) via cryptographic token signatures.
 
 **Statutory & Roster Tools** — Added agent tools for checking staging readiness, computing payroll runs, fetching rosters, and computing PPh 21 compliance calculations.
+
+**Workflow-zero hardening (pre-dry-run)** — One statutory source in `@nexis/payroll` (preview and agent engines now share it); a `mid_period_compensation` halt so a mid-month hire is never paid a full month by default; approval tokens resolved by payload hash (two same-named proposals no longer collide); an append-only `agent_cycles` log with a **Riwayat agen** history view; approval-expiry hardening (a lapsed request can't be approved into a dead row, plus a sweep); readable approval-queue payloads; and a `PayrollConfigSnapshot` type shared writer↔worker. Operator docs: `docs/pivot/dry-run-preflight-2026-07.md` and `docs/pivot/dry-run-runbook.md`.
+
+**Function-grant hardening** — Revoked `EXECUTE` on trigger/internal functions from all API roles and `anon` from signed-in-only RPCs, and pinned `search_path` on flagged functions (`supabase/migrations/20260717162021_harden_function_grants_and_search_path.sql`).
 
 ---
 
@@ -196,10 +202,9 @@ Nexis is built as a Turborepo monorepo with the following services:
 * **apps/mobile:** Expo (React Native, TypeScript) for employee self-service (attendance, payslips, requests, profile).
 * **packages/types:** Shareable TypeScript database definitions auto-generated from the Supabase Postgres schema (read-only for the app layer).
 * **packages/money:** Safe integer-only IDR currency utility. All money is stored as `bigint` (no floating-point decimals) to prevent rounding errors.
-* **packages/payroll:** Pure, unit-tested Indonesian payroll engine (PPh 21 TER, BPJS, overtime, THR).
-* **packages/leave:** Pure leave-balance / accrual logic, unit-tested.
-* **packages/agent-tools:** Tool helpers and test suites allowing AI agents to interact safely with Nexis services.
-* **packages/orchestrator:** A central runtime driving multi-agent communication and task execution loops.
+* **packages/payroll:** Pure, unit-tested Indonesian payroll engine (PPh 21 TER, BPJS, overtime, THR) and the single statutory source (rate-set/period helpers, `PayrollConfigSnapshot`) shared by the app, the agent tools, and the Cloud Run worker.
+* **packages/agent-tools:** Typed, RLS-scoped agent tools (roster, PPh 21, full run, run lifecycle) with structured halts and the approval-request helpers.
+* **packages/orchestrator:** The Fable 5 agent runtime that plans a payroll cycle, calls tools, surfaces the approval queue, and records each cycle to `agent_cycles`.
 * **services/payroll-worker:** Cloud Run worker for payroll runs and heavy report/export generation.
 * **supabase:** Postgres database with triggers, SECURITY DEFINER functions, RLS policies, and Edge Functions (notifications, public API, webhook dispatch).
 
