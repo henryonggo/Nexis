@@ -1,11 +1,15 @@
 -- ============================================================================
 -- pgTAP tests for NEXT-4 (db slice): agent_cycles RLS + approval_requests
 -- expiry hardening (BEFORE UPDATE trigger + expire_stale_approval_requests()).
+-- Also covers the 20260720150000 security-advisor follow-up (search_path
+-- pin on the trigger function is behavior-invisible, so re-uses tests 1/2
+-- below; the anon-execute revoke on the sweep function gets its own check,
+-- test 19).
 -- Run with:  supabase test db   (requires `supabase start`)
 -- ============================================================================
 
 begin;
-select plan(18);
+select plan(19);
 
 create extension if not exists pgtap;
 
@@ -212,6 +216,18 @@ select is(
   (select count(*)::int from agent_cycles where id = 'dddddddd-0000-0000-0000-000000000001'),
   1,
   'agent_cycles rows cannot be deleted by anyone, including the company owner'
+);
+
+-- ── 20260720150000 hardening: anon must not execute the sweep function ─────
+
+-- Test 19: anon has no EXECUTE privilege on the SECURITY DEFINER sweep —
+-- only the default-PUBLIC grant was ever missing a revoke (the explicit
+-- `grant ... to authenticated` from 20260720143000 is untouched and is not
+-- what this checks).
+select is(
+  has_function_privilege('anon', 'public.expire_stale_approval_requests()', 'execute'),
+  false,
+  'anon cannot execute the SECURITY DEFINER approval-expiry sweep'
 );
 
 select * from finish();
