@@ -4,6 +4,7 @@ import { useFormState, useFormStatus } from "react-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Alert } from "@/components/ui/alert";
 import { runAgentCycle, type AgentCycleState } from "./actions";
 
 /**
@@ -24,6 +25,8 @@ export interface AgentPanelLabels {
   status: Record<string, string>;
   haltsHeading: string;
   approvalsHeading: string;
+  auditGapsHeading: string;
+  auditGapsDescription: string;
 }
 
 export interface ApprovedRequestProp {
@@ -146,6 +149,19 @@ export function AgentPanel({
                 ))}
               </ul>
             </div>
+          )}
+          {state.result.auditGaps.length > 0 && (
+            <Alert variant="warning">
+              <p className="font-semibold">{labels.auditGapsHeading}</p>
+              <p className="mt-1 text-xs">{labels.auditGapsDescription}</p>
+              <ul className="mt-2 list-disc space-y-1 pl-5 text-xs">
+                {state.result.auditGaps.map((g, i) => (
+                  <li key={`${g.tool}-${i}`}>
+                    <span className="font-mono">{g.tool}</span>: {g.error}
+                  </li>
+                ))}
+              </ul>
+            </Alert>
           )}
         </div>
       )}

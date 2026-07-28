@@ -77,8 +77,11 @@ small things before the Week 3 dry run.
 - **Resume ergonomics** — `approvalTokens` is keyed by tool name; two
   same-named proposals in one turn would fight over one slot. Add the driver
   test, and log both hashes on `consume_approval` mismatch during the dry run.
-- **Audit visibility** — `audit.recorded === false` is silently swallowed;
-  surface it in the panel during the dry run.
+- ✔ **Audit visibility** (2026-07-27) — the driver now collects
+  `CycleResult.auditGaps` (per-tool `audit.recorded === false`, with
+  `auditRecorded` also on each `tool_result` event), and `/approvals`
+  surfaces a warning Alert listing any unaudited tool actions. No longer
+  swallowed.
 
 ## What's genuinely good (keep doing this)
 
