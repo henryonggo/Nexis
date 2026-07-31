@@ -15,6 +15,8 @@ export type OrchestratorEvent =
       status: "ok" | "halt" | "denied" | "error";
       /** Halt codes / denial reason / error message; null on ok. */
       detail: string | null;
+      /** Whether the per-call audit_logs insert succeeded; omitted for the unknown-tool case (no tool ran, no audit attempted). */
+      auditRecorded?: boolean;
     }
   | { type: "approval_requested"; tool: string; requestId: string; summary: string }
   | { type: "approval_request_failed"; tool: string; error: string }
@@ -32,4 +34,6 @@ export interface CycleResult {
   pendingApprovals: { requestId: string; tool: string; summary: string }[];
   /** Whether the `agent_cycles` audit row for this cycle was persisted. */
   recorded: boolean;
+  /** Tool calls whose audit_logs insert failed (audit.recorded === false), in execution order. Empty when every tool call was audited. Distinct from `recorded`, which is the cycle-level agent_cycles row. */
+  auditGaps: { tool: string; error: string }[];
 }

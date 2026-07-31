@@ -56,7 +56,7 @@ export async function decideApprovalRequest(formData: FormData): Promise<void> {
 /** Serializable slice of a CycleResult for the client panel. */
 export interface AgentCycleState {
   error?: string;
-  result?: Pick<CycleResult, "status" | "finalText" | "halts" | "pendingApprovals">;
+  result?: Pick<CycleResult, "status" | "finalText" | "halts" | "pendingApprovals" | "auditGaps">;
 }
 
 const cycleSchema = z.object({
@@ -107,6 +107,6 @@ export async function runAgentCycle(
   revalidatePath("/approvals");
   revalidatePath("/payroll");
   revalidatePath("/dashboard");
-  const { status, finalText, halts, pendingApprovals } = outcome.result;
-  return { result: { status, finalText, halts, pendingApprovals } };
+  const { status, finalText, halts, pendingApprovals, auditGaps } = outcome.result;
+  return { result: { status, finalText, halts, pendingApprovals, auditGaps } };
 }

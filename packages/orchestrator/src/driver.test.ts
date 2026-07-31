@@ -11,7 +11,13 @@ import { toAnthropicTools } from "./tool-adapter";
  * select (for the payload-hash finders), consume RPC. Inserted rows default
  * to `status: "pending"`, matching the real table's column default.
  */
-function fakeDb(opts: { consumeResult?: boolean; agentCyclesInsertError?: string } = {}) {
+function fakeDb(
+  opts: {
+    consumeResult?: boolean;
+    agentCyclesInsertError?: string;
+    auditLogsInsertError?: string;
+  } = {},
+) {
   const inserts: Record<string, Record<string, unknown>[]> = {};
   const db = {
     inserts,
@@ -27,7 +33,9 @@ function fakeDb(opts: { consumeResult?: boolean; agentCyclesInsertError?: string
           const error =
             table === "agent_cycles" && opts.agentCyclesInsertError
               ? { message: opts.agentCyclesInsertError }
-              : null;
+              : table === "audit_logs" && opts.auditLogsInsertError
+                ? { message: opts.auditLogsInsertError }
+                : null;
           return {
             then: (
               onfulfilled?: (v: { error: typeof error }) => unknown,
@@ -145,6 +153,7 @@ describe("runPayrollCycle", () => {
 
     expect(result.status).toBe("completed");
     expect(result.finalText).toBe("Total bruto Rp15.000.000.");
+    expect(result.auditGaps).toEqual([]);
     // Second request carried the tool result back in ONE user message.
     const secondMessages = client.requests[1]!.messages as { role: string; content: unknown }[];
     const lastUser = secondMessages[secondMessages.length - 1]!;
@@ -470,6 +479,7 @@ describe("runPayrollCycle", () => {
 
     expect(result.status).toBe("completed");
     expect(result.recorded).toBe(true);
+    expect(result.auditGaps).toEqual([]);
     expect(db.inserts.agent_cycles).toHaveLength(1);
     expect(db.inserts.agent_cycles![0]).toMatchObject({
       company_id: "10000000-0000-0000-0000-000000000001",
@@ -538,6 +548,71 @@ describe("runPayrollCycle", () => {
       type: "error",
       message: "agent_cycles insert failed: relation locked",
     });
+    expect(result.auditGaps).toEqual([]);
+  });
+
+  it("surfaces a per-call audit_logs insert failure via auditGaps, without changing cycle status", async () => {
+    const db = fakeDb({ auditLogsInsertError: "RLS denied insert" });
+    const client = fakeModel([
+      {
+        stop_reason: "tool_use",
+        content: [
+          { type: "tool_use", id: "tu_1", name: "read_numbers", input: { year: 2026 } },
+        ],
+      },
+      {
+        stop_reason: "end_turn",
+        content: [{ type: "text", text: "Total bruto Rp15.000.000." }],
+      },
+    ]);
+
+    const result = await runPayrollCycle({
+      client,
+      toolContext: ctxWith(db),
+      instruction: "Jalankan siklus payroll Juli 2026.",
+      tools: [readTool, mutateTool],
+    });
+
+    // The tool call itself still succeeded — only its audit insert failed.
+    expect(result.status).toBe("completed");
+    expect(result.finalText).toBe("Total bruto Rp15.000.000.");
+    expect(result.auditGaps).toEqual([
+      { tool: "read_numbers", error: "RLS denied insert" },
+    ]);
+    const toolResultEvent = result.events.find(
+      (e) => e.type === "tool_result" && e.tool === "read_numbers",
+    );
+    expect(toolResultEvent).toMatchObject({ status: "ok", auditRecorded: false });
+  });
+
+  it("yields an empty auditGaps when every tool call's audit insert succeeds", async () => {
+    const db = fakeDb();
+    const client = fakeModel([
+      {
+        stop_reason: "tool_use",
+        content: [
+          { type: "tool_use", id: "tu_1", name: "read_numbers", input: { year: 2026 } },
+        ],
+      },
+      {
+        stop_reason: "end_turn",
+        content: [{ type: "text", text: "Total bruto Rp15.000.000." }],
+      },
+    ]);
+
+    const result = await runPayrollCycle({
+      client,
+      toolContext: ctxWith(db),
+      instruction: "Jalankan siklus payroll Juli 2026.",
+      tools: [readTool, mutateTool],
+    });
+
+    expect(result.status).toBe("completed");
+    expect(result.auditGaps).toEqual([]);
+    const toolResultEvent = result.events.find(
+      (e) => e.type === "tool_result" && e.tool === "read_numbers",
+    );
+    expect(toolResultEvent).toMatchObject({ status: "ok", auditRecorded: true });
   });
 });
 
