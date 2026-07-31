@@ -97,6 +97,7 @@ export const computePph21ForEmployee = defineTool<z.infer<typeof inputSchema>, P
       comps: compRes.data ?? [],
       tax: taxRes.data,
       jkkRiskClassRaw: settingsRes.data?.jkk_risk_class,
+      companyWorkDaysRaw: settingsRes.data?.work_days,
       earningTypesById: new Map((earnTypesRes.data ?? []).map((t) => [t.id, t] as const)),
       manualEarnings: earnRes.data ?? [],
       hasGroupAssignment: Boolean(earnGroupRes.data?.group_id),

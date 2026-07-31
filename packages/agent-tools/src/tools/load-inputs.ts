@@ -24,10 +24,14 @@ export interface EmployeeRow {
   id: string;
   full_name: string;
   status: string;
+  /** Mid-month-hire proration input (ADR 0006) — confirms a comp row's effective_from is a genuine hire. */
+  join_date: string | null;
 }
 
 export interface CompanySettingsRow {
   jkk_risk_class: string | null;
+  /** Company default weekly schedule (ISO weekdays); mid-month-hire proration fallback (ADR 0006). */
+  work_days: number[] | null;
 }
 
 export interface BpjsConfigRow {
@@ -109,14 +113,14 @@ export async function loadStatutoryInputs(
     ] = await Promise.all([
       ctx.supabase
         .from("employees")
-        .select("id, full_name, status")
+        .select("id, full_name, status, join_date")
         .eq("company_id", ctx.companyId)
         .eq("id", employeeId)
         .maybeSingle(),
       ctx.supabase
         .from("compensation")
         .select(
-          "employee_id, base_salary, pay_frequency, fixed_allowances, bpjs_kes_enrolled, jht_enrolled, jp_enrolled, effective_from",
+          "employee_id, base_salary, pay_frequency, fixed_allowances, bpjs_kes_enrolled, jht_enrolled, jp_enrolled, effective_from, work_days",
         )
         .eq("company_id", ctx.companyId)
         .eq("employee_id", employeeId),
@@ -128,7 +132,7 @@ export async function loadStatutoryInputs(
         .maybeSingle(),
       ctx.supabase
         .from("company_settings")
-        .select("jkk_risk_class")
+        .select("jkk_risk_class, work_days")
         .eq("company_id", ctx.companyId)
         .maybeSingle(),
       ctx.supabase.from("bpjs_config").select("key, rate_bps, amount, effective_from, effective_to"),
@@ -202,14 +206,14 @@ export async function loadStatutoryInputs(
   ] = await Promise.all([
     ctx.supabase
       .from("employees")
-      .select("id, full_name, status")
+      .select("id, full_name, status, join_date")
       .eq("company_id", ctx.companyId)
       .eq("status", "active")
       .order("full_name", { ascending: true }),
     ctx.supabase
       .from("compensation")
       .select(
-        "employee_id, base_salary, pay_frequency, fixed_allowances, bpjs_kes_enrolled, jht_enrolled, jp_enrolled, effective_from",
+        "employee_id, base_salary, pay_frequency, fixed_allowances, bpjs_kes_enrolled, jht_enrolled, jp_enrolled, effective_from, work_days",
       )
       .eq("company_id", ctx.companyId),
     ctx.supabase
@@ -218,7 +222,7 @@ export async function loadStatutoryInputs(
       .eq("company_id", ctx.companyId),
     ctx.supabase
       .from("company_settings")
-      .select("jkk_risk_class")
+      .select("jkk_risk_class, work_days")
       .eq("company_id", ctx.companyId)
       .maybeSingle(),
     ctx.supabase.from("bpjs_config").select("key, rate_bps, amount, effective_from, effective_to"),

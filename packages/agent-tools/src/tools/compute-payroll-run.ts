@@ -128,6 +128,7 @@ export async function loadAndComputeRun(
         comps: compsByEmployee.get(emp.id) ?? [],
         tax: taxByEmployee.get(emp.id) ?? null,
         jkkRiskClassRaw: settingsRes.data?.jkk_risk_class,
+        companyWorkDaysRaw: settingsRes.data?.work_days,
         earningTypesById,
         manualEarnings: manualByEmployee.get(emp.id) ?? [],
         hasGroupAssignment: groupAssigned.has(emp.id),
