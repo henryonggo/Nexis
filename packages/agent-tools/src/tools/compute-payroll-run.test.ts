@@ -100,11 +100,17 @@ describe("compute_payroll_run", () => {
     expect(result.reasons[0]!.code).toBe("missing_rate_config");
   });
 
-  // dry-run pre-flight 2026-07-19 (docs/pivot/dry-run-preflight-2026-07.md):
-  // staging's 7th active employee's only compensation row is effective
-  // mid-period (hired 2026-07-17). Paying a full month would be a silently
-  // wrong number (pivot ground rule 1) — the run must halt, not compute.
-  it("halts on a mid-period compensation change — no line leaks out", async () => {
+  // ADR 0006 (dry-run pre-flight 2026-07-19, docs/pivot/dry-run-preflight-2026-07.md):
+  // staging's 7th active employee (Rina Marlina) is a GENUINE new hire — her
+  // only compensation row is effective 2026-07-17, matching her join_date.
+  // The strict trigger (no earlier comp row + join_date confirms the hire)
+  // resolves the halt into a working-day-prorated line instead of stopping
+  // the run. Numbers hand-computed, matching the pure work-schedule tests:
+  //   July 2026: 23 Mon–Fri working days; 2026-07-17 through 2026-07-31 = 11.
+  //   base 5,000,000 * 11/23 = 2,391,304.34… -> 2,391,304 (no allowances).
+  //   TER A on 2,391,304 (< 5,400,001) = 0 bps -> pph21 0.
+  //   kes 1% = 23,913; jht 2% = 47,826; jp 1% = 23,913; net = 2,295,652.
+  it("prorates base salary for a genuine new hire — resolves the mid_period_compensation halt (staging E-7)", async () => {
     const tables = completedTables();
     const EMP_HIRE = "20000000-0000-0000-0000-000000000007";
     tables.employees.push({
@@ -133,12 +139,54 @@ describe("compute_payroll_run", () => {
       has_npwp: true,
     });
     const result = await executeTool(computePayrollRun, PERIOD, makeCtx(tables));
+    expect(result.status).toBe("ok");
+    if (result.status !== "ok") return;
+    const rina = result.data.lines.find((l) => l.employeeId === EMP_HIRE);
+    expect(rina).toBeDefined();
+    expect(rina!.proration).toEqual({ hireDate: "2026-07-17", workedDays: 11, totalDays: 23 });
+    expect(rina!.inputs.baseSalary).toBe(2_391_304);
+    expect(rina!.inputs.fixedAllowances).toBe(0);
+    expect(rina!.inputs.gross).toBe(2_391_304);
+    expect(rina!.result.pph21).toBe(0);
+    expect(rina!.result.bpjsKesEmployee).toBe(23_913);
+    expect(rina!.result.jhtEmployee).toBe(47_826);
+    expect(rina!.result.jpEmployee).toBe(23_913);
+    expect(rina!.result.netPay).toBe(2_295_652);
+    // Budi + Siti's lines are unaffected by Rina's proration. Ordered by
+    // full_name ascending (Budi Santoso, Rina Marlina, Siti Rahayu).
+    expect(result.data.lines.map((l) => l.employeeId)).toEqual([EMP_BUDI, EMP_HIRE, EMP_SITI]);
+    for (const value of Object.values(result.data.totals)) {
+      expect(Number.isInteger(value)).toBe(true);
+    }
+  });
+
+  // A mid-month RAISE for an EXISTING employee — an earlier comp row is in
+  // force at the period start, so the strict new-hire trigger's "no earlier
+  // comp row" condition fails. This is a split-rate month (an unmade
+  // decision, docs/adr/0006) and must still halt, never prorate.
+  it("halts on a genuine mid-month compensation CHANGE (an earlier comp row exists) — no proration, no line leaks out", async () => {
+    const tables = completedTables();
+    // Budi's original row (2025-01-01, in COMPENSATION fixture) stays in
+    // force at the period start; this second row models a raise mid-period.
+    tables.compensation.push({
+      company_id: COMPANY_ID,
+      employee_id: EMP_BUDI,
+      base_salary: 12_000_000,
+      pay_frequency: "monthly",
+      fixed_allowances: 0,
+      bpjs_kes_enrolled: true,
+      jht_enrolled: true,
+      jp_enrolled: true,
+      effective_from: "2026-07-17",
+    });
+    const result = await executeTool(computePayrollRun, PERIOD, makeCtx(tables));
     expect(result.status).toBe("halt");
     if (result.status !== "halt") return;
     expect(result.reasons.map((r) => r.code)).toEqual(["mid_period_compensation"]);
-    expect(result.reasons[0]!.message).toContain("Rina Marlina");
+    expect(result.reasons[0]!.message).toContain("Budi Santoso");
     expect(result.reasons[0]!.message).toContain("2026-07-17");
-    // Budi + Siti's clean lines must NOT leak out as a partial answer.
+    expect(result.reasons[0]!.message).toContain("split-rate month");
+    // Siti's clean line must NOT leak out as a partial answer.
     expect("data" in result).toBe(false);
   });
 });

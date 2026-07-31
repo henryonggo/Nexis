@@ -75,18 +75,86 @@ describe("compute_pph21_for_employee", () => {
     expect(haltCodes(result)).toContain("missing_compensation");
   });
 
-  it("halts on a mid-period compensation change instead of paying a full month (staging E-7, hired 2026-07-17)", async () => {
+  // ADR 0006: a compensation row effective mid-period is EITHER a genuine new
+  // hire (prorate — deterministic, not an estimate) or a mid-month
+  // compensation CHANGE / raise for an existing employee (a split-rate month
+  // — still an unmade decision, still halts). Budi's fixture join_date
+  // (2024-03-01) predates the period, so mutating only `effective_from` to
+  // mid-period represents a backdated/changed comp row for an EXISTING
+  // employee, not a new hire — join_date must still block proration.
+  it("halts when compensation starts mid-period but join_date doesn't confirm a new hire", async () => {
     const tables = baseTables();
-    tables.compensation[0]!.effective_from = "2026-07-17"; // mid-month hire
+    tables.compensation[0]!.effective_from = "2026-07-17"; // mid-month, but Budi joined 2024-03-01
     const result = await executeTool(computePph21ForEmployee, PERIOD, makeCtx(tables));
     expect(result.status).toBe("halt");
     expect(haltCodes(result)).toEqual(["mid_period_compensation"]);
     if (result.status !== "halt") return;
     expect(result.reasons[0]!.message).toContain("Budi Santoso");
     expect(result.reasons[0]!.message).toContain("2026-07-17");
+    expect(result.reasons[0]!.message).toContain("2024-03-01");
     expect(result.reasons[0]!.needs).toBe(
-      "compensation effective on/before the period start, or proration support (not built — v0 computes whole months only)",
+      "a join_date after the period start and on/before the compensation's effective_from, confirming a genuine new hire",
     );
+  });
+
+  it("halts on a genuine mid-month compensation CHANGE (an earlier comp row exists) — no proration, split-rate month unsupported", async () => {
+    const tables = baseTables();
+    // Budi's original row (effective 2025-01-01) stays in force at the period
+    // start; a second row models a raise effective mid-period. Two comp rows
+    // for the same employee means the strict new-hire trigger's "no earlier
+    // comp row" condition fails — this must halt, never prorate.
+    tables.compensation.push({
+      company_id: COMPANY_ID,
+      employee_id: EMP_BUDI,
+      base_salary: 12_000_000,
+      pay_frequency: "monthly",
+      fixed_allowances: 0,
+      bpjs_kes_enrolled: true,
+      jht_enrolled: true,
+      jp_enrolled: true,
+      effective_from: "2026-07-17",
+    });
+    const result = await executeTool(computePph21ForEmployee, PERIOD, makeCtx(tables));
+    expect(result.status).toBe("halt");
+    expect(haltCodes(result)).toEqual(["mid_period_compensation"]);
+    if (result.status !== "halt") return;
+    expect(result.reasons[0]!.message).toContain("Budi Santoso");
+    expect(result.reasons[0]!.message).toContain("2026-07-17");
+    expect(result.reasons[0]!.message).toContain("split-rate month");
+    expect(result.reasons[0]!.needs).toBe(
+      "compensation effective on/before the period start, or split-rate-month support (not built)",
+    );
+  });
+
+  // The frozen method (ADR 0006, docs/pivot/ROADMAP.md NEXT-5): proration
+  // factor = expected working days from the hire date through the period end
+  // ÷ expected working days in the whole month, on the employee's Mon–Fri
+  // schedule (company default here — no work_days override). Numbers below
+  // are hand-computed, not asserted against the implementation.
+  //   July 2026 has 23 Mon–Fri working days; 2026-07-17 (Fri) through
+  //   2026-07-31 is 11 of them → factor 11/23.
+  //   baseSalary  10,000,000 * 11/23 = 4,782,608.69… -> 4,782,609
+  //   allowances     300,000 * 11/23 =   143,478.26… ->   143,478
+  //   gross = 4,782,609 + 143,478 = 4,926,087 (< 5,400,001 -> TER A 0 bps)
+  //   kes 1% = 47,826 (round(47,826.09)); jht 2% = 95,652; jp 1% = 47,826
+  //   net = 4,926,087 − (47,826+95,652+47,826) = 4,734,783
+  it("prorates base salary + fixed allowances for a genuine new hire (staging E-7 shape, hand-computed)", async () => {
+    const tables = baseTables();
+    tables.employees[0]!.join_date = "2026-07-17";
+    tables.compensation[0]!.effective_from = "2026-07-17";
+    tables.compensation[0]!.fixed_allowances = 300_000;
+    const result = await executeTool(computePph21ForEmployee, PERIOD, makeCtx(tables));
+    expect(result.status).toBe("ok");
+    if (result.status !== "ok") return;
+    expect(result.data.inputs.baseSalary).toBe(4_782_609);
+    expect(result.data.inputs.fixedAllowances).toBe(143_478);
+    expect(result.data.inputs.gross).toBe(4_926_087);
+    expect(result.data.result.terRateBps).toBe(0);
+    expect(result.data.result.pph21).toBe(0);
+    expect(result.data.result.bpjsKesEmployee).toBe(47_826);
+    expect(result.data.result.jhtEmployee).toBe(95_652);
+    expect(result.data.result.jpEmployee).toBe(47_826);
+    expect(result.data.result.netPay).toBe(4_734_783);
   });
 
   it("halts for non-monthly pay frequencies in v0", async () => {

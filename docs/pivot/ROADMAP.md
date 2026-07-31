@@ -88,10 +88,15 @@ list — do not burn the week the log was meant to steer.
 5. **Widen the agent's gross** — percentage earnings + earning groups, then
    daily/mixed pay and approved overtime, so fewer rosters halt. Each halts
    until built — never estimates. Not needed by customer zero's current
-   roster; rises the day a roster (or the failure log) demands it. A
-   sub-item joins it from the pre-flight: **mid-period proration**, so
-   `mid_period_compensation` halts can eventually resolve instead of
-   requiring a backdated compensation row. (domain-engineer)
+   roster; rises the day a roster (or the failure log) demands it.
+   ✔ **Mid-period proration sub-item** (from the pre-flight): a genuine new
+   hire (E-7 shape — no earlier comp row, `join_date` confirms the hire) now
+   resolves the `mid_period_compensation` halt via a working-day-basis
+   proration of base salary + fixed allowances, instead of requiring a
+   backdated compensation row; a mid-month comp CHANGE (an earlier comp row
+   exists) still halts — split-rate months are a separate, unmade decision.
+   ADR 0006 (owner to confirm working-day vs. calendar-day basis).
+   (domain-engineer, 2026-07-31)
 6. ✔ **`requireAdmin` sweep** — duplicated owner/admin checks replaced with
    `lib/roles.ts` across apps/web. (app-engineer)
 7. ✔ **Approval queue niceties** — approval cards lead with a human-readable

@@ -8,6 +8,10 @@ import {
   periodEnd,
   effectiveOn,
   sumFixedAllowances,
+  normalizeWorkDays,
+  hireProrationFactor,
+  prorateByFactor,
+  type HireProrationFactor,
   type JkkRiskClass,
   type PayrollConfig,
   type PayrollResult,
@@ -42,6 +46,8 @@ export interface CompRow {
   jht_enrolled: boolean;
   jp_enrolled: boolean;
   effective_from: string;
+  /** Per-employee weekly schedule override (ISO weekdays); falls back to the company default. */
+  work_days?: number[] | null;
 }
 
 export interface TaxRow {
@@ -73,12 +79,22 @@ export interface EarningLineOut {
   taxable: boolean;
 }
 
+/** Mid-month-hire proration detail, present only when a new hire's pay was prorated (ADR 0006). */
+export interface ProrationOut {
+  /** The date proration counted from — employee.join_date, else the compensation's effective_from. */
+  hireDate: string;
+  /** Expected working days from hireDate through the period end. */
+  workedDays: number;
+  /** Expected working days in the whole period month. */
+  totalDays: number;
+}
+
 export interface StatutoryLine {
   employeeId: string;
   fullName: string;
   inputs: {
     baseSalary: Rupiah;
-    /** compensation.fixed_allowances + taxable configurable earnings. */
+    /** compensation.fixed_allowances + taxable configurable earnings (both prorated if `proration` is set). */
     fixedAllowances: Rupiah;
     gross: Rupiah;
     ptkpStatus: PtkpStatus;
@@ -86,7 +102,7 @@ export interface StatutoryLine {
     hasNpwp: boolean;
     jkkRiskClass: JkkRiskClass;
   };
-  /** Resolved configurable earnings (all fixed-amount in v0). */
+  /** Resolved configurable earnings (all fixed-amount in v0). NOT prorated — see ADR 0006. */
   earnings: EarningLineOut[];
   /**
    * Total of non-taxable earning lines. NOT part of gross and NOT included in
@@ -95,15 +111,19 @@ export interface StatutoryLine {
   nonTaxableEarnings: Rupiah;
   /** Full statutory breakdown from @nexis/payroll — all integer rupiah. */
   result: PayrollResult;
+  /** Set only for a genuine new hire whose base_salary + fixed_allowances were working-day-prorated. */
+  proration?: ProrationOut;
 }
 
 export interface StatutoryInput {
-  employee: { id: string; full_name: string };
+  employee: { id: string; full_name: string; join_date?: string | null };
   /** ALL compensation rows for this employee (latest in-force row is picked here). */
   comps: CompRow[];
   tax: TaxRow | null;
   /** company_settings.jkk_risk_class, unvalidated. */
   jkkRiskClassRaw: string | null | undefined;
+  /** company_settings.work_days, unvalidated — the mid-month-hire proration schedule fallback. */
+  companyWorkDaysRaw?: unknown;
   earningTypesById: Map<string, EarningTypeRow>;
   /** This employee's employee_earning rows. */
   manualEarnings: ManualEarningRow[];
@@ -131,6 +151,12 @@ export function computeEmployeeStatutory(input: StatutoryInput): StatutoryOutcom
       comp = row;
     }
   }
+
+  // Mid-month-hire proration (ADR 0006, dry-run pre-flight 2026-07-19, staging
+  // E-7 effective 2026-07-17). Populated only when the strict new-hire trigger
+  // below holds; otherwise the mid_period_compensation halt fires unchanged.
+  let proration: HireProrationFactor & { hireDate: string } | null = null;
+
   if (!comp) {
     halts.push({
       code: "missing_compensation",
@@ -143,15 +169,39 @@ export function computeEmployeeStatutory(input: StatutoryInput): StatutoryOutcom
       message: `${employee.full_name} is paid "${comp.pay_frequency}"; v0 computes monthly-paid employees only (daily/mixed needs attendance-derived earned base).`,
     });
   } else if (comp.effective_from > input.periodStart) {
-    // Mid-period hire/comp change (dry-run pre-flight 2026-07-19, staging
-    // employee E-7 effective 2026-07-17): the selected row is not in force
-    // for the whole period, so a full month's pay is an estimate — forbidden
-    // (pivot ground rule 1). Halt instead of silently paying the whole month.
-    halts.push({
-      code: "mid_period_compensation",
-      message: `${employee.full_name}'s compensation is effective ${comp.effective_from}, after the period start ${input.periodStart} — a full month would be estimated.`,
-      needs: "compensation effective on/before the period start, or proration support (not built — v0 computes whole months only)",
-    });
+    // The selected row is not in force for the whole period. This is EITHER a
+    // genuine new hire this period (prorate — deterministic, not an estimate)
+    // OR a mid-month compensation CHANGE / raise (a split-rate month — still
+    // an unmade decision, still halts). The strict trigger distinguishes them:
+    //  1. no OTHER compensation row was in force at the period start (else
+    //     it's a comp change, however brief the overlap), and
+    //  2. join_date, when known, confirms the hire actually falls in this
+    //     period (after the period start) and on/before the comp row starts —
+    //     a join_date that predates the period contradicts "new hire".
+    const hasEarlierComp = input.comps.some((row) => row.effective_from <= input.periodStart);
+    const joinDate = employee.join_date ?? null;
+    const joinDateConfirmsNewHire =
+      !joinDate || (joinDate > input.periodStart && joinDate <= comp.effective_from);
+
+    if (!hasEarlierComp && joinDateConfirmsNewHire) {
+      const hireDate = joinDate ?? comp.effective_from;
+      const [year, month] = input.periodStart.split("-").map(Number) as [number, number];
+      const schedule =
+        comp.work_days && comp.work_days.length > 0
+          ? normalizeWorkDays(comp.work_days)
+          : normalizeWorkDays(input.companyWorkDaysRaw);
+      proration = { ...hireProrationFactor(schedule, hireDate, year, month), hireDate };
+    } else {
+      halts.push({
+        code: "mid_period_compensation",
+        message: hasEarlierComp
+          ? `${employee.full_name}'s compensation changed to a row effective ${comp.effective_from}, after the period start ${input.periodStart} — mid-period compensation changes (a split-rate month) are not supported yet.`
+          : `${employee.full_name}'s compensation is effective ${comp.effective_from}, after the period start ${input.periodStart}, but join_date (${joinDate ?? "unset"}) does not confirm a new hire this period — a full month would be estimated.`,
+        needs: hasEarlierComp
+          ? "compensation effective on/before the period start, or split-rate-month support (not built)"
+          : "a join_date after the period start and on/before the compensation's effective_from, confirming a genuine new hire",
+      });
+    }
   }
 
   if (!input.tax) {
@@ -220,12 +270,25 @@ export function computeEmployeeStatutory(input: StatutoryInput): StatutoryOutcom
 
   const ptkpStatus = input.tax.ptkp_status as PtkpStatus;
   const jkkRiskClass = rawRisk as JkkRiskClass;
-  const baseSalary = Math.round(comp.base_salary);
+  const baseSalaryFull = Math.round(comp.base_salary);
   // Taxable earning lines flow into gross via fixedAllowances — the same
   // path computeRunPreview uses — so PPh 21 sees the full taxable gross.
+  // NOT prorated (ADR 0006): the frozen method prorates base_salary and
+  // compensation.fixed_allowances only; per-employee configurable earnings are
+  // a separate, later decision left as-is.
   const taxableEarnings = earnings.reduce((acc, l) => acc + (l.taxable ? l.amount : 0), 0);
   const nonTaxableEarnings = earnings.reduce((acc, l) => acc + (l.taxable ? 0 : l.amount), 0);
-  const fixedAllowances = sumFixedAllowances(comp.fixed_allowances) + taxableEarnings;
+  const compFixedAllowancesFull = sumFixedAllowances(comp.fixed_allowances);
+
+  // Working-day-basis mid-month-hire proration (ADR 0006): both base_salary
+  // and compensation.fixed_allowances scale by the SAME workedDays/totalDays
+  // fraction; BPJS + PPh 21 TER below then compute on the prorated numbers
+  // exactly as they would for a full-month employee — no separate rules.
+  const baseSalary = proration ? prorateByFactor(baseSalaryFull, proration) : baseSalaryFull;
+  const compFixedAllowances = proration
+    ? prorateByFactor(compFixedAllowancesFull, proration)
+    : compFixedAllowancesFull;
+  const fixedAllowances = compFixedAllowances + taxableEarnings;
 
   const result = computeMonthlyPayroll(
     {
@@ -258,6 +321,7 @@ export function computeEmployeeStatutory(input: StatutoryInput): StatutoryOutcom
       earnings,
       nonTaxableEarnings,
       result,
+      ...(proration ? { proration } : {}),
     },
   };
 }
