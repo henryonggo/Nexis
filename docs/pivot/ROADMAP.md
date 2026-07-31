@@ -101,8 +101,15 @@ list — do not burn the week the log was meant to steer.
    approval-gated tool takes `{year,month}` or `{runId}`, so no payload
    carries money; `formatRupiah` stays a fallback for a future money field.
    (app-engineer, 2026-07-20)
-8. **WhatsApp/email approval digest** — the pivot's v0 alternative surface;
-   decide→approve via link. Needs an ADR first. (orchestrator → ADR 0005)
+8. **WhatsApp/email approval digest** — the pivot's v0 alternative surface.
+   ✔ **ADR 0005 written** (2026-07-29): notify off-web via the existing
+   `send-notification` (email + WhatsApp, opt-in-aware) with a deep link to
+   the `/approvals` gate; the authenticated owner still decides (in-message
+   approve/magic-link deferred — it trades away the "authenticated owner
+   decides" property). **Implementation still gated on the failure log** —
+   ships only if the dry/live runs show the owner stalls waiting on the web
+   gate. Then: fire the notification at `createApprovalRequest`, honor
+   `?request=<id>` on `/approvals`. (orchestrator → then domain + app)
 
 ## LATER — workflow N (each reuses the workflow-zero template)
 
