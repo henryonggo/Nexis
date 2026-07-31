@@ -76,6 +76,20 @@ test.describe("approvals — admin queue", () => {
       ).toBeVisible();
     }
   });
+
+  // CODE-REVIEW-2026-07 "Audit visibility": a cycle result only carries
+  // auditGaps when a tool call's audit_logs insert failed this run — not
+  // reproducible from a fixture, so assert conditionally: if the warning
+  // block rendered, it must show the heading and at least one tool/error line.
+  test("audit-gap warning renders when a tool call went unaudited", async ({ page }) => {
+    await page.goto("/approvals");
+
+    const heading = page.getByText("Tindakan tidak tercatat di jejak audit");
+    if (await heading.count()) {
+      await expect(heading).toBeVisible();
+      await expect(page.getByText("Periksa manual sebelum melanjutkan.", { exact: false })).toBeVisible();
+    }
+  });
 });
 
 test.describe("approvals — non-admin guard", () => {

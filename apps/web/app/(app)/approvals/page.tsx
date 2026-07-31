@@ -88,6 +88,8 @@ export default async function ApprovalsPage() {
             },
             haltsHeading: t("agent.haltsHeading"),
             approvalsHeading: t("agent.approvalsHeading"),
+            auditGapsHeading: t("agent.auditGapsHeading"),
+            auditGapsDescription: t("agent.auditGapsDescription"),
           }}
         />
       )}

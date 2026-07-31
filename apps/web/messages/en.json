@@ -1467,7 +1467,9 @@
         "error": "Failed"
       },
       "haltsHeading": "Needs completion",
-      "approvalsHeading": "Proposals awaiting approval"
+      "approvalsHeading": "Proposals awaiting approval",
+      "auditGapsHeading": "Actions not recorded in the audit trail",
+      "auditGapsDescription": "The agent carried out these actions, but writing them to audit_logs failed — the action still happened even though it wasn't logged. Review manually before proceeding."
     }
   }
 }

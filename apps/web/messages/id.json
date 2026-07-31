@@ -1467,7 +1467,9 @@
         "error": "Gagal"
       },
       "haltsHeading": "Perlu dilengkapi",
-      "approvalsHeading": "Usulan menunggu persetujuan"
+      "approvalsHeading": "Usulan menunggu persetujuan",
+      "auditGapsHeading": "Tindakan tidak tercatat di jejak audit",
+      "auditGapsDescription": "Agen menjalankan tindakan ini, tetapi pencatatannya ke audit_logs gagal — tindakan tetap terjadi meski tidak tercatat. Periksa manual sebelum melanjutkan."
     }
   }
 }

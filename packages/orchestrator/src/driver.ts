@@ -118,6 +118,7 @@ export async function runPayrollCycle(options: CycleOptions): Promise<CycleResul
   const events: OrchestratorEvent[] = [];
   const halts: HaltReason[] = [];
   const pendingApprovals: CycleResult["pendingApprovals"] = [];
+  const auditGaps: CycleResult["auditGaps"] = [];
   let finalText = "";
   // Set exactly once, on the single path that ends the cycle below; null
   // means "still running" so the post-loop fallback (maxTurns exhausted)
@@ -248,10 +249,19 @@ export async function runPayrollCycle(options: CycleOptions): Promise<CycleResul
       }
 
       const result = await executeTool(tool, call.input, { ...toolContext, approvalToken });
+      if (result.audit.recorded === false) {
+        auditGaps.push({ tool: call.name, error: result.audit.recordError ?? "unknown" });
+      }
 
       switch (result.status) {
         case "ok": {
-          emit({ type: "tool_result", tool: call.name, status: "ok", detail: null });
+          emit({
+            type: "tool_result",
+            tool: call.name,
+            status: "ok",
+            detail: null,
+            auditRecorded: result.audit.recorded,
+          });
           toolResults.push({
             type: "tool_result",
             tool_use_id: call.id,
@@ -262,7 +272,13 @@ export async function runPayrollCycle(options: CycleOptions): Promise<CycleResul
         case "halt": {
           halts.push(...result.reasons);
           const codes = result.reasons.map((r) => r.code).join(",");
-          emit({ type: "tool_result", tool: call.name, status: "halt", detail: codes });
+          emit({
+            type: "tool_result",
+            tool: call.name,
+            status: "halt",
+            detail: codes,
+            auditRecorded: result.audit.recorded,
+          });
           toolResults.push({
             type: "tool_result",
             tool_use_id: call.id,
@@ -271,7 +287,13 @@ export async function runPayrollCycle(options: CycleOptions): Promise<CycleResul
           break;
         }
         case "denied": {
-          emit({ type: "tool_result", tool: call.name, status: "denied", detail: result.reason });
+          emit({
+            type: "tool_result",
+            tool: call.name,
+            status: "denied",
+            detail: result.reason,
+            auditRecorded: result.audit.recorded,
+          });
           if (tool.requiresApproval && !approvalToken) {
             const summary = `Agen mengusulkan ${call.name}: ${canonicalJson(payload)}`;
             // A same-named, same-payload request may already be pending
@@ -330,7 +352,13 @@ export async function runPayrollCycle(options: CycleOptions): Promise<CycleResul
           break;
         }
         case "error": {
-          emit({ type: "tool_result", tool: call.name, status: "error", detail: result.message });
+          emit({
+            type: "tool_result",
+            tool: call.name,
+            status: "error",
+            detail: result.message,
+            auditRecorded: result.audit.recorded,
+          });
           toolResults.push({
             type: "tool_result",
             tool_use_id: call.id,
@@ -378,5 +406,5 @@ export async function runPayrollCycle(options: CycleOptions): Promise<CycleResul
     });
   }
 
-  return { status, finalText, events, halts, pendingApprovals, recorded };
+  return { status, finalText, events, halts, pendingApprovals, recorded, auditGaps };
 }
