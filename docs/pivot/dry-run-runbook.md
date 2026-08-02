@@ -35,16 +35,19 @@ orchestrator watches the failure log and the numbers.
 3. Read the **Status siklus** block that appears:
    - **finalText** — the agent's own summary (id-ID).
    - **Perlu dilengkapi (halts)** — any employee the engine refused to
-     compute. **Expected: exactly one** — the July-17 hire (E-7) with code
-     `mid_period_compensation`. **This halt is the correct outcome, not a
-     failure**: a full month for a mid-month hire would be an estimated
-     number (non-negotiable #1). Log it in §4 as *designed behavior*.
+     compute. **Expected: none.** The July-17 hire (E-7) that previously
+     halted `mid_period_compensation` now **prorates** (ADR 0006, PR #91,
+     merged 2026-07-31): its base + fixed allowances scale by the working-day
+     factor, so it computes like everyone else. Verify E-7's prorated line
+     in §2.
    - **Usulan menunggu persetujuan** — the `create_draft_payroll_run`
-     proposal for the other **6** employees.
+     proposal for **all 7** employees.
 
-> If the agent halts on ANYTHING other than E-7's
-> `mid_period_compensation`, stop and log it — that is a real discrepancy,
-> not expected.
+> If the agent halts on ANYTHING, stop and log it — post-#91 no employee in
+> this roster is expected to halt. In particular, if **E-7** halts
+> `mid_period_compensation` instead of prorating, that points to a data
+> mismatch (e.g. `join_date` predating the period, or an earlier comp row) —
+> log it as a real discrepancy.
 
 ## 2. Verify the numbers BEFORE approving
 
@@ -57,7 +60,14 @@ The proposal is the point of the gate: **approve numbers you have checked.**
   employee, **integer rupiah, no rounding drift**:
   `gross`, `bpjs_employee`, `bpjs_employer`, `pph21` (TER), `net`.
   Every line must match to the rupiah. Any mismatch → §4.
-- Confirm **6** employee lines are present (7 active − 1 halted E-7).
+- Confirm **all 7** employee lines are present (E-7 now prorates, not halts).
+- **E-7 (the July-17 hire) specifically:** its base salary and fixed
+  allowances must be prorated by the working-day factor = expected working
+  days from the hire date through Jul 31 ÷ expected working days in July,
+  per E-7's schedule (a standard Mon–Fri hire on Jul 17 → **11/23**). BPJS
+  and PPh 21 (TER) must compute on the **prorated** gross, not a full month.
+  Compute the expected rupiah by hand (multiply-then-round) and match to the
+  rupiah.
 
 ## 3. Approve → resume → draft
 
@@ -77,8 +87,10 @@ The proposal is the point of the gate: **approve numbers you have checked.**
 Everything observed goes in `failure-log.md` (newest first, the format at the
 top of that file). Log an entry for **each** of:
 
-- **The E-7 halt** — as designed behavior (workflow step: compute; cause:
-  mid-period hire; fix: proration is NEXT-5, backdated comp row unblocks it).
+- **E-7's prorated line** — confirm proration fired (not a halt) and the
+  prorated rupiah match the hand calc (workflow step: compute; ADR 0006). If
+  E-7 halted instead, log that as a discrepancy with its `join_date` and comp
+  rows.
 - **Any numeric discrepancy** vs the manual calc (which employee, which
   field, agent value vs expected, integer rupiah).
 - **Any unexpected halt, denied, or error** the agent surfaced.
@@ -91,8 +103,9 @@ top of that file). Log an entry for **each** of:
 
 ## 5. Expected end state
 
-- 6 of 7 employees compute cleanly; **1 designed halt** (E-7,
-  `mid_period_compensation`).
+- **All 7** employees compute cleanly; **no halts** (E-7 prorates per ADR
+  0006 — its line is partial-month: base + allowances × the working-day
+  factor, BPJS/TER on the prorated gross).
 - One approved-then-consumed `create_draft_payroll_run`; one **draft**
   `payroll_runs` row for 2026-07 with a `config_snapshot`.
 - One `agent_cycles` row (status `completed`) visible in **Riwayat agen**.
