@@ -32,7 +32,11 @@ Format — one entry per incident, newest first:
   `SUPABASE_SERVICE_ROLE_KEY` (`index.ts:39-42`) points to the container
   crash-looping at startup — most likely that secret unset/misbound on the
   deployed service. Cold-start / OOM are secondary candidates.
-- **Fix:** Not yet applied — needs the Cloud Run logs to confirm. Check
+- **Fix:** *Partial (2026-10-29):* the app side from `claude/payroll-ux-fixes`
+  is ported — `enqueuePayrollRun` retries 429/5xx and network errors twice
+  (3s/6s) and never interpolates Cloud Run's HTML into the banner. That
+  covers a cold start; it does **not** cure a crash-looping container.
+  Root cause still needs the Cloud Run logs to confirm. Check
   Cloud Run → `payroll-worker` → Logs; the boot case shows
   `CRITICAL: SUPABASE_SERVICE_ROLE_KEY is missing in env.` right before exit.
   If so: set the secret and redeploy (`services/payroll-worker/deploy.sh`

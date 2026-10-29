@@ -31,19 +31,39 @@ The web app is the admin/manager surface. Employees primarily use the mobile app
 First sign-in with no company sends you to **Detail perusahaan** to create your first
 company (name + optional industry). You become its Pemilik.
 
+### Your first payroll in four steps
+The dashboard shows a **Mulai di sini** checklist until you're done:
+1. Company created ✓
+2. **Tambah karyawan** — add employees (or import a CSV).
+3. **Atur gaji** — give every active employee a salary (compensation row).
+4. **Jalankan agen penggajian** — open **Persetujuan** and run the agent. It
+   drafts the month's payroll; you check the numbers and approve.
+
+If anything is missing, the agent stops and tells you exactly what to fill in —
+it never guesses a number.
+
 ---
 
 ## Pages
 
 > All pages below live behind sign-in and are scoped to the **active company** (the
-> switcher in the top-left header). Use **+ Tambah perusahaan** in that switcher to add
+> switcher in the top-left header). The sidebar groups them: the essentials first
+> (Beranda, Persetujuan, Penggajian), then **Tim**, **Gaji** and **Perusahaan**. Use **+ Tambah perusahaan** in that switcher to add
 > another company; you become its owner and switch to it immediately.
 
 ![App shell](docs/img/app-shell.png)
 
 ### Dashboard (`/dashboard`)
-Landing overview for the active company — headline figures and quick status. *All roles
-with access.*
+Starts with **what to do next**: how many agent proposals are waiting for your
+decision (or a button to run the payroll agent), the getting-started checklist for new
+companies, and headline figures. *All roles; employees see their own pay, leave and
+attendance.*
+
+### Persetujuan — Approvals (`/approvals`)
+Where the payroll agent works for you. **Jalankan agen** starts a cycle; every change
+the agent wants to make (create a draft, process a run, mark paid) appears here as a
+proposal you **Setujui** or **Tolak**. Halts (**Perlu dilengkapi**) explain what's missing; the history below
+lists past cycles. *Owner/Admin.*
 
 ### Karyawan — Employees (`/employees`)
 The employee directory. Add/edit employees, salary, and employment details; export to
@@ -71,13 +91,6 @@ applied in the payroll run. *Owner/Admin.*
 Run and review payroll. Computes gross/net with Indonesian components (PPh 21, BPJS),
 loan deductions, and approved claims; export results. *Owner/Admin.*
 
-### Kinerja — Performance (`/performance`)
-Performance & KPI tracking and reviews. *Owner/Admin/Manager; employees view their own
-on mobile.*
-
-### Analitik — Analytics (`/analytics`)
-Aggregate dashboards across HR/payroll data. *Owner/Admin.*
-
 ### Laporan — Reports (`/reports`)
 Generate and download reports/exports (payroll, attendance, etc.). *Owner/Admin.*
 
@@ -87,9 +100,6 @@ identifiers (NPWP) here. *Owner.*
 
 ### Audit (`/audit`)
 Audit & compliance log of sensitive actions, for review/export. *Owner/Admin.*
-
-### API — Developer (`/developer`)
-Manage API keys and webhooks for the public API integration. *Owner/Admin.*
 
 ### Anggota — Members (`/members`)
 Invite teammates to the active company and assign roles (Admin/Manajer/Karyawan).
@@ -109,5 +119,5 @@ users.*
   remembered.
 - **Something failed to load?** Pages show a "Terjadi kesalahan" panel with **Coba lagi**
   (retry) and a link back to the dashboard — the browser back button also works normally.
-- **Mobile:** the top nav scrolls horizontally; the **Sign out** button stays in the
-  header.
+- **Mobile:** tap the menu button (top-left) to open the same grouped sidebar; the
+  **Sign out** button stays in the header.

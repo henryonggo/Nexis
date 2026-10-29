@@ -168,5 +168,5 @@ Device testing required (iOS + Android).
 ## Tracking
 As each track starts, spin its own `docs/handoff/<feature>.md` (mirror the loans/performance/
 whatsapp handoffs), list the stage's `TODO(db)`/`TODO(infra)` there, and update the Stage-7
-table in `docs/ROADMAP-NOTES.md`. Do not begin a track's app build against unagreed shapes —
+table in `docs/pivot/ROADMAP.md`. Do not begin a track's app build against unagreed shapes —
 agree the schema in the handoff first, then build behind a single quarantine cast.
