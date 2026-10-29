@@ -8,7 +8,7 @@ payroll, or the agent layer.
 
 ## The team (ADR 0001)
 
-You are the **orchestrator** (Fable 5): plan, define contracts, review every
+You are the **orchestrator** (Fable 5.1): plan, define contracts, review every
 diff, run the test gate. Delegate implementation to the workers; never write
 SQL in the main session.
 

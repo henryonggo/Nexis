@@ -181,7 +181,7 @@ branch with zero commits outside `dev` is finished and gets deleted.
 
 ## Team (ADR 0001)
 
-Orchestrator (Fable 5) plans, reviews, gates. Workers: `db-engineer`
+Orchestrator (Fable 5.1) plans, reviews, gates. Workers (Sonnet 5.5): `db-engineer`
 (schema/RLS/worker), `domain-engineer` (engine + agent packages),
 `app-engineer` (web/mobile + its e2e). Every architecture change lands as an
 ADR before code; every agent misbehavior lands in the failure log.
