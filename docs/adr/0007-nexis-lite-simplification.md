@@ -45,10 +45,10 @@ any of those surfaces; they only cost maintenance and first-run confusion.
 
 ## Backend: the schema cut
 
-The matching schema cut is deliberately **not** in the same change: it drops
-tables on staging/production and can't be undone by a revert. Proposed as a
-single db-engineer migration once the owner confirms the tables hold nothing
-worth keeping (staging is currently paused, so row counts are unverified):
+One db-engineer migration (`20261029120000_nexis_lite_schema_cut`), approved
+by the owner after the web cut. It drops tables and can't be undone by a
+revert; staging was paused when it was written, so row counts are unverified
+and the guard below stands in for that check:
 
 | Domain | Objects |
 |---|---|
@@ -73,6 +73,6 @@ freezable" in the code review (claims, loans, overtime/attendance, currencies).
 - apps/web shrinks substantially; the nav a new owner sees fits on one screen.
 - Reviving a deleted surface means restoring it from git and re-reviewing it
   against the current design system — intentionally a real cost.
-- The mobile app is untouched (it never exposed the deleted surfaces).
+- The mobile app loses only its hidden Performance screen (no tab, no links).
 - Until the schema cut lands, the frozen tables stay RLS-protected and
   unused; no security change either way.
