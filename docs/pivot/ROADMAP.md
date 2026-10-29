@@ -119,12 +119,20 @@ list — do not burn the week the log was meant to steer.
    gate. Then: fire the notification at `createApprovalRequest`, honor
    `?request=<id>` on `/approvals`. (orchestrator → then domain + app)
 
-9. **Nexis Lite schema cut** (ADR 0007) — one migration dropping
-   recruitment, performance, public API/webhooks, SSO/SCIM, the portal RPC
-   and `company_employee_access.nav_style`; regenerate `packages/types`;
-   delete their pgTAP tests and Edge Functions. **Gated on the owner**
-   confirming staging/prod hold nothing worth keeping (irreversible).
+9. ◐ **Nexis Lite schema cut** (ADR 0007) — owner approved 2026-10-29.
+   ✔ Migration `20261029120000_nexis_lite_schema_cut` (with a data-loss guard
+   that aborts if any dropped table has rows), Edge Functions
+   `public-api`/`dispatch-webhook`/`scim` and their pgTAP tests removed,
+   mobile Performance screen removed. Verified on a stand-in Postgres + pgTAP
+   (no Supabase images here). **Open:** regenerate `packages/types` on a
+   machine that can run `pnpm db:start` (stale types still list the dropped
+   tables; nothing references them); apply to staging once it's un-paused.
    (db-engineer)
+11. **Fix fresh `supabase db reset`** — `20260622150000_stage7_salary_earnings`
+   re-creates `custom_earning_types` (and re-adds two constraints) that
+   `20260622120000` already created, so a clean local stack fails and the
+   README quick start breaks. Fix with a new idempotent migration, never by
+   editing the applied one. Found during the schema cut. (db-engineer)
 10. **Retire the legacy manual payroll trigger** — once the agent path is
    the only way a run starts, tighten the worker to `queued|processing`
    (deferred from NEXT-4) and drop the manual "run" button from `/payroll`.

@@ -2,14 +2,13 @@
 -- pgTAP tests for Nexis Phase 5 Handoffs and Stage 7 Tracks
 -- Verifies:
 -- 1. Profiles whatsapp_opt_in column and RLS.
--- 2. Recruitment/ATS tables RLS and the hire_application RPC.
--- 3. Currencies & Exchange rates tables and RLS.
--- 4. SCIM SSO configurations, SCIM tokens, and SCIM bridge RPC helpers.
--- 5. Mobile offline attendance deduplication.
+-- 2. Currencies & Exchange rates tables and RLS.
+-- 3. Mobile offline attendance deduplication.
+-- (Recruitment/ATS and SCIM coverage removed with the Nexis Lite schema cut.)
 -- ============================================================================
 
 begin;
-select plan(18);
+select plan(5);
 
 -- Ensure pgTAP is available
 create extension if not exists pgtap;
@@ -88,91 +87,7 @@ select is(
 );
 
 -- ============================================================================
--- Test 2: Recruitment/ATS Schema and RLS
--- ============================================================================
-select set_config('role', 'postgres', true);
-select set_config('request.jwt.claims', null, true);
-
--- Insert job opening as manager (via postgres bypass)
-insert into job_openings (id, company_id, title, department, employment_type, status) values
-  ('10000000-0000-0000-0000-000000000001', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Software Engineer', 'Engineering', 'permanent', 'open');
-
-insert into candidates (id, company_id, full_name, email, phone) values
-  ('c0000000-0000-0000-0000-000000000001', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'John Doe', 'john.doe@test.local', '0812345678');
-
-insert into applications (id, company_id, job_opening_id, candidate_id, stage) values
-  ('a0000000-0000-0000-0000-000000000001', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '10000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000001', 'applied');
-
--- Check RLS: outsider cannot read job openings
-select tests_authenticate_as('44444444-4444-4444-4444-444444444444');
-select is(
-  (select count(*)::int from job_openings),
-  0,
-  'Outsider cannot select job openings due to RLS'
-);
-
--- Check RLS: employee can read job openings
-select tests_authenticate_as('33333333-3333-3333-3333-333333333333');
-select is(
-  (select count(*)::int from job_openings),
-  1,
-  'Company member can select job openings'
-);
-
--- Check RLS: employee cannot write/insert job openings
-select throws_ok(
-  $$ insert into job_openings (company_id, title) values ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Product Manager') $$,
-  'new row violates row-level security policy for table "job_openings"',
-  'Plain employee cannot insert a new job opening'
-);
-
--- Check RLS: manager can insert job openings
-select tests_authenticate_as('22222222-2222-2222-2222-222222222222');
-select lives_ok(
-  $$ insert into job_openings (id, company_id, title) values ('10000000-0000-0000-0000-000000000002', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Product Manager') $$,
-  'Manager can insert job openings'
-);
-
--- ============================================================================
--- Test 3: hire_application RPC function
--- ============================================================================
-select tests_authenticate_as('22222222-2222-2222-2222-222222222222');
-
-select is(
-  (select count(*)::int from employees where status = 'probation'),
-  0,
-  'No probation employees initially'
-);
-
-select isnt(
-  public.hire_application('a0000000-0000-0000-0000-000000000001'),
-  null,
-  'Hiring application returns a non-null employee ID'
-);
-
-select set_config('role', 'postgres', true);
-select set_config('request.jwt.claims', null, true);
-
-select is(
-  (select count(*)::int from employees where status = 'probation'),
-  1,
-  'One probation employee exists after hire'
-);
-
-select is(
-  (select stage from applications where id = 'a0000000-0000-0000-0000-000000000001'),
-  'hired'::application_stage,
-  'Application stage is updated to hired'
-);
-
-select is(
-  (select status from job_openings where id = '10000000-0000-0000-0000-000000000001'),
-  'filled'::job_opening_status,
-  'Job opening status is updated to filled'
-);
-
--- ============================================================================
--- Test 4: Currencies and Exchange Rates select
+-- Test 2: Currencies and Exchange Rates select
 -- ============================================================================
 select tests_authenticate_as('33333333-3333-3333-3333-333333333333');
 
@@ -189,43 +104,7 @@ select is(
 );
 
 -- ============================================================================
--- Test 5: SCIM Tokens and helper RPCs
--- ============================================================================
-select tests_authenticate_as('11111111-1111-1111-1111-111111111111');
-
--- Owner can generate SCIM token
-select isnt(
-  (select generate_scim_token('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')),
-  null,
-  'Owner can generate SCIM token'
-);
-
--- SCIM query helper returns user details
-select set_config('role', 'postgres', true);
-select set_config('request.jwt.claims', null, true);
-
-select is(
-  (select count(*)::int from get_scim_users('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')),
-  3,
-  'SCIM query helper returns all 3 members of company'
-);
-
-select is(
-  (select full_name from get_scim_user_by_id('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '33333333-3333-3333-3333-333333333333')),
-  'Test Employee',
-  'SCIM query user by ID returns correct name'
-);
-
--- SCIM set active updates profile deactivated_at
-select scim_set_user_active('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '33333333-3333-3333-3333-333333333333', false);
-select isnt(
-  (select deactivated_at from profiles where id = '33333333-3333-3333-3333-333333333333'),
-  null,
-  'SCIM set active = false populates deactivated_at'
-);
-
--- ============================================================================
--- Test 6: Mobile offline attendance deduplication
+-- Test 3: Mobile offline attendance deduplication
 -- ============================================================================
 -- Insert an attendance log with client_uuid
 insert into attendance_records (id, company_id, employee_id, kind, event_at, client_uuid) values

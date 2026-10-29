@@ -2,8 +2,9 @@
 
 - **Status:** Accepted for the web layer (2026-10-29, owner instruction:
   "simplify the whole process … make it light and approachable to a new
-  company"). Schema cut is **Proposed** — needs the owner's go-ahead (see
-  "Backend: proposed, not yet applied").
+  company"). Schema cut **Accepted** 2026-10-29 (owner: "go ahead with the
+  schema cut") — migration `20261029120000_nexis_lite_schema_cut` written,
+  not yet applied to any remote project.
 - **Context:** `docs/pivot/CODE-REVIEW-2026-07.md` ("the repo's real problem
   is pre-pivot surface area"), `docs/pivot/ROADMAP.md` ("each frozen surface
   is revived only when a paying workflow demands it — otherwise it eventually
@@ -42,7 +43,7 @@ any of those surfaces; they only cost maintenance and first-run confusion.
    getting-started checklist ending at the first agent run. The attendance
    shifts step is dropped from onboarding — monthly payroll doesn't need it.
 
-## Backend: proposed, not yet applied
+## Backend: the schema cut
 
 The matching schema cut is deliberately **not** in the same change: it drops
 tables on staging/production and can't be undone by a revert. Proposed as a
@@ -58,8 +59,13 @@ worth keeping (staging is currently paused, so row counts are unverified):
 | Portal | `portal_company_summaries()` RPC |
 | Nav style | `company_employee_access.nav_style` column (no longer read or written) |
 
-Then regenerate `packages/types` and delete the pgTAP tests for those
-domains. Out of scope for that cut: billing, and anything listed as "not
+Also dropped: the webhook-enqueue triggers on `employees`,
+`attendance_records` and `payroll_runs` (their function body inserts into
+`webhook_queue`, which CASCADE would not catch), the domains' RPCs and enums,
+and the `resumes` storage bucket. The migration opens with a **data-loss
+guard**: it aborts, naming the table, if any dropped table or the `resumes`
+bucket still holds data. Then regenerate `packages/types` and delete the pgTAP
+tests for those domains. Out of scope for that cut: billing, and anything listed as "not
 freezable" in the code review (claims, loans, overtime/attendance, currencies).
 
 ## Consequences
