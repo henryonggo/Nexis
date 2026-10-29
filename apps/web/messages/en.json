@@ -13,7 +13,6 @@
     "exportCsv": "Export CSV",
     "processing": "Processing…",
     "addCompany": "+ Add company",
-    "allCompanies": "All companies",
     "expandSidebar": "Expand sidebar",
     "collapseSidebar": "Collapse sidebar"
   },
@@ -24,38 +23,7 @@
     "employee": "Employee",
     "accountant": "Accountant"
   },
-  "portal": {
-    "title": "Portal",
-    "subtitle": "All your companies at a glance",
-    "asOf": "As of {time} WIB",
-    "companyCount": "{count, plural, one {# company} other {# companies}}",
-    "searchPlaceholder": "Search companies…",
-    "noMatches": "No companies match.",
-    "kpi": {
-      "companies": "Companies",
-      "employees": "Total employees",
-      "needsAction": "Needs attention",
-      "needsActionHint": "{count} companies",
-      "payrollTotal": "Last payroll total",
-      "payrollTotalHint": "Net across all companies"
-    },
-    "card": {
-      "seats": "{used} / {limit} seats",
-      "headcount": "{count, plural, one {# employee} other {# employees}}",
-      "lastPayroll": "Last payroll",
-      "noPayroll": "No payroll yet",
-      "pendingApprovals": "Pending approvals",
-      "noPending": "None",
-      "open": "Open",
-      "loadError": "Couldn’t load data"
-    }
-  },
   "nav": {
-    "overview": "Overview",
-    "people": "People & Teams",
-    "operations": "Operations",
-    "finance": "Finance",
-    "platform": "System",
     "dashboard": "Dashboard",
     "employees": "Employees",
     "attendance": "Attendance",
@@ -67,17 +35,19 @@
     "deductions": "Deductions",
     "payroll": "Payroll",
     "approvals": "Approvals",
-    "performance": "Performance",
-    "analytics": "Analytics",
     "reports": "Reports",
     "billing": "Billing",
     "audit": "Audit",
-    "developer": "API",
     "members": "Members",
     "access": "Employee access",
-    "superadmin": "Platform admin",
     "profile": "My Profile",
-    "settings": "Settings"
+    "settings": "Settings",
+    "groups": {
+      "team": "Team",
+      "pay": "Pay setup",
+      "company": "Company"
+    },
+    "superadmin": "Platform admin"
   },
   "plans": {
     "free": "Free",
@@ -152,6 +122,14 @@
       "noNpwp": ", no company NPWP required.",
       "upgrade": "Upgrade plan"
     },
+    "next": {
+      "pending": "{count} approvals waiting for your decision",
+      "pendingHint": "The agent has prepared proposals. Review them, then approve or reject.",
+      "review": "Review approvals",
+      "clear": "All clear",
+      "clearHint": "Nothing needs your decision right now.",
+      "runAgent": "Run the payroll agent"
+    },
     "cards": {
       "employees": "Employees",
       "manageEmployees": "Manage employees →",
@@ -165,27 +143,13 @@
       "payrollEmpty": "No payroll runs yet",
       "avgCost": "Avg {amount}"
     },
-    "workforce": {
-      "title": "Workforce",
-      "active": "Active",
-      "probation": "Probation",
-      "inactive": "Inactive",
-      "terminated": "Terminated",
-      "totalWord": "total"
-    },
-    "attendanceMix": {
-      "title": "Attendance today",
-      "present": "Present",
-      "absent": "Absent",
-      "presentWord": "present"
-    },
     "checklist": {
-      "title": "Finish setting up",
+      "title": "Start here — 4 steps to your first hands-off payroll",
       "progress": "{done} of {total} done",
       "company": "Company created",
-      "employees": "Add your first employee",
-      "shifts": "Set up a work schedule",
-      "payroll": "Run your first payroll"
+      "employees": "Add employees",
+      "payroll": "Run the payroll agent for the first time",
+      "salaries": "Set a salary for every active employee"
     },
     "manager": {
       "pendingApprovals": "Pending approvals",
@@ -237,8 +201,7 @@
     "groups": {
       "operations": "Operations",
       "compensation": "Compensation",
-      "dashboard": "Dashboard widgets",
-      "navigation": "Navigation"
+      "dashboard": "Dashboard widgets"
     },
     "items": {
       "attendance": {
@@ -268,16 +231,6 @@
       "dash_attendance": {
         "label": "Attendance summary",
         "hint": "14-day attendance strip on the dashboard. Requires attendance access."
-      }
-    },
-    "navStyle": {
-      "flat": {
-        "label": "Flat menu",
-        "hint": "Employees see a simple list of their own pages."
-      },
-      "pillars": {
-        "label": "Grouped menu",
-        "hint": "Employees see the same grouped pillars as managers."
       }
     }
   },
@@ -532,19 +485,6 @@
     "add": "Add deduction",
     "remove": "Remove",
     "noDate": "No date"
-  },
-  "superadmin": {
-    "title": "Platform admin",
-    "subtitle": "Comp any company with a full-access free pass.",
-    "intro": "A free pass moves a company to a comped Enterprise plan: no 5-employee limit and all paid features unlocked, at no charge. Toggle it per company below.",
-    "saved": "Saved.",
-    "empty": "No companies yet.",
-    "notConfigured": "Service-role access isn't configured in this environment (SUPABASE_SERVICE_ROLE_KEY). Cross-company actions are unavailable.",
-    "statusComped": "Free pass (comped enterprise)",
-    "planLabel": "Plan: {plan}",
-    "seats": "{count} active",
-    "grant": "Give free pass",
-    "revoke": "Revoke free pass"
   },
   "earnings": {
     "title": "Allowances & salary breakdown",
@@ -934,46 +874,6 @@
       "jkm": "Death insurance (JKM) — paid by the company, 0.30% of salary."
     }
   },
-  "analytics": {
-    "title": "Analytics",
-    "noAccess": "Only owners or admins can view company analytics.",
-    "subtitle": "Headcount, payroll cost, and leave summary for {name}.",
-    "activeEmployees": "Active employees",
-    "totalSuffix": "{total} total",
-    "lastGross": "Last payroll gross",
-    "noRun": "No runs yet",
-    "employerBpjs": "Employer BPJS (last)",
-    "pph21": "PPh 21 {amount}",
-    "pendingApprovals": "Pending approvals",
-    "pendingBreakdown": "{leave} leave · {claims} claims",
-    "trendTitle": "Payroll gross trend",
-    "byDepartment": "Employees by department",
-    "byType": "Employees by type",
-    "leaveTitle": "Approved leave days ({year})",
-    "noActiveEmployees": "No active employees yet.",
-    "noLeave": "No approved leave this year.",
-    "noTrend": "No completed payroll runs to display yet.",
-    "unitPeople": "ppl",
-    "unitDays": "days",
-    "unitHours": "hrs",
-    "grossLabel": "gross",
-    "overtimeTitle": "Approved overtime per month",
-    "noOvertime": "No approved overtime in this period.",
-    "employerCostTitle": "Employer cost by department",
-    "employerCostMeta": "{period} · total {total}",
-    "noEmployerCost": "No completed payroll run to compute yet.",
-    "punctualityTitle": "Clock-in punctuality",
-    "onTime": "On time",
-    "late": "Late",
-    "onTimeRate": "{rate}% on time",
-    "unitTimes": "times",
-    "noPunctuality": "No clock-ins on scheduled days to judge yet.",
-    "export": "Export CSV",
-    "period": {
-      "label": "Period",
-      "months": "Last {count} months"
-    }
-  },
   "audit": {
     "title": "Audit & Compliance",
     "noAccess": "Only owners or admins can view the audit log.",
@@ -1048,56 +948,6 @@
         "label": "BPJS SIPP",
         "description": "Wage & contribution format for upload to the BPJS Ketenagakerjaan SIPP app."
       }
-    }
-  },
-  "developer": {
-    "title": "API & Webhooks",
-    "noAccess": "Only owners or admins can manage developer integrations.",
-    "subtitle": "Manage API keys and webhooks to integrate {name} with other systems.",
-    "keys": "API keys ({count})",
-    "noKeys": "No API keys yet.",
-    "revoked": "(revoked)",
-    "noScope": "no scope",
-    "createdAt": "created {date}",
-    "lastUsed": "Last used: {date}",
-    "webhooks": "Webhooks ({count})",
-    "noWebhooks": "No webhooks yet.",
-    "active": "Active",
-    "inactive": "Inactive",
-    "deliveries": "Recent deliveries",
-    "deliveryColumns": {
-      "time": "Time",
-      "event": "Event",
-      "status": "Status",
-      "http": "HTTP",
-      "attempt": "Attempt"
-    },
-    "noDeliveries": "No webhook deliveries yet.",
-    "keyForm": {
-      "title": "Create API key",
-      "subtitle": "Used as a bearer token in the Authorization header of the Public API.",
-      "name": "Key name",
-      "namePlaceholder": "e.g. HRIS integration",
-      "scopes": "Scopes",
-      "submit": "Create key",
-      "newSecretLabel": "New API key"
-    },
-    "webhookForm": {
-      "title": "Add webhook",
-      "subtitle": "We send an HMAC-signed POST to this URL when events occur.",
-      "url": "Endpoint URL",
-      "events": "Events",
-      "submit": "Add webhook",
-      "secretLabel": "Signing secret"
-    },
-    "secret": {
-      "copyNow": "Copy it now — this value won't be shown again."
-    },
-    "rowActions": {
-      "revoke": "Revoke",
-      "deactivate": "Deactivate",
-      "activate": "Activate",
-      "delete": "Delete"
     }
   },
   "members": {
@@ -1289,71 +1139,6 @@
       ]
     }
   },
-  "performance": {
-    "title": "Performance & KPIs",
-    "noAccess": "Only owners, admins, or managers can manage performance reviews.",
-    "subtitle": "Set goals, track progress, and review {name}'s employees.",
-    "noCycles": "No review cycles yet. Create one to start setting goals.",
-    "cycleLabel": "Cycle:",
-    "goalsHeading": "Goals — {cycle}",
-    "reviewsHeading": "Reviews",
-    "addGoalsFirst": "Add goals first to review employees.",
-    "goalsColumns": {
-      "employee": "Employee",
-      "goal": "Goal",
-      "weight": "Weight",
-      "status": "Status",
-      "progress": "Progress"
-    },
-    "noGoals": "No goals in this cycle yet.",
-    "goalStatus": {
-      "on_track": "On track",
-      "at_risk": "At risk",
-      "off_track": "Off track",
-      "done": "Done",
-      "cancelled": "Cancelled"
-    },
-    "reviewStatus": {
-      "draft": "Draft",
-      "submitted": "Submitted",
-      "acknowledged": "Acknowledged by employee"
-    },
-    "cycleForm": {
-      "title": "Create review cycle",
-      "subtitle": "A performance review period, e.g. half-year or annual.",
-      "created": "Cycle created.",
-      "name": "Cycle name",
-      "namePlaceholder": "2026 H1",
-      "start": "Start",
-      "end": "End",
-      "submit": "Create cycle"
-    },
-    "goalForm": {
-      "titleEmpty": "Add goal",
-      "emptyHint": "Add an employee first to set goals.",
-      "title": "Add goal (KPI)",
-      "subtitle": "Weight is used to weigh the final score.",
-      "created": "Goal added.",
-      "employee": "Employee",
-      "weight": "Weight (%)",
-      "goal": "Goal",
-      "goalPlaceholder": "e.g. Close 10 deals in Q1",
-      "description": "Description (optional)",
-      "submit": "Add goal"
-    },
-    "goalProgress": {
-      "ariaLabel": "Progress (%)",
-      "save": "Save"
-    },
-    "reviewForm": {
-      "finalScore": "Final score:",
-      "rating": "Rating (1–5)",
-      "summary": "Summary",
-      "summaryPlaceholder": "Review notes",
-      "saveDraft": "Save draft",
-      "submit": "Submit review"
-    }
-  },
   "invite": {
     "header": "Join invitation",
     "title": "Accept invitation",
@@ -1411,14 +1196,6 @@
       "noNpwp": "No NPWP (+20% tax surcharge applies)"
     }
   },
-  "glance": {
-    "open": "Glance",
-    "asOf": "As of {time} WIB",
-    "latestPayroll": "Latest payroll",
-    "noPayroll": "No payroll runs yet",
-    "pendingLeave": "Leave to approve",
-    "recentRuns": "Recent runs"
-  },
   "approvals": {
     "title": "Agent Approvals",
     "subtitle": "Review and approve agent-proposed actions before they execute.",
@@ -1471,5 +1248,18 @@
       "auditGapsHeading": "Actions not recorded in the audit trail",
       "auditGapsDescription": "The agent carried out these actions, but writing them to audit_logs failed — the action still happened even though it wasn't logged. Review manually before proceeding."
     }
+  },
+  "superadmin": {
+    "title": "Platform admin",
+    "subtitle": "Comp any company with a full-access free pass.",
+    "intro": "A free pass moves a company to a comped Enterprise plan: no 5-employee limit and all paid features unlocked, at no charge. Toggle it per company below.",
+    "saved": "Saved.",
+    "empty": "No companies yet.",
+    "notConfigured": "Service-role access isn't configured in this environment (SUPABASE_SERVICE_ROLE_KEY). Cross-company actions are unavailable.",
+    "statusComped": "Free pass (comped enterprise)",
+    "planLabel": "Plan: {plan}",
+    "seats": "{count} active",
+    "grant": "Give free pass",
+    "revoke": "Revoke free pass"
   }
 }

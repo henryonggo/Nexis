@@ -145,7 +145,7 @@ approval gate, an ADR if it changes architecture, and a failure-log feed.
 ## Frozen surfaces (bugfix-only; list = CODE-REVIEW-2026-07.md)
 
 **Deleted from the web app 2026-10-29 (ADR 0007):** performance, analytics,
-developer, superadmin, glance, multi-company `/portal`, the pillar nav and
+developer, glance, multi-company `/portal`, the pillar nav and
 command palette. Restore from git only if a paying workflow asks.
 
 Still frozen — web: everything else under `app/(app)` except `dashboard`,

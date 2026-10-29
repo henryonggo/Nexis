@@ -1,69 +1,86 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { LayoutDashboard, PanelLeftClose, PanelLeft, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ICONS, PILLARS, PILLAR_ITEMS, getActivePillar, type NavItem } from "@/lib/nav";
+import { ICONS, type NavGroup, type NavItem } from "@/lib/nav";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
-function NavList({
-  items,
-  collapsed = false,
+function NavLink({
+  item,
+  collapsed,
   onNavigate,
 }: {
-  items: NavItem[];
-  collapsed?: boolean;
+  item: NavItem;
+  collapsed: boolean;
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
+  const Icon = ICONS[item.key] ?? LayoutDashboard;
+  const active = pathname === item.href || pathname.startsWith(item.href + "/");
+  const link = (
+    <Link
+      href={item.href}
+      onClick={onNavigate}
+      className={cn(
+        "relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+        active
+          ? "bg-brand-050 text-brand font-semibold before:absolute before:left-0 before:top-0 before:bottom-0 before:w-0.5 before:bg-brand before:rounded-r-sm"
+          : "text-muted hover:bg-white/10 hover:text-ink",
+        collapsed && "justify-center px-2",
+      )}
+      aria-label={item.label}
+    >
+      <Icon className="h-[18px] w-[18px] shrink-0" />
+      {!collapsed && <span className="truncate">{item.label}</span>}
+    </Link>
+  );
+
+  if (!collapsed) return link;
   return (
-    <nav className="flex flex-col gap-0.5 p-2">
-      {items.map((item) => {
-        const Icon = ICONS[item.key] ?? LayoutDashboard;
-        const active = pathname === item.href || pathname.startsWith(item.href + "/");
-        const navItem = (
-          <Link
-            href={item.href}
-            onClick={onNavigate}
-            className={cn(
-              "relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-              active
-                ? "bg-brand-050 text-brand font-semibold before:absolute before:left-0 before:top-0 before:bottom-0 before:w-0.5 before:bg-brand before:rounded-r-sm"
-                : "text-muted hover:bg-white/10 hover:text-ink",
-              collapsed && "justify-center px-2",
-            )}
-            aria-label={item.label}
-          >
-            <Icon className="h-[18px] w-[18px] shrink-0" />
-            {!collapsed && <span className="truncate">{item.label}</span>}
-          </Link>
-        );
+    <Tooltip>
+      <TooltipTrigger asChild>{link}</TooltipTrigger>
+      <TooltipContent side="right">{item.label}</TooltipContent>
+    </Tooltip>
+  );
+}
 
-        if (collapsed) {
-          return (
-            <Tooltip key={item.href}>
-              <TooltipTrigger asChild>{navItem}</TooltipTrigger>
-              <TooltipContent side="right">{item.label}</TooltipContent>
-            </Tooltip>
-          );
-        }
-
-        return <div key={item.href}>{navItem}</div>;
-      })}
+function NavList({
+  groups,
+  collapsed = false,
+  onNavigate,
+}: {
+  groups: NavGroup[];
+  collapsed?: boolean;
+  onNavigate?: () => void;
+}) {
+  return (
+    <nav className="flex flex-col gap-3 p-2">
+      {groups.map((group) => (
+        <div key={group.key} className="flex flex-col gap-0.5" data-nav-group={group.key}>
+          {group.label &&
+            (collapsed ? (
+              <div className="mx-2 my-1 border-t border-hairline" />
+            ) : (
+              <div className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted">
+                {group.label}
+              </div>
+            ))}
+          {group.items.map((item) => (
+            <NavLink key={item.href} item={item} collapsed={collapsed} onNavigate={onNavigate} />
+          ))}
+        </div>
+      ))}
     </nav>
   );
 }
 
-export function DesktopSidebar({ items }: { items: NavItem[] }) {
-  const [collapsed, setCollapsed] = useState(true);
-  const pathname = usePathname();
+export function DesktopSidebar({ groups }: { groups: NavGroup[] }) {
+  const [collapsed, setCollapsed] = useState(false);
   const tc = useTranslations("common");
-  const activePillar = getActivePillar(pathname);
-  const allowedKeys = PILLAR_ITEMS[activePillar] ?? [];
-  const filteredItems = items.filter((item) => allowedKeys.includes(item.key));
 
   return (
     <aside
@@ -80,14 +97,15 @@ export function DesktopSidebar({ items }: { items: NavItem[] }) {
           </div>
         </div>
 
-        {/* Nav items — anchored to the top */}
-        <NavList items={filteredItems} collapsed={collapsed} />
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <NavList groups={groups} collapsed={collapsed} />
+        </div>
 
         {/* Expand/collapse toggle pinned to the bottom */}
         <button
           type="button"
           onClick={() => setCollapsed((v) => !v)}
-          className="mt-auto m-2 flex items-center justify-center rounded-md px-3 py-2 text-muted hover:bg-white/10 hover:text-ink transition-colors"
+          className="m-2 flex items-center justify-center rounded-md px-3 py-2 text-muted hover:bg-white/10 hover:text-ink transition-colors"
           aria-label={collapsed ? tc("expandSidebar") : tc("collapseSidebar")}
         >
           {collapsed ? <PanelLeft className="h-[18px] w-[18px]" /> : <PanelLeftClose className="h-[18px] w-[18px]" />}
@@ -97,33 +115,8 @@ export function DesktopSidebar({ items }: { items: NavItem[] }) {
   );
 }
 
-export function MobileNav({
-  items,
-  pillarKeys,
-  flat,
-}: {
-  items: NavItem[];
-  pillarKeys: string[];
-  flat: boolean;
-}) {
+export function MobileNav({ groups }: { groups: NavGroup[] }) {
   const [open, setOpen] = useState(false);
-  const pathname = usePathname();
-  const pillars = PILLARS.filter((p) => pillarKeys.includes(p.key));
-  // Default to the URL's pillar, but only if it's one the role can see.
-  const urlPillar = getActivePillar(pathname);
-  const initialTab = pillarKeys.includes(urlPillar) ? urlPillar : (pillarKeys[0] ?? "overview");
-  const [activeTab, setActiveTab] = useState(initialTab);
-  const t = useTranslations("nav");
-
-  // Keep active tab in sync with user URL navigations
-  useEffect(() => {
-    const next = getActivePillar(pathname);
-    setActiveTab(pillarKeys.includes(next) ? next : (pillarKeys[0] ?? "overview"));
-  }, [pathname, pillarKeys]);
-
-  // Employees get a flat list; everyone else navigates within the active pillar.
-  const allowedKeys = PILLAR_ITEMS[activeTab] ?? [];
-  const filteredItems = flat ? items : items.filter((item) => allowedKeys.includes(item.key));
 
   return (
     <>
@@ -151,35 +144,8 @@ export function MobileNav({
               </button>
             </div>
 
-            {/* Mobile Navigation Pillars Grid (hidden for employees' flat nav) */}
-            {!flat && (
-            <div
-              className="grid border-b border-white/10 p-2 gap-1 bg-white/5"
-              style={{ gridTemplateColumns: `repeat(${pillars.length}, minmax(0, 1fr))` }}
-            >
-              {pillars.map((p) => {
-                const Icon = p.icon;
-                const active = activeTab === p.key;
-                return (
-                  <button
-                    key={p.key}
-                    type="button"
-                    onClick={() => setActiveTab(p.key)}
-                    title={t(p.labelKey)}
-                    className={cn(
-                      "flex flex-col items-center justify-center p-2 rounded-md transition-colors",
-                      active ? "bg-brand/10 text-brand" : "text-muted hover:text-ink hover:bg-white/5"
-                    )}
-                  >
-                    <Icon className="h-4.5 w-4.5" />
-                  </button>
-                );
-              })}
-            </div>
-            )}
-
             <div className="flex-1 overflow-y-auto">
-              <NavList items={filteredItems} onNavigate={() => setOpen(false)} />
+              <NavList groups={groups} onNavigate={() => setOpen(false)} />
             </div>
           </div>
         </div>

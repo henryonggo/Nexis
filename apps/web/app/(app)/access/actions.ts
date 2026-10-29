@@ -28,7 +28,6 @@ export async function updateEmployeeAccess(
     dash_pay: formData.get("dash_pay") === "on",
     dash_leave: formData.get("dash_leave") === "on",
     dash_attendance: formData.get("dash_attendance") === "on",
-    nav_style: formData.get("nav_style") === "pillars" ? "pillars" : "flat",
     updated_at: new Date().toISOString(),
   };
 
