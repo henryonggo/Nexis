@@ -36,13 +36,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # NOTE: `pnpm lint` is intentionally omitted — ESLint is not yet configured
-      # in apps/web (`next lint` drops into an interactive setup prompt). Wiring it
-      # needs eslint + eslint-config-next devDeps and a lockfile regen; tracked as
-      # follow-up. typecheck + build + e2e are the verification gate for now.
+      - name: Lint
+        run: pnpm lint
 
       - name: Typecheck (web, mobile, packages)
         run: pnpm typecheck
+
+      # PPh 21 / BPJS / proration engine, agent tools and orchestrator: the money path.
+      - name: Unit tests
+        run: pnpm test
 
       - name: Build
         run: pnpm build
@@ -72,3 +74,33 @@ jobs:
       # only the unauthenticated redirect guards run (these need no seeded data).
       - name: Run e2e guard specs
         run: pnpm --filter @nexis/web test:e2e
+
+  database:
+    name: Database (migrations, pgTAP, types)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Same CLI version the repo locks (root devDependency), so generated types match.
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.104.0
+
+      - name: Apply every migration from zero
+        run: supabase db start
+
+      - name: pgTAP (RLS, approval gate, schema cut)
+        run: supabase test db
+
+      - name: packages/types matches the schema
+        run: |
+          supabase gen types typescript --local > "$RUNNER_TEMP/database.ts"
+          diff -u packages/types/src/database.ts "$RUNNER_TEMP/database.ts"
+
+      # On drift, publish the freshly generated file so it can be committed as-is.
+      - name: Upload regenerated types
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: database-types
+          path: ${{ runner.temp }}/database.ts
