@@ -149,7 +149,8 @@
       "company": "Company created",
       "employees": "Add employees",
       "payroll": "Run the payroll agent for the first time",
-      "salaries": "Set a salary for every active employee"
+      "readyData": "Complete salary, NPWP/PTKP & bank details",
+      "incomplete": "{count, plural, one {# employee} other {# employees}} incomplete"
     },
     "manager": {
       "pendingApprovals": "Pending approvals",

@@ -149,7 +149,8 @@
       "company": "Perusahaan dibuat",
       "employees": "Tambah karyawan",
       "payroll": "Jalankan agen penggajian pertama",
-      "salaries": "Isi gaji setiap karyawan aktif"
+      "readyData": "Lengkapi data gaji, NPWP/PTKP & rekening",
+      "incomplete": "{count} karyawan belum lengkap"
     },
     "manager": {
       "pendingApprovals": "Persetujuan tertunda",
