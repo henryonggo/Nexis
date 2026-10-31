@@ -125,9 +125,8 @@ list — do not burn the week the log was meant to steer.
    that aborts if any dropped table has rows), Edge Functions
    `public-api`/`dispatch-webhook`/`scim` and their pgTAP tests removed,
    mobile Performance screen removed. Verified on a stand-in Postgres + pgTAP
-   (no Supabase images here). **Open:** regenerate `packages/types` on a
-   machine that can run `pnpm db:start` (stale types still list the dropped
-   tables; nothing references them); apply to staging once it's un-paused.
+   (no Supabase images here). ✔ Types regenerated (GUARDRAILS 3). **Open:**
+   apply to staging once it's un-paused.
    (db-engineer)
 11. ✔ **Fix fresh `supabase db reset`** — `20260622150000` re-created six
    tables `20260622120000` already makes; it now has idempotency-only guards
@@ -154,8 +153,9 @@ could merge silently.
 2. ✔ **Getting-started checklist uses the payroll readiness gate**
    (`get_payroll_readiness`: salary + tax profile + bank account), so it can't
    say "done" while the agent would halt. (app-engineer)
-3. **Regenerate `packages/types`** from CI's drift artifact or a machine that
-   can pull Supabase images (closes NEXT-9). (db-engineer)
+3. ✔ **Regenerate `packages/types`** — produced by the CI database job on a
+   real stack (CLI 2.104.0) and applied verbatim from its RCS patch; the
+   drift check now guards it. (orchestrator, 2026-10-31)
 4. **App default theme → light** until dark passes an AA contrast audit (the
    signed-in app has the same half-dark problem the landing page had). (app-engineer)
 5. **Authenticated Playwright in CI** against the database job's local stack
