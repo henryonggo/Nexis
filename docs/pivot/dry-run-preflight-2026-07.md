@@ -44,3 +44,7 @@ effective date so the owner can decide.
 `mid_period_compensation`. The halt IS the correct output — log it in the
 failure log as designed behavior, and let it drive the proration item's
 ranking in NEXT.
+
+> **Superseded 2026-07-31:** that proration item shipped (ADR 0006, PR #91).
+> E-7 now **prorates** rather than halts, so the current expectation is
+> **7/7 clean**. See `dry-run-runbook.md` §2 for the E-7 verification.

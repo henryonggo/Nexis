@@ -55,7 +55,7 @@ export {
   markPayrollRunPaid,
   type RunTransitionOutput,
 } from "./tools/run-lifecycle";
-export { type StatutoryLine } from "./tools/statutory";
+export { type ProrationOut, type StatutoryLine } from "./tools/statutory";
 
 import { fetchEmployeeRoster } from "./tools/fetch-employee-roster";
 import { computePph21ForEmployee } from "./tools/compute-pph21";

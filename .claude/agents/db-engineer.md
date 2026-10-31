@@ -1,7 +1,7 @@
 ---
 name: db-engineer
 description: Owns everything behind the Supabase client — migrations, RLS, RPCs, pgTAP tests, Edge Functions, seed/config, GCP workers in services/**, and regenerating packages/types. Invoke for any schema change or to satisfy TODO(db) requests. This is the lane formerly held by Antigravity.
-model: sonnet
+model: claude-sonnet-5-5
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 

@@ -25,6 +25,15 @@ export type { EnqueueResult };
 const DEFAULT_WORKER_URL = "http://localhost:3001";
 const TRIGGER_TIMEOUT_MS = 15_000;
 
+// Never surface a worker's raw response body to the user — Cloud Run's own
+// error pages are full HTML documents. Only pass through short plain-text/JSON
+// bodies (the worker's own structured errors); drop anything else.
+function sanitizeWorkerBody(text: string): string | null {
+  const trimmed = text.trim();
+  if (!trimmed || trimmed.startsWith("<") || trimmed.length > 200) return null;
+  return trimmed;
+}
+
 export async function enqueueReportJob(jobId: string): Promise<EnqueueResult> {
   const config = cloudTasksConfig();
   if (config) {
@@ -62,8 +71,8 @@ export async function enqueueReportJob(jobId: string): Promise<EnqueueResult> {
     // 409 = job already past pending (concurrent/duplicate trigger) — idempotent OK.
     if (res.ok || res.status === 409) return { ok: true };
 
-    const text = await res.text().catch(() => "");
-    return { ok: false, error: `Worker responded ${res.status}${text ? `: ${text}` : ""}` };
+    const body = sanitizeWorkerBody(await res.text().catch(() => ""));
+    return { ok: false, error: `Worker responded ${res.status}${body ? `: ${body}` : ""}` };
   } catch (err) {
     const message = err instanceof Error ? err.message : "unknown error";
     return { ok: false, error: `Could not reach report worker: ${message}` };

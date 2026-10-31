@@ -489,3 +489,20 @@ export {
   effectiveOn,
   sumFixedAllowances,
 } from "./statutory";
+
+// ───────────────────────────────────────────────────────────────────────────
+// Weekly work schedule + mid-month-hire proration (ADR 0006).
+// ───────────────────────────────────────────────────────────────────────────
+export {
+  WEEKDAYS,
+  DEFAULT_WORK_DAYS,
+  normalizeWorkDays,
+  isoWeekday,
+  isExpectedWorkday,
+  expectedWorkdaysInMonth,
+  expectedWorkdaysFrom,
+  hireProrationFactor,
+  prorateByFactor,
+  type WeekdayMeta,
+  type HireProrationFactor,
+} from "./work-schedule";

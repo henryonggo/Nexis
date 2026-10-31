@@ -3,7 +3,7 @@ import { Tabs } from "expo-router";
 /**
  * Employee-facing tab shell.
  * Two visible tabs: Home (single-page dashboard) + Profile.
- * Other screens (leave, payslips, attendance, claims, performance) remain as
+ * Other screens (leave, payslips, attendance, claims) remain as
  * routable paths but are hidden from the tab bar — all employee self-service
  * surfaces live on the Home dashboard page.
  */
@@ -26,7 +26,6 @@ export default function AppTabs() {
       <Tabs.Screen name="attendance" options={{ href: null }} />
       <Tabs.Screen name="leave" options={{ href: null }} />
       <Tabs.Screen name="claims" options={{ href: null }} />
-      <Tabs.Screen name="performance" options={{ href: null }} />
       <Tabs.Screen name="payslips" options={{ href: null }} />
     </Tabs>
   );

@@ -2,7 +2,14 @@
 
 - **Status:** Accepted (owner "go", 2026-07-04). `packages/orchestrator`
   implemented the same day; the apps/web start/resume surface is the
-  remaining app-engineer task.
+  remaining app-engineer task. **Amended 2026-10-29:** runtime model
+  `claude-fable-5` → `claude-fable-5-1`; refusal fallback moved from a pinned
+  `claude-opus-4-8` to the server-routed `fallbacks: "default"`
+  (`server-side-fallback-2026-07-01`), because Fable 5.1 only accepts
+  `claude-opus-4-8` / `claude-opus-5` as pinned targets and the default form
+  routes by refusal category. Fable 5.1's breaking changes (no forced
+  `tool_choice`; thinking blocks bound to the producing model; append-only
+  history) are already satisfied by the driver.
 - **Context:** `docs/pivot/PIVOT-PHASE-1.md` ("What changes"), ADRs 0001–0003,
   `packages/agent-tools` (tool registry + executor, complete)
 - **Deciders:** Owner (Boss); drafted by Claude Code (Fable 5)

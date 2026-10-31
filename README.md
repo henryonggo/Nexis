@@ -1,235 +1,77 @@
-# Nexis — HR & Payroll SaaS for Indonesia
+# Nexis
 
-> Technical specification set, written to be consumed by AI coding agents (built and tested for **Google Antigravity**, also works with Cursor / Windsurf / Claude Code) and by human reviewers.
+**Payroll that runs itself — you only approve.**
 
-Nexis is a multi-company HR & Payroll platform for Indonesian businesses. It lets one person manage several companies from a single login, each company with its own employees, payroll runs, and role assignments. Payroll is fully localized to Indonesian regulation (PPh 21 TER, BPJS, THR, overtime). New companies start free for their first 5 employees with minimal onboarding friction (no company NPWP required while free).
+Nexis is an agentic operations layer for Indonesian SMEs. An agent prepares
+the back-office work (payroll first: PPh 21 TER, BPJS, net pay, payslips),
+stops and asks whenever an input is missing, and waits for the owner's
+approval before anything changes. Customer zero: Beras Wortel.
 
-## How to use these documents with an AI agent
+## How it works for a new company
 
-1. Open this folder as the project root in Antigravity (or your agent IDE).
-2. The agent reads **`AGENTS.md`** first — it sets the global rules and points to detailed docs.
-3. Build **stage by stage** following `docs/04-roadmap.md`. Start with `docs/stages/stage-01-auth.md`.
-4. Each stage doc contains: scope, screens/flows, data touched, API surface, acceptance criteria, and a suggested task breakdown you can paste into Antigravity's Agent Manager (it can run up to ~5 parallel agents).
-5. The database is the source of truth for security. Read `docs/03-database-schema.md` before any data work.
+1. **Sign up and create your company.**
+2. **Add employees** — by hand or CSV import.
+3. **Set each employee's salary** (compensation, PTKP status, bank account).
+4. **Open Persetujuan (`/approvals`) → Jalankan agen.** The agent drafts the
+   month's payroll; you review the numbers and approve. Payslips follow.
 
-### Suggested first prompt to the agent
+If something is missing (no salary, no tax profile, a mid-month hire without
+a contract row), the agent **halts and tells you what to fix** — it never
+guesses a payroll number.
 
-> "Read `AGENTS.md` and `docs/02-tech-stack.md`. Scaffold the Turborepo monorepo exactly as described (`apps/web`, `apps/mobile`, `packages/types`, `packages/ui`, `supabase/`). Then implement `docs/stages/stage-01-auth.md`, including the Supabase migrations in `docs/03-database-schema.md` up to and including the auth + companies + memberships tables. Stop at the Stage 1 acceptance criteria and show me the test results."
+## The rules that never bend
 
-## Document map
+- Payroll numbers are never estimated: missing input ⇒ structured halt.
+- Money is integer rupiah, everywhere.
+- Row Level Security is the security boundary; agents get no bypass.
+- Every agent mutation goes through a single-use, hash-bound approval.
+- Statutory rates live in reference tables, never in code.
 
+## Repo map
+
+| Path | What |
+|---|---|
+| `apps/web` | Next.js admin app — dashboard, approvals, payroll, team, pay setup |
+| `apps/mobile` | Expo employee app — attendance, leave, claims, payslips |
+| `packages/payroll` | Pure Indonesian payroll engine + the one statutory source |
+| `packages/money` | Integer-rupiah helpers |
+| `packages/agent-tools` | Typed, RLS-scoped tools the agent calls, with structured halts |
+| `packages/orchestrator` | Agent runtime: plans a cycle, calls tools, raises approvals |
+| `packages/types` | Generated from the Supabase schema (never edit by hand) |
+| `services/payroll-worker` | Cloud Run worker that processes approved runs + reports |
+| `supabase` | Migrations, RLS, RPCs, pgTAP tests, Edge Functions |
+
+## Run it locally
+
+Prerequisites: Node 20+, pnpm 9, Docker (for local Supabase).
+
+```bash
+corepack enable && pnpm install
 ```
-Nexis/
-├── AGENTS.md                       ← agent rules (read first)
-├── README.md                       ← this file
-└── docs/
-    ├── 00-product-vision.md        ← what we're building & for whom
-    ├── 01-architecture.md          ← system design, data flow, GCP usage
-    ├── 02-tech-stack.md            ← exact stack, monorepo, env, conventions
-    ├── 03-database-schema.md       ← Postgres schema + RLS + full SQL
-    ├── 04-roadmap.md               ← all stages, dependencies, acceptance criteria
-    ├── 05-indonesian-compliance.md ← PPh 21 TER, BPJS, THR, overtime reference
-    ├── 06-design-system.md         ← UI conventions, components, i18n
-    ├── 07-security-compliance.md   ← RLS, UU PDP, secrets, auditing
-    ├── 08-agent-boundaries.md      ← who builds what (Claude ⟷ Antigravity), handoff protocol
-    ├── ROADMAP-NOTES.md            ← living "what's shipped / what's open" handoff notes
-    ├── user-guide.md               ← end-user walkthrough of every app page
-    ├── handoff/                    ← per-feature TODO(db)/TODO(infra) handoffs (e.g. phase5-next.md)
-    └── stages/
-        ├── stage-01-auth.md        ← sign up / sign in / forgot password (START)
-        ├── stage-02-company-employees.md
-        ├── stage-03-attendance.md
-        ├── stage-04-payroll.md
-        ├── stage-05-leave-claims.md
-        ├── stage-06-reporting-billing.md
-        └── stage-07-advanced.md
+
+```bash
+pnpm db:start
 ```
 
-## Recommended Cowork skills / artifacts to support this build
+```bash
+pnpm dev
+```
 
-- **`skill-creator`** — turn the payroll calculation rules in `docs/05-indonesian-compliance.md` into a reusable "nexis-payroll-id" skill so the agent (and future you) can validate PPh 21 / BPJS math consistently.
-- **`xlsx` skill** — generate the BPJS/PPh 21 reference rate workbook and test fixtures.
-- **A live Cowork artifact** — a "Nexis build tracker" HTML page that reads your roadmap and shows stage progress. (Ask Cowork: "Turn the roadmap into a live artifact I can re-open.")
+Web runs at `http://localhost:3000`; local auth emails land in Mailpit at
+`http://localhost:54324`. Copy `.env.example` to `apps/web/.env.local` and fill
+in the keys `supabase start` prints. The agent needs `ANTHROPIC_API_KEY`.
 
-## Project Overview
+Before you push:
 
-Nexis is a modern multi-tenant HR & Payroll SaaS tailored specifically for the Indonesian market. It is engineered with robust security at the database layer and handles complex compliance requirements out of the box.
+```bash
+pnpm typecheck && pnpm test
+```
 
-### Features
+## Where to read next
 
-Stages 1–6 are complete (web + mobile) and Stage 7 (advanced) is largely shipped. The
-list below reflects what's implemented today.
-
-**Authentication & accounts (Stage 1)**
-- Email/password sign up with branded email verification (Resend), sign in, forgot/reset
-  password, change password, resend verification, sign out.
-- Session persistence (web cookies, mobile secure store), 2-hour idle auto-sign-out, and a
-  show/hide password toggle on every auth form.
-- Self-serve account deactivation (reversible) and a multi-company switcher with "add company".
-
-**Multi-company tenancy & security**
-- One account can own or belong to many companies, each with a distinct role
-  (`owner` / `admin` / `manager` / `employee`).
-- **Two-way join:** admins invite by email (email-matched accept) **and** new accounts can
-  self-request to join via a rotatable company **join code** — owner/admin approve from a queue
-  and assign the role (admins cannot mint admins; only owners can).
-- **Manager team-scoping:** a manager approves attendance/overtime/leave/claims only for their
-  own direct reports (`employees.manager_id`), enforced in RLS.
-- Security is enforced at the database: Row Level Security on every tenant-scoped table,
-  validated by automated pgTAP tests. The app never trusts a client-supplied `company_id`.
-
-**Companies, members & employees (Stage 2)**
-- Company profile & settings; invite members by email with a per-company role; accept-invite flow.
-- Employee CRUD (profile, employment type/status, compensation, PTKP status e.g. TK/0·K/1,
-  employee NPWP); CSV import; active-seat tracking.
-- **Free tier:** first 5 employees free per company, no company NPWP required; the 6th active
-  employee is blocked with a clear upgrade CTA.
-- Mobile self-service profile restricted to the employee's own record.
-
-**Attendance & scheduling (Stage 3)**
-- Mobile clock in/out with GPS geofence + selfie capture; work schedules.
-- **Attendance config UI** (admin): geofence CRUD, shifts, per-employee weekly schedule grid,
-  and one-click Indonesian holiday seeding.
-- Admin/manager correction of records (audited); a **live Realtime** attendance board on the
-  web with a present-today count; the board distinguishes invalid reasons (out-of-area vs a
-  failed **liveness** check).
-- **Overtime approval queue** on the board (owner/admin/manager): pending entries from clock
-  data are approved/rejected before they reach payroll.
-
-**Payroll engine (Stage 4, compliance-critical)**
-- Pure, exhaustively-tested TypeScript engine implementing Indonesian rules: **PPh 21 (TER,
-  PMK 168/2023)**, **BPJS** (Kesehatan + Ketenagakerjaan, employee & employer sides),
-  **overtime (1/173)**, the **+20% no-NPWP** surcharge, and net pay.
-- **Pre-run readiness gate:** a draft is blocked while any active employee is missing
-  compensation, a tax profile, or a bank account — listed per employee, so payroll never runs on
-  silent fallbacks.
-- Draft → run → review → approve → mark-paid lifecycle via a Cloud Run worker with Realtime
-  status; per-employee breakdown; **payslip PDFs** (downloadable from the web run page, not just
-  mobile); **THR** run type; config snapshotting so re-running after a rate change never alters
-  historical runs. Money is integer rupiah end to end.
-- **Plan / NPWP gate:** tax-affecting monthly runs are blocked at approval on the free plan or
-  without a company NPWP (set standalone in Billing), with a clear upgrade path.
-- **Configurable salary deductions** — manage deduction groups (e.g. insurance, loans, savings),
-  per-employee amounts/rates, and automatic payroll integration.
-- **Worker enqueue via Cloud Tasks** with OIDC auth for secure, auditable run processing.
-
-**Leave & reimbursement claims (Stage 5)**
-- Leave types, balances, request → manager approval → balance update.
-- Reimbursement claims with receipt upload and approval; approved items flow into the next
-  payroll. Push (mobile) + email (web) notifications.
-
-**Reporting, exports & billing (Stage 6)**
-- Reports as Excel via the Cloud Run worker: payroll summary, BPJS contributions,
-  **PPh 21 / e-Bupot**, **BPJS SIPP**. Quick CSV exports on list views.
-- Billing & subscriptions: plan-comparison upgrade flow, seat-based pricing, invoice history,
-  NPWP/BPJS capture on upgrade. (Real payment gateway is specced for handoff.)
-
-- Audit & compliance center (filterable log of sensitive actions).
-- Loans & advances (kasbon) with automatic payroll deduction.
-- Performance & KPI (review cycles, weighted goals with progress, employee reviews).
-- Public **API & webhooks** — scoped API keys (bearer auth) and HMAC-signed webhooks with a
-  delivery log.
-
-**Platform & UX (recent enhancements)**
-- **Bilingual UI** — Bahasa Indonesia (default) + English via `next-intl`, with an in-app
-  locale switcher; all user-facing strings in `apps/web/messages/{id,en}.json`.
-- **v3 Design System** — unified token-driven theming across all routes (brand, surface ladder,
-  focus layers, motion composites, dark-mode ready); icon-rail sidebar nav with collapsible state;
-  floating-layer elevation for dropdowns/modals (glass-panel opt-in).
-- Loading skeletons on every route, a global 404, and per-section error boundaries.
-- **WhatsApp notification opt-in** (phone capture + opt-in in Settings).
-- Playwright e2e: unauthenticated route guards (run unattended) plus signed-in happy-path
-  money flows (payroll approve, leave approval).
-
-**Agent Collaboration & Approvals (Phase 1 Pivot)**
-- **Agent Orchestrator & Tools:** Fable 5 orchestrator runtime in `packages/orchestrator` drives a payroll cycle end to end, calling typed tools in `packages/agent-tools` (fetch roster, compute PPh 21 for one employee, compute a full payroll run, create/approve/cancel/mark-paid a run). Every tool runs RLS-scoped as the tenant user — no service role, no bypass.
-- **Halt, never estimate:** a missing or ambiguous input (no compensation, no tax profile, a **mid-period hire** whose contract starts after the period begins) returns a structured *halt* the owner can act on, never a defaulted number.
-- **Approval gate (`/approvals`):** agent proposes → owner/admin approves → system executes. Each mutating call is authorized by a **single-use, payload-hash-bound** `approval_requests` row consumed via `consume_approval` (RLS-enforced, hash-verified server-side) — resolved by payload hash so two same-named proposals never collide. Approvals that lapse are swept to `expired` and can't be revived.
-- **Readable queue + run history:** approval cards lead with a human-readable line (e.g. "Buat draf payroll untuk Juli 2026") with raw JSON kept collapsed; a **Riwayat agen** section lists every agent cycle and its outcome from the append-only `agent_cycles` log.
-
----
-
-## Recent Changes (July 2026)
-
-The following features and improvements have shipped in the latest update:
-
-**Agent Architecture & Orchestrator** — Implemented a core multi-agent orchestrator runtime (`packages/orchestrator`) and tool collection (`packages/agent-tools`) for secure, cooperative task execution loops.
-
-**Human-in-the-loop Agent Approvals** — Created a secure approval page at `/approvals` app-side, allowing admins to approve agent-proposed state mutations (such as drafting or running payroll) via cryptographic token signatures.
-
-**Statutory & Roster Tools** — Added agent tools for checking staging readiness, computing payroll runs, fetching rosters, and computing PPh 21 compliance calculations.
-
-**Workflow-zero hardening (pre-dry-run)** — One statutory source in `@nexis/payroll` (preview and agent engines now share it); a `mid_period_compensation` halt so a mid-month hire is never paid a full month by default; approval tokens resolved by payload hash (two same-named proposals no longer collide); an append-only `agent_cycles` log with a **Riwayat agen** history view; approval-expiry hardening (a lapsed request can't be approved into a dead row, plus a sweep); readable approval-queue payloads; and a `PayrollConfigSnapshot` type shared writer↔worker. Operator docs: `docs/pivot/dry-run-preflight-2026-07.md` and `docs/pivot/dry-run-runbook.md`.
-
-**Function-grant hardening** — Revoked `EXECUTE` on trigger/internal functions from all API roles and `anon` from signed-in-only RPCs, and pinned `search_path` on flagged functions (`supabase/migrations/20260717162021_harden_function_grants_and_search_path.sql`).
-
----
-
-## Recent Changes (June 2026)
-
-The following features and improvements have shipped since the last README update:
-
-**UI Design System v3** — Complete restyle with token-driven theming (brand, surface ladder,
-elevation, motion, density). All hardcoded colors migrated to CSS custom properties; dark mode
-ready. Icon-rail sidebar nav with collapse toggle; floating-layer elevation system for dropdowns
-and modals (glass-panel opt-in). All routes now inherit the v3 look without per-file rewrites.
-
-**Multi-company portal** — Accountant/owner view at `/portal` showing summaries across all
-managed companies (headcount, payroll status, active seats); powered by `portal_company_summaries()` RPC.
-
-**Cloud Tasks worker integration** — Payroll run enqueue now uses Google Cloud Tasks with OIDC
-auth (OpenID Connect service-account sign), replacing direct HTTP calls. Lazy-loaded to prevent
-startup failures; marked as server-external package.
-
-**Configurable salary deductions** — Admin UI for managing deduction groups (insurance, loans,
-savings, etc.) with per-employee amounts/rates; automatic deduction in payroll runs.
-
-**Weekly work schedules & absence deductions** — Per-employee weekly schedule grids; daily/mixed
-salary calculation; absence-triggered deductions (e.g. unpaid leave, half-day absence).
-
-**Vercel deploy fix** — Root `output-file-tracing` configuration resolves symlink issues on
-Vercel (`.nft.json` collection during build).
-
-See `docs/ROADMAP-NOTES.md` for the full living handoff notes and open items.
-
----
-
-## Technical Stack & Architecture
-
-Nexis is built as a Turborepo monorepo with the following services:
-
-* **apps/web:** Next.js (App Router, TypeScript, React Server Components) styled with TailwindCSS & shadcn/ui; internationalized with `next-intl` (id-ID / en).
-* **apps/mobile:** Expo (React Native, TypeScript) for employee self-service (attendance, payslips, requests, profile).
-* **packages/types:** Shareable TypeScript database definitions auto-generated from the Supabase Postgres schema (read-only for the app layer).
-* **packages/money:** Safe integer-only IDR currency utility. All money is stored as `bigint` (no floating-point decimals) to prevent rounding errors.
-* **packages/payroll:** Pure, unit-tested Indonesian payroll engine (PPh 21 TER, BPJS, overtime, THR) and the single statutory source (rate-set/period helpers, `PayrollConfigSnapshot`) shared by the app, the agent tools, and the Cloud Run worker.
-* **packages/agent-tools:** Typed, RLS-scoped agent tools (roster, PPh 21, full run, run lifecycle) with structured halts and the approval-request helpers.
-* **packages/orchestrator:** The Fable 5 agent runtime that plans a payroll cycle, calls tools, surfaces the approval queue, and records each cycle to `agent_cycles`.
-* **services/payroll-worker:** Cloud Run worker for payroll runs and heavy report/export generation.
-* **supabase:** Postgres database with triggers, SECURITY DEFINER functions, RLS policies, and Edge Functions (notifications, public API, webhook dispatch).
-
----
-
-## Running the Project
-
-### Prerequisites
-- Node.js 20+
-- pnpm 9+
-- Docker (for local Supabase instance)
-
-### Setup & Run Dev Servers
-1. Install dependencies:
-   ```bash
-   corepack enable && pnpm install
-   ```
-2. Start the database (runs migrations and seeds data):
-   ```bash
-   pnpm db:start
-   ```
-3. Set up environment variables inside [apps/web/.env.local](file:///c:/GIT/nexis/apps/web/.env.local) (populated automatically by the setup).
-4. Run the Next.js development server:
-   ```bash
-   pnpm dev
-   ```
-   - Frontend dashboard will run at: `http://localhost:3000`
-   - Local verification emails will land in Mailpit at: `http://localhost:54324`
+- `docs/pivot/ROADMAP.md` — the active plan (NOW / NEXT / LATER, branch map).
+- `docs/pivot/failure-log.md` — every agent halt or misbehavior; it drives the roadmap.
+- `docs/adr/` — architecture decisions (0007: Nexis Lite simplification).
+- `docs/05-indonesian-compliance.md` — PPh 21 / BPJS / THR reference.
+- `docs/06-design-system.md` — UI conventions.
+- `CLAUDE.md` / `AGENTS.md` — rules for the AI engineering team.

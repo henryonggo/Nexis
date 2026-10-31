@@ -3,26 +3,26 @@ import { getTranslations } from "next-intl/server";
 import { Card } from "@/components/ui/card";
 
 /**
- * Post-create onboarding nudge (P1-1). State is derived live from DB facts passed
- * in — no stored progress column. Renders nothing once every step is done.
+ * Getting-started nudge. State is derived live from DB facts passed in — no
+ * stored progress column. Renders nothing once every step is done.
  */
 export async function SetupChecklist({
   hasEmployees,
-  hasShifts,
+  hasSalaries,
   hasPayroll,
 }: {
   hasEmployees: boolean;
-  hasShifts: boolean;
+  hasSalaries: boolean;
   hasPayroll: boolean;
 }) {
-  if (hasEmployees && hasShifts && hasPayroll) return null;
+  if (hasEmployees && hasSalaries && hasPayroll) return null;
 
   const t = await getTranslations("dashboard.checklist");
   const steps = [
     { done: true, label: t("company"), href: null as string | null },
     { done: hasEmployees, label: t("employees"), href: "/employees/new" },
-    { done: hasShifts, label: t("shifts"), href: "/attendance/config" },
-    { done: hasPayroll, label: t("payroll"), href: "/payroll/new" },
+    { done: hasSalaries, label: t("salaries"), href: "/employees" },
+    { done: hasPayroll, label: t("payroll"), href: "/approvals" },
   ];
   const completed = steps.filter((s) => s.done).length;
 

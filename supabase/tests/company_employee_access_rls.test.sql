@@ -1,5 +1,5 @@
 begin;
-select plan(7);
+select plan(6);
 
 create extension if not exists pgtap;
 
@@ -38,30 +38,20 @@ select is(
   (select json_build_object(
      'dash_pay', dash_pay,
      'dash_leave', dash_leave,
-     'dash_attendance', dash_attendance,
-     'nav_style', nav_style
+     'dash_attendance', dash_attendance
    )::text from company_employee_access where company_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
   json_build_object(
      'dash_pay', true,
      'dash_leave', true,
-     'dash_attendance', true,
-     'nav_style', 'flat'
+     'dash_attendance', true
   )::text,
   'New columns default correctly'
 );
 
 -- 3. Owner can update config (including new columns)
 select lives_ok(
-  $$ update company_employee_access set salary = true, dash_pay = false, nav_style = 'pillars' where company_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' $$,
+  $$ update company_employee_access set salary = true, dash_pay = false where company_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' $$,
   'Owner can update company employee access'
-);
-
--- 4. Verify invalid nav_style throws check constraint error
-select throws_ok(
-  $$ update company_employee_access set nav_style = 'invalid' where company_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' $$,
-  '23514',
-  null,
-  'Invalid nav_style violates check constraint'
 );
 
 -- 5. Employee can read config

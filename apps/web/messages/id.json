@@ -13,7 +13,6 @@
     "exportCsv": "Ekspor CSV",
     "processing": "Memproses…",
     "addCompany": "+ Tambah perusahaan",
-    "allCompanies": "Semua perusahaan",
     "expandSidebar": "Perluas bilah samping",
     "collapseSidebar": "Tutup bilah samping"
   },
@@ -24,38 +23,7 @@
     "employee": "Karyawan",
     "accountant": "Akuntan"
   },
-  "portal": {
-    "title": "Portal",
-    "subtitle": "Semua perusahaan Anda dalam satu tampilan",
-    "asOf": "Per {time} WIB",
-    "companyCount": "{count} perusahaan",
-    "searchPlaceholder": "Cari perusahaan…",
-    "noMatches": "Tidak ada perusahaan yang cocok.",
-    "kpi": {
-      "companies": "Perusahaan",
-      "employees": "Total karyawan",
-      "needsAction": "Perlu tindakan",
-      "needsActionHint": "{count} perusahaan",
-      "payrollTotal": "Payroll terakhir",
-      "payrollTotalHint": "Total bersih semua perusahaan"
-    },
-    "card": {
-      "seats": "{used} / {limit} kursi",
-      "headcount": "{count} karyawan",
-      "lastPayroll": "Payroll terakhir",
-      "noPayroll": "Belum ada payroll",
-      "pendingApprovals": "Persetujuan tertunda",
-      "noPending": "Tidak ada",
-      "open": "Buka",
-      "loadError": "Gagal memuat data"
-    }
-  },
   "nav": {
-    "overview": "Ikhtisar",
-    "people": "Karyawan & Tim",
-    "operations": "Operasional",
-    "finance": "Keuangan",
-    "platform": "Sistem",
     "dashboard": "Dashboard",
     "employees": "Karyawan",
     "attendance": "Kehadiran",
@@ -67,17 +35,19 @@
     "deductions": "Potongan",
     "payroll": "Penggajian",
     "approvals": "Persetujuan",
-    "performance": "Kinerja",
-    "analytics": "Analitik",
     "reports": "Laporan",
     "billing": "Tagihan",
     "audit": "Audit",
-    "developer": "API",
     "members": "Anggota",
     "access": "Akses karyawan",
-    "superadmin": "Admin platform",
     "profile": "Profil Saya",
-    "settings": "Pengaturan"
+    "settings": "Pengaturan",
+    "groups": {
+      "team": "Tim",
+      "pay": "Gaji",
+      "company": "Perusahaan"
+    },
+    "superadmin": "Admin platform"
   },
   "plans": {
     "free": "Gratis",
@@ -152,6 +122,14 @@
       "noNpwp": ", tanpa perlu NPWP perusahaan.",
       "upgrade": "Upgrade paket"
     },
+    "next": {
+      "pending": "{count} persetujuan menunggu keputusan Anda",
+      "pendingHint": "Agen sudah menyiapkan usulan. Tinjau, lalu setujui atau tolak.",
+      "review": "Tinjau persetujuan",
+      "clear": "Semua beres",
+      "clearHint": "Tidak ada yang perlu Anda putuskan saat ini.",
+      "runAgent": "Jalankan agen penggajian"
+    },
     "cards": {
       "employees": "Karyawan",
       "manageEmployees": "Kelola karyawan →",
@@ -165,27 +143,13 @@
       "payrollEmpty": "Belum ada payroll",
       "avgCost": "Rata-rata {amount}"
     },
-    "workforce": {
-      "title": "Tenaga kerja",
-      "active": "Aktif",
-      "probation": "Percobaan",
-      "inactive": "Nonaktif",
-      "terminated": "Diberhentikan",
-      "totalWord": "total"
-    },
-    "attendanceMix": {
-      "title": "Kehadiran hari ini",
-      "present": "Hadir",
-      "absent": "Tidak hadir",
-      "presentWord": "hadir"
-    },
     "checklist": {
-      "title": "Selesaikan pengaturan",
+      "title": "Mulai di sini — 4 langkah sampai gaji pertama jalan sendiri",
       "progress": "{done} dari {total} selesai",
       "company": "Perusahaan dibuat",
-      "employees": "Tambah karyawan pertama",
-      "shifts": "Atur jadwal kerja",
-      "payroll": "Jalankan payroll pertama"
+      "employees": "Tambah karyawan",
+      "payroll": "Jalankan agen penggajian pertama",
+      "salaries": "Isi gaji setiap karyawan aktif"
     },
     "manager": {
       "pendingApprovals": "Persetujuan tertunda",
@@ -237,8 +201,7 @@
     "groups": {
       "operations": "Operasional",
       "compensation": "Kompensasi",
-      "dashboard": "Widget dashboard",
-      "navigation": "Navigasi"
+      "dashboard": "Widget dashboard"
     },
     "items": {
       "attendance": {
@@ -268,16 +231,6 @@
       "dash_attendance": {
         "label": "Ringkasan kehadiran",
         "hint": "Strip kehadiran 14 hari di dashboard. Perlu akses kehadiran."
-      }
-    },
-    "navStyle": {
-      "flat": {
-        "label": "Menu datar",
-        "hint": "Karyawan melihat daftar sederhana halaman mereka."
-      },
-      "pillars": {
-        "label": "Menu berkelompok",
-        "hint": "Karyawan melihat pilar berkelompok seperti manajer."
       }
     }
   },
@@ -532,19 +485,6 @@
     "add": "Tambah potongan",
     "remove": "Hapus",
     "noDate": "Tanpa tanggal"
-  },
-  "superadmin": {
-    "title": "Admin platform",
-    "subtitle": "Beri perusahaan mana pun akses penuh gratis (free pass).",
-    "intro": "Free pass memindahkan perusahaan ke paket Enterprise gratis: tanpa batas 5 karyawan dan semua fitur berbayar terbuka, tanpa biaya. Aktifkan per perusahaan di bawah.",
-    "saved": "Tersimpan.",
-    "empty": "Belum ada perusahaan.",
-    "notConfigured": "Akses service-role belum dikonfigurasi di lingkungan ini (SUPABASE_SERVICE_ROLE_KEY). Aksi lintas perusahaan tidak tersedia.",
-    "statusComped": "Free pass (enterprise gratis)",
-    "planLabel": "Paket: {plan}",
-    "seats": "{count} aktif",
-    "grant": "Beri free pass",
-    "revoke": "Cabut free pass"
   },
   "earnings": {
     "title": "Tunjangan & rincian gaji",
@@ -934,46 +874,6 @@
       "jkm": "Jaminan Kematian (JKM) — ditanggung perusahaan, 0,30% dari gaji."
     }
   },
-  "analytics": {
-    "title": "Analitik",
-    "noAccess": "Hanya pemilik atau admin yang dapat melihat analitik perusahaan.",
-    "subtitle": "Ringkasan headcount, biaya payroll, dan cuti {name}.",
-    "activeEmployees": "Karyawan aktif",
-    "totalSuffix": "{total} total",
-    "lastGross": "Bruto payroll terakhir",
-    "noRun": "Belum ada run",
-    "employerBpjs": "BPJS perusahaan (terakhir)",
-    "pph21": "PPh 21 {amount}",
-    "pendingApprovals": "Menunggu persetujuan",
-    "pendingBreakdown": "{leave} cuti · {claims} klaim",
-    "trendTitle": "Tren bruto payroll",
-    "byDepartment": "Karyawan per departemen",
-    "byType": "Karyawan per tipe",
-    "leaveTitle": "Hari cuti disetujui ({year})",
-    "noActiveEmployees": "Belum ada karyawan aktif.",
-    "noLeave": "Belum ada cuti disetujui tahun ini.",
-    "noTrend": "Belum ada run payroll yang selesai untuk ditampilkan.",
-    "unitPeople": "org",
-    "unitDays": "hari",
-    "unitHours": "jam",
-    "grossLabel": "bruto",
-    "overtimeTitle": "Lembur disetujui per bulan",
-    "noOvertime": "Belum ada lembur disetujui pada periode ini.",
-    "employerCostTitle": "Biaya pemberi kerja per departemen",
-    "employerCostMeta": "{period} · total {total}",
-    "noEmployerCost": "Belum ada run payroll selesai untuk dihitung.",
-    "punctualityTitle": "Ketepatan waktu masuk",
-    "onTime": "Tepat waktu",
-    "late": "Terlambat",
-    "onTimeRate": "{rate}% tepat waktu",
-    "unitTimes": "kali",
-    "noPunctuality": "Belum ada absen masuk pada hari terjadwal untuk dinilai.",
-    "export": "Ekspor CSV",
-    "period": {
-      "label": "Periode",
-      "months": "{count} bulan terakhir"
-    }
-  },
   "audit": {
     "title": "Audit & Kepatuhan",
     "noAccess": "Hanya pemilik atau admin yang dapat melihat log audit.",
@@ -1048,56 +948,6 @@
         "label": "BPJS SIPP",
         "description": "Format upah & iuran untuk diunggah ke aplikasi SIPP BPJS Ketenagakerjaan."
       }
-    }
-  },
-  "developer": {
-    "title": "API & Webhook",
-    "noAccess": "Hanya pemilik atau admin yang dapat mengelola integrasi developer.",
-    "subtitle": "Kelola API key dan webhook untuk integrasi {name} dengan sistem lain.",
-    "keys": "API key ({count})",
-    "noKeys": "Belum ada API key.",
-    "revoked": "(dicabut)",
-    "noScope": "tanpa scope",
-    "createdAt": "dibuat {date}",
-    "lastUsed": "Terakhir dipakai: {date}",
-    "webhooks": "Webhook ({count})",
-    "noWebhooks": "Belum ada webhook.",
-    "active": "Aktif",
-    "inactive": "Nonaktif",
-    "deliveries": "Pengiriman terbaru",
-    "deliveryColumns": {
-      "time": "Waktu",
-      "event": "Event",
-      "status": "Status",
-      "http": "HTTP",
-      "attempt": "Percobaan"
-    },
-    "noDeliveries": "Belum ada pengiriman webhook.",
-    "keyForm": {
-      "title": "Buat API key",
-      "subtitle": "Kunci dipakai sebagai bearer token di header Authorization pada Public API.",
-      "name": "Nama kunci",
-      "namePlaceholder": "mis. Integrasi HRIS",
-      "scopes": "Scope",
-      "submit": "Buat kunci",
-      "newSecretLabel": "API key baru"
-    },
-    "webhookForm": {
-      "title": "Tambah webhook",
-      "subtitle": "Kami mengirim POST ber-tanda-tangan HMAC ke URL ini saat event terjadi.",
-      "url": "URL endpoint",
-      "events": "Event",
-      "submit": "Tambah webhook",
-      "secretLabel": "Signing secret"
-    },
-    "secret": {
-      "copyNow": "Salin sekarang — nilai ini tidak akan ditampilkan lagi."
-    },
-    "rowActions": {
-      "revoke": "Cabut",
-      "deactivate": "Nonaktifkan",
-      "activate": "Aktifkan",
-      "delete": "Hapus"
     }
   },
   "members": {
@@ -1289,71 +1139,6 @@
       ]
     }
   },
-  "performance": {
-    "title": "Kinerja & KPI",
-    "noAccess": "Hanya pemilik, admin, atau manajer yang dapat mengelola penilaian kinerja.",
-    "subtitle": "Tetapkan sasaran, pantau progres, dan nilai kinerja karyawan {name}.",
-    "noCycles": "Belum ada siklus penilaian. Buat satu untuk mulai menetapkan sasaran.",
-    "cycleLabel": "Siklus:",
-    "goalsHeading": "Sasaran — {cycle}",
-    "reviewsHeading": "Penilaian",
-    "addGoalsFirst": "Tambahkan sasaran lebih dulu untuk menilai karyawan.",
-    "goalsColumns": {
-      "employee": "Karyawan",
-      "goal": "Sasaran",
-      "weight": "Bobot",
-      "status": "Status",
-      "progress": "Progres"
-    },
-    "noGoals": "Belum ada sasaran pada siklus ini.",
-    "goalStatus": {
-      "on_track": "Sesuai target",
-      "at_risk": "Berisiko",
-      "off_track": "Meleset",
-      "done": "Selesai",
-      "cancelled": "Dibatalkan"
-    },
-    "reviewStatus": {
-      "draft": "Draf",
-      "submitted": "Terkirim",
-      "acknowledged": "Disetujui karyawan"
-    },
-    "cycleForm": {
-      "title": "Buat siklus penilaian",
-      "subtitle": "Periode penilaian kinerja, mis. semester atau tahunan.",
-      "created": "Siklus dibuat.",
-      "name": "Nama siklus",
-      "namePlaceholder": "2026 Semester 1",
-      "start": "Mulai",
-      "end": "Selesai",
-      "submit": "Buat siklus"
-    },
-    "goalForm": {
-      "titleEmpty": "Tambah sasaran",
-      "emptyHint": "Tambahkan karyawan dulu untuk menetapkan sasaran.",
-      "title": "Tambah sasaran (KPI)",
-      "subtitle": "Bobot dipakai untuk menimbang skor akhir.",
-      "created": "Sasaran ditambahkan.",
-      "employee": "Karyawan",
-      "weight": "Bobot (%)",
-      "goal": "Sasaran",
-      "goalPlaceholder": "mis. Tutup 10 deal Q1",
-      "description": "Keterangan (opsional)",
-      "submit": "Tambah sasaran"
-    },
-    "goalProgress": {
-      "ariaLabel": "Progres (%)",
-      "save": "Simpan"
-    },
-    "reviewForm": {
-      "finalScore": "Nilai akhir:",
-      "rating": "Nilai (1–5)",
-      "summary": "Ringkasan",
-      "summaryPlaceholder": "Catatan penilaian",
-      "saveDraft": "Simpan draf",
-      "submit": "Kirim penilaian"
-    }
-  },
   "invite": {
     "header": "Undangan bergabung",
     "title": "Terima undangan",
@@ -1411,14 +1196,6 @@
       "noNpwp": "Tidak Memiliki NPWP (Dikenakan tarif pajak +20%)"
     }
   },
-  "glance": {
-    "open": "Sekilas",
-    "asOf": "Per {time} WIB",
-    "latestPayroll": "Payroll terakhir",
-    "noPayroll": "Belum ada payroll",
-    "pendingLeave": "Cuti menunggu",
-    "recentRuns": "Payroll terbaru"
-  },
   "approvals": {
     "title": "Persetujuan Agen",
     "subtitle": "Tinjau dan setujui tindakan yang diusulkan agen sebelum dieksekusi.",
@@ -1471,5 +1248,18 @@
       "auditGapsHeading": "Tindakan tidak tercatat di jejak audit",
       "auditGapsDescription": "Agen menjalankan tindakan ini, tetapi pencatatannya ke audit_logs gagal — tindakan tetap terjadi meski tidak tercatat. Periksa manual sebelum melanjutkan."
     }
+  },
+  "superadmin": {
+    "title": "Admin platform",
+    "subtitle": "Beri perusahaan mana pun akses penuh gratis (free pass).",
+    "intro": "Free pass memindahkan perusahaan ke paket Enterprise gratis: tanpa batas 5 karyawan dan semua fitur berbayar terbuka, tanpa biaya. Aktifkan per perusahaan di bawah.",
+    "saved": "Tersimpan.",
+    "empty": "Belum ada perusahaan.",
+    "notConfigured": "Akses service-role belum dikonfigurasi di lingkungan ini (SUPABASE_SERVICE_ROLE_KEY). Aksi lintas perusahaan tidak tersedia.",
+    "statusComped": "Free pass (enterprise gratis)",
+    "planLabel": "Paket: {plan}",
+    "seats": "{count} aktif",
+    "grant": "Beri free pass",
+    "revoke": "Cabut free pass"
   }
 }

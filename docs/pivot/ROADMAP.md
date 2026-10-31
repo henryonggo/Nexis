@@ -1,17 +1,17 @@
 # Nexis Roadmap
 
-**Status: ACTIVE** (updated 2026-07-18). Supersedes `docs/04-roadmap.md`.
+**Status: ACTIVE** (updated 2026-10-29). Supersedes `docs/04-roadmap.md`.
 Operating loop: run the agent → every halt/error lands in
 `docs/pivot/failure-log.md` → the log picks the next items here. Companion:
 `CODE-REVIEW-2026-07.md`.
 
-**Where we are (2026-07-18):** Week 2 milestone met — full payroll-cycle
-tool set, approval gate, and run/resume wired into `/approvals`; the
-`audit_logs` INSERT-policy gap from `week1-staging-readiness.md` shipped in
-`20260704020000_agent_approvals` (verified on staging 2026-07-14). The
-failure log is empty because the Week 3 dry run has not run yet — that dry
-run (due **Jul 24**) is the current bottleneck and the only source of real
-ranking signal for NEXT.
+**Where we are (2026-10-29):** the Week 3 dry run started 2026-07-31 and
+stopped at approve→process on a Cloud Run worker 500 (failure log). Phase 1 is
+**blocked on infrastructure, not code**: the staging Supabase project is paused,
+the worker's crash needs its Cloud Run logs, and `dev` (ADR 0005/0006,
+proration) has not been promoted to `main`. In parallel the owner asked for
+**Nexis Lite** (ADR 0007): the pre-pivot web surface is cut so a new company
+sees one short nav and a "what do I do next" dashboard.
 
 North star (Phase 1): **Beras Wortel's payroll runs itself; the owner only
 approves.** The durable purpose behind it: Nexis is an **agentic operations
@@ -46,9 +46,12 @@ file, the failure log, and git — never in a chat transcript.
 | 2 | ✔ Delete `packages/leave` (dead) — PR #69 | orchestrator |
 | 3 | `ANTHROPIC_API_KEY` into Vercel env (Pro plan for 300s actions). Sole hard blocker for the live run; the **dry run must not wait on it** — fall back to running `/approvals` from local dev against staging | **Boss** |
 | 4 | ✔ Staging has `20260704020000_agent_approvals` applied (verified via Supabase migration list, 2026-07-14) | db-engineer |
-| 5 | ✔ **Dry-run pre-flight** done 2026-07-19 → `dry-run-preflight-2026-07.md`. Rates/profiles/policy all green, **but roster is now 7 employees** — a hire with compensation effective **2026-07-17** would have been paid a silent full month (engine had no proration and no halt). Fixed same day: new `mid_period_compensation` halt. Dry run should expect 6/7 clean + 1 designed halt for E-7 | orchestrator |
-| 6 | **Week 3 dry run (by Jul 24)** — step-by-step in `dry-run-runbook.md`: `/approvals` → Jalankan agen → verify numbers → approve → resume → draft created; log every discrepancy vs manual calc + every halt (incl. the designed E-7 `mid_period_compensation`) into the failure log; check `audit.recorded` + `agent_cycles` gaps. **Surface is ready** (NEXT 1–4, 7 merged); this now needs Boss to drive | Boss + orchestrator |
+| 5 | ✔ **Dry-run pre-flight** done 2026-07-19 → `dry-run-preflight-2026-07.md`. Rates/profiles/policy all green, **but roster is now 7 employees** — a hire with compensation effective **2026-07-17** would have been paid a silent full month (engine had no proration and no halt). Fixed same day: new `mid_period_compensation` halt. **Update 2026-07-31:** that halt is now *resolved* by working-day proration for genuine new hires (ADR 0006, PR #91 merged) — dry run should expect **7/7 clean** (E-7 prorated), no designed halt | orchestrator |
+| 6 | **Week 3 dry run (by Jul 24)** — step-by-step in `dry-run-runbook.md`: `/approvals` → Jalankan agen → verify numbers → approve → resume → draft created; log every discrepancy vs manual calc + every halt into the failure log (E-7 now prorates rather than halts — verify its partial-month line; first entry already logged: the 2026-07-31 worker-500 at approve→process); check `audit.recorded` + `agent_cycles` gaps. **Surface is ready** (NEXT 1–4, 7 merged); this now needs Boss to drive | Boss + orchestrator |
 | 7 | **Week 4 live run (by Jul 31)**: July payroll executed via agent with owner approval; review failure log; scope Phase 2 from it | Boss + orchestrator |
+| 8 | **Un-pause the staging Supabase project** (`Nexis`, ap-southeast-1 — INACTIVE as of 2026-10-29). Nothing in rows 6–7 can run until it's back | **Boss** |
+| 9 | **Fix the payroll-worker 500** (failure log 2026-07-31). Code side ✔ — `claude/payroll-ux-fixes` ported in the Nexis Lite PR: retries 429/5xx cold starts and never shows Cloud Run's HTML page. Infra side open: read Cloud Run logs; if it's the `SUPABASE_SERVICE_ROLE_KEY` boot exit, set the secret and redeploy | **Boss** + db-engineer |
+| 10 | **Promote `dev` → `main`** once the Nexis Lite PR lands (dev carries ADR 0005, ADR 0006 proration, and the dry-run docs that `main` lacks) | **Boss** |
 
 ## NEXT — Phase 2 candidates (order by failure log; provisional ranking)
 
@@ -88,10 +91,15 @@ list — do not burn the week the log was meant to steer.
 5. **Widen the agent's gross** — percentage earnings + earning groups, then
    daily/mixed pay and approved overtime, so fewer rosters halt. Each halts
    until built — never estimates. Not needed by customer zero's current
-   roster; rises the day a roster (or the failure log) demands it. A
-   sub-item joins it from the pre-flight: **mid-period proration**, so
-   `mid_period_compensation` halts can eventually resolve instead of
-   requiring a backdated compensation row. (domain-engineer)
+   roster; rises the day a roster (or the failure log) demands it.
+   ✔ **Mid-period proration sub-item** (from the pre-flight): a genuine new
+   hire (E-7 shape — no earlier comp row, `join_date` confirms the hire) now
+   resolves the `mid_period_compensation` halt via a working-day-basis
+   proration of base salary + fixed allowances, instead of requiring a
+   backdated compensation row; a mid-month comp CHANGE (an earlier comp row
+   exists) still halts — split-rate months are a separate, unmade decision.
+   ADR 0006 (owner to confirm working-day vs. calendar-day basis).
+   (domain-engineer, 2026-07-31)
 6. ✔ **`requireAdmin` sweep** — duplicated owner/admin checks replaced with
    `lib/roles.ts` across apps/web. (app-engineer)
 7. ✔ **Approval queue niceties** — approval cards lead with a human-readable
@@ -101,8 +109,34 @@ list — do not burn the week the log was meant to steer.
    approval-gated tool takes `{year,month}` or `{runId}`, so no payload
    carries money; `formatRupiah` stays a fallback for a future money field.
    (app-engineer, 2026-07-20)
-8. **WhatsApp/email approval digest** — the pivot's v0 alternative surface;
-   decide→approve via link. Needs an ADR first. (orchestrator → ADR 0005)
+8. **WhatsApp/email approval digest** — the pivot's v0 alternative surface.
+   ✔ **ADR 0005 written** (2026-07-29): notify off-web via the existing
+   `send-notification` (email + WhatsApp, opt-in-aware) with a deep link to
+   the `/approvals` gate; the authenticated owner still decides (in-message
+   approve/magic-link deferred — it trades away the "authenticated owner
+   decides" property). **Implementation still gated on the failure log** —
+   ships only if the dry/live runs show the owner stalls waiting on the web
+   gate. Then: fire the notification at `createApprovalRequest`, honor
+   `?request=<id>` on `/approvals`. (orchestrator → then domain + app)
+
+9. ◐ **Nexis Lite schema cut** (ADR 0007) — owner approved 2026-10-29.
+   ✔ Migration `20261029120000_nexis_lite_schema_cut` (with a data-loss guard
+   that aborts if any dropped table has rows), Edge Functions
+   `public-api`/`dispatch-webhook`/`scim` and their pgTAP tests removed,
+   mobile Performance screen removed. Verified on a stand-in Postgres + pgTAP
+   (no Supabase images here). **Open:** regenerate `packages/types` on a
+   machine that can run `pnpm db:start` (stale types still list the dropped
+   tables; nothing references them); apply to staging once it's un-paused.
+   (db-engineer)
+11. **Fix fresh `supabase db reset`** — `20260622150000_stage7_salary_earnings`
+   re-creates `custom_earning_types` (and re-adds two constraints) that
+   `20260622120000` already created, so a clean local stack fails and the
+   README quick start breaks. Fix with a new idempotent migration, never by
+   editing the applied one. Found during the schema cut. (db-engineer)
+10. **Retire the legacy manual payroll trigger** — once the agent path is
+   the only way a run starts, tighten the worker to `queued|processing`
+   (deferred from NEXT-4) and drop the manual "run" button from `/payroll`.
+   (domain + app + db)
 
 ## LATER — workflow N (each reuses the workflow-zero template)
 
@@ -118,9 +152,14 @@ approval gate, an ADR if it changes architecture, and a failure-log feed.
 
 ## Frozen surfaces (bugfix-only; list = CODE-REVIEW-2026-07.md)
 
-Web: everything under `app/(app)` except `payroll` + `approvals` (+ the
-`_landing` site and employee portal). Schema/functions: recruitment,
-performance, billing, SSO/SCIM, public API/webhooks. `infra/gcp`.
+**Deleted from the web app 2026-10-29 (ADR 0007):** performance, analytics,
+developer, glance, multi-company `/portal`, the pillar nav and
+command palette. Restore from git only if a paying workflow asks.
+
+Still frozen — web: everything else under `app/(app)` except `dashboard`,
+`payroll` + `approvals` (+ the `_landing` site). Schema/functions:
+recruitment, performance, billing, SSO/SCIM, public API/webhooks (the first
+four minus billing are queued for removal, NEXT-9). `infra/gcp`.
 Feeding-payroll tables (claims, loans, overtime/attendance, currencies) are
 **not** frozen.
 
@@ -128,9 +167,29 @@ Bugfix-only in action: PRs #72–#75 (2026-07 auth flow — token_hash callback
 shape, reset-password error copy, id-ID success copy) were maintenance on a
 frozen-adjacent surface, correctly scoped to fixes with no new features.
 
+## Branch map (scanned 2026-10-29)
+
+Rule: work branches PR into `dev`; the owner promotes `dev` → `main`. A
+branch with zero commits outside `dev` is finished and gets deleted.
+
+| Branch | State | Action |
+|---|---|---|
+| `main` | production; 6 commits behind `dev` | keep — promote `dev` (NOW-10) |
+| `dev` | integration; ADR 0005/0006 + proration not yet on `main` | keep |
+| `claude/payroll-ux-fixes` | **1 unmerged commit, critical** — worker retry + error sanitizing for the 2026-07-31 failure | ported into the Nexis Lite PR; delete after it merges |
+| `claude/roadmap-updates-88395k` | fully merged (PRs #81–#92) | delete |
+| `claude/nexis-phase-1-setup-7rjrme` | fully merged (NEXT-1/NEXT-6) | delete |
+| `fix/auth-copy-id` | fully merged (PRs #72–#75) | delete |
+| `feat/ui-v3` | fully merged (June UI v3) | delete |
+| `feat/multi-company-portal` | fully merged; the portal itself is now removed | delete |
+| `claude/friendly-goodall-mvn1jp` | fully merged (worker isolation, June) | delete |
+| `claude/pensive-hopper-vp10yb` | fully merged (salary components schema) | delete |
+| `claude/salary-deduction-config-y5uv9e` | fully merged (deduction groups) | delete |
+| `claude/optimistic-archimedes-ifcqcn` | fully merged; Glance view is now removed | delete |
+
 ## Team (ADR 0001)
 
-Orchestrator (Fable 5) plans, reviews, gates. Workers: `db-engineer`
+Orchestrator (Fable 5.1) plans, reviews, gates. Workers (Sonnet 5.5): `db-engineer`
 (schema/RLS/worker), `domain-engineer` (engine + agent packages),
 `app-engineer` (web/mobile + its e2e). Every architecture change lands as an
 ADR before code; every agent misbehavior lands in the failure log.

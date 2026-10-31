@@ -1,7 +1,10 @@
 # ADR 0001 — Agent architecture for the Phase 1 pivot
 
 - **Status:** Accepted (owner, 2026-07-03). Restructuring of `.claude/agents/`
-  applied the same day.
+  applied the same day. **Amended 2026-10-29** (owner: "upgrade the team with
+  the latest model version"): orchestrator Fable 5 → **Fable 5.1**; workers
+  Sonnet → **Sonnet 5.5**, pinned as `claude-sonnet-5-5` in each agent file.
+  Same tiers, same lanes — only the versions moved.
 - **Context:** `docs/pivot/PIVOT-PHASE-1.md` (Week 1 task), `.claude/agents/README.md`
 - **Deciders:** Owner (Boss); drafted by Claude Code (Fable 5)
 

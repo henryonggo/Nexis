@@ -12,7 +12,6 @@ import {
   SalaryBreakdownCard,
   LeaveCard,
   AttendanceStrip,
-  SegmentDonutCard,
   type PayPoint,
 } from "./dashboard-widgets";
 import { Wallet, CalendarDays, Clock } from "lucide-react";
@@ -352,9 +351,10 @@ export default async function DashboardPage() {
     { data: billing },
     { data: payrollRuns },
     { data: todayRecords },
-    { count: shiftCount },
+    { count: pendingCount },
+    { data: compRows },
   ] = await Promise.all([
-    supabase.from("employees").select("status").eq("company_id", active.id),
+    supabase.from("employees").select("id, status").eq("company_id", active.id),
     supabase
       .from("company_billing")
       .select("plan, free_seat_limit, active_seats")
@@ -376,19 +376,25 @@ export default async function DashboardPage() {
       .gte("event_at", startOfTodayJakartaIso())
       .order("event_at", { ascending: false }),
     isAdmin
-      ? supabase.from("shifts").select("id", { count: "exact", head: true }).eq("company_id", active.id)
+      ? supabase
+          .from("approval_requests")
+          .select("id", { count: "exact", head: true })
+          .eq("company_id", active.id)
+          .eq("status", "pending")
       : Promise.resolve({ count: 0 }),
+    isAdmin
+      ? supabase.from("compensation").select("employee_id").eq("company_id", active.id)
+      : Promise.resolve({ data: null }),
   ]);
 
-  // Workforce headcount + status mix for the overview tiles/donut.
-  const statuses = (statusRows as { status: string }[] | null) ?? [];
-  const employeeCount = statuses.length;
-  const statusCounts = {
-    active: statuses.filter((s) => s.status === "active").length,
-    probation: statuses.filter((s) => s.status === "probation").length,
-    inactive: statuses.filter((s) => s.status === "inactive").length,
-    terminated: statuses.filter((s) => s.status === "terminated").length,
-  };
+  const employees = (statusRows as { id: string; status: string }[] | null) ?? [];
+  const employeeCount = employees.length;
+
+  // Payroll needs a salary for everyone on payroll (active/probation); never assumed.
+  const withComp = new Set((compRows as { employee_id: string }[] | null)?.map((c) => c.employee_id));
+  const hasAllSalaries = employees
+    .filter((e) => e.status === "active" || e.status === "probation")
+    .every((e) => withComp.has(e.id));
 
   // Payroll cost trend: oldest → newest net total across the last few runs.
   const runs = (payrollRuns as
@@ -416,7 +422,6 @@ export default async function DashboardPage() {
   const atLimit = isFree && used >= limit;
 
   const t = await getTranslations("dashboard");
-  const tGlance = await getTranslations("glance");
   const tPlans = await getTranslations("plans");
   const tStatus = await getTranslations("payroll.status");
   const planName = tPlans(plan.id);
@@ -427,17 +432,32 @@ export default async function DashboardPage() {
         icon={ICONS["dashboard"]}
         title={t("title")}
         description={t("company", { name: active.name })}
-        actions={
-          <Button asChild variant="outline" size="sm">
-            <Link href="/glance">{tGlance("open")} →</Link>
-          </Button>
-        }
       />
+
+      {isAdmin && (
+        <Card className="flex flex-wrap items-center justify-between gap-3 p-5">
+          <div>
+            <h2 className="text-base font-semibold text-ink">
+              {pendingCount
+                ? t("next.pending", { count: pendingCount })
+                : t("next.clear")}
+            </h2>
+            <p className="mt-0.5 text-sm text-muted">
+              {pendingCount ? t("next.pendingHint") : t("next.clearHint")}
+            </p>
+          </div>
+          <Button asChild variant={pendingCount ? "default" : "outline"} className="shrink-0">
+            <Link href="/approvals">
+              {pendingCount ? t("next.review") : t("next.runAgent")}
+            </Link>
+          </Button>
+        </Card>
+      )}
 
       {isAdmin && (
         <SetupChecklist
           hasEmployees={used > 0}
-          hasShifts={(shiftCount ?? 0) > 0}
+          hasSalaries={used > 0 && hasAllSalaries}
           hasPayroll={Boolean(latestRun)}
         />
       )}
@@ -512,44 +532,14 @@ export default async function DashboardPage() {
         )}
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        {isAdmin && (
-          <div className="lg:col-span-2">
-            <PayTrendChart
-              points={payrollPoints}
-              title={t("cards.payrollTrend")}
-              averageLabel={t("cards.avgCost")}
-              emptyLabel={t("cards.payrollEmpty")}
-            />
-          </div>
-        )}
-
-        <SegmentDonutCard
-          title={t("workforce.title")}
-          centerTop={String(employeeCount)}
-          centerBottom={t("workforce.totalWord")}
-          segments={[
-            { value: statusCounts.active, color: "var(--success)", label: t("workforce.active") },
-            { value: statusCounts.probation, color: "var(--warning)", label: t("workforce.probation") },
-            { value: statusCounts.inactive, color: "var(--muted)", label: t("workforce.inactive") },
-            { value: statusCounts.terminated, color: "var(--danger)", label: t("workforce.terminated") },
-          ]}
+      {isAdmin && (
+        <PayTrendChart
+          points={payrollPoints}
+          title={t("cards.payrollTrend")}
+          averageLabel={t("cards.avgCost")}
+          emptyLabel={t("cards.payrollEmpty")}
         />
-
-        <SegmentDonutCard
-          title={t("attendanceMix.title")}
-          centerTop={String(presentToday)}
-          centerBottom={t("attendanceMix.presentWord")}
-          segments={[
-            { value: presentToday, color: "var(--success)", label: t("attendanceMix.present") },
-            {
-              value: Math.max(0, employeeCount - presentToday),
-              color: "var(--muted)",
-              label: t("attendanceMix.absent"),
-            },
-          ]}
-        />
-      </div>
+      )}
     </div>
   );
 }
