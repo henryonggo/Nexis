@@ -1,6 +1,6 @@
 # Nexis Roadmap
 
-**Status: ACTIVE** (updated 2026-10-29). Supersedes `docs/04-roadmap.md`.
+**Status: ACTIVE** (updated 2026-10-31). Supersedes `docs/04-roadmap.md`.
 Operating loop: run the agent → every halt/error lands in
 `docs/pivot/failure-log.md` → the log picks the next items here. Companion:
 `CODE-REVIEW-2026-07.md`.
@@ -38,7 +38,7 @@ log. No second workflow starts until workflow zero has run live.
 The loop is re-enterable from a cold session: state lives entirely in this
 file, the failure log, and git — never in a chat transcript.
 
-## NOW — finish Phase 1 (dry run by Jul 24, live run by Jul 31)
+## NOW — finish Phase 1 (dry run → live run; the July dates slipped — re-date once staging is back)
 
 | # | Item | Owner |
 |---|---|---|
@@ -52,6 +52,7 @@ file, the failure log, and git — never in a chat transcript.
 | 8 | **Un-pause the staging Supabase project** (`Nexis`, ap-southeast-1 — INACTIVE as of 2026-10-29). Nothing in rows 6–7 can run until it's back | **Boss** |
 | 9 | **Fix the payroll-worker 500** (failure log 2026-07-31). Code side ✔ — `claude/payroll-ux-fixes` ported in the Nexis Lite PR: retries 429/5xx cold starts and never shows Cloud Run's HTML page. Infra side open: read Cloud Run logs; if it's the `SUPABASE_SERVICE_ROLE_KEY` boot exit, set the secret and redeploy | **Boss** + db-engineer |
 | 10 | **Promote `dev` → `main`** once the Nexis Lite PR lands (dev carries ADR 0005, ADR 0006 proration, and the dry-run docs that `main` lacks) | **Boss** |
+| 11 | **Delete the merged branches** listed in the branch map (this session can only push its own branch) | **Boss** |
 
 ## NEXT — Phase 2 candidates (order by failure log; provisional ranking)
 
@@ -128,15 +129,43 @@ list — do not burn the week the log was meant to steer.
    machine that can run `pnpm db:start` (stale types still list the dropped
    tables; nothing references them); apply to staging once it's un-paused.
    (db-engineer)
-11. **Fix fresh `supabase db reset`** — `20260622150000_stage7_salary_earnings`
-   re-creates `custom_earning_types` (and re-adds two constraints) that
-   `20260622120000` already created, so a clean local stack fails and the
-   README quick start breaks. Fix with a new idempotent migration, never by
-   editing the applied one. Found during the schema cut. (db-engineer)
+11. ✔ **Fix fresh `supabase db reset`** — `20260622150000` re-created six
+   tables `20260622120000` already makes; it now has idempotency-only guards
+   (`if not exists`, guarded constraints/policies/publication), so the full
+   44-migration chain applies from zero with `ON_ERROR_STOP=1`. Already-applied
+   environments never re-run it. (db-engineer, 2026-10-31)
 10. **Retire the legacy manual payroll trigger** — once the agent path is
    the only way a run starts, tighten the worker to `queued|processing`
    (deferred from NEXT-4) and drop the manual "run" button from `/payroll`.
    (domain + app + db)
+
+## GUARDRAILS — from the 2026-10-31 reflection
+
+The reflection found the gate was weaker than CLAUDE.md claims: CI never ran
+`pnpm test` (the PPh 21/BPJS engine), had no lint and no database job, and a
+fresh `db reset` was broken — so a red migration or a payroll-math regression
+could merge silently.
+
+1. ✔ **CI gates on lint, unit tests and the database** — `pnpm lint` + `pnpm
+   test` in the build job; a `database` job applies every migration from zero,
+   runs pgTAP, and fails on `packages/types` drift (uploading the regenerated
+   file). ESLint (`next/core-web-vitals`) configured for apps/web. (orchestrator
+   + app-engineer)
+2. ✔ **Getting-started checklist uses the payroll readiness gate**
+   (`get_payroll_readiness`: salary + tax profile + bank account), so it can't
+   say "done" while the agent would halt. (app-engineer)
+3. **Regenerate `packages/types`** from CI's drift artifact or a machine that
+   can pull Supabase images (closes NEXT-9). (db-engineer)
+4. **App default theme → light** until dark passes an AA contrast audit (the
+   signed-in app has the same half-dark problem the landing page had). (app-engineer)
+5. **Authenticated Playwright in CI** against the database job's local stack
+   with a seeded owner, so happy paths stop skipping. (app-engineer + db-engineer)
+6. **Prompt-audit the orchestrator `SYSTEM_PROMPT` for Fable 5.1** and set
+   `effort` explicitly; compare on dry-run fixtures. (domain-engineer)
+7. **Archive pre-pivot docs** (`docs/0[0-4]*`, `stages/`, `handoff/`,
+   `DEVELOPMENT.md`) to `docs/archive/`. (orchestrator)
+8. **Process** — parallel workers run in separate worktrees; promote
+   `dev` → `main` weekly. (orchestrator + Boss)
 
 ## LATER — workflow N (each reuses the workflow-zero template)
 
