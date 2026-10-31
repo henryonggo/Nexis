@@ -66,7 +66,9 @@
       "resetDone": "Kata sandi diperbarui. Silakan masuk.",
       "timedOut": "Anda keluar otomatis karena tidak aktif.",
       "deactivated": "Akun Anda telah dinonaktifkan.",
-      "callbackFailed": "Tautan tidak valid atau sudah kedaluwarsa. Silakan coba lagi."
+      "verified": "Email Anda sudah terverifikasi. Silakan masuk untuk melanjutkan.",
+      "linkExpired": "Tautan verifikasi sudah kedaluwarsa. Masuk dengan email dan kata sandi Anda — kami akan mengirim tautan baru bila diperlukan.",
+      "linkInvalid": "Tautan tidak valid atau sudah dipakai. Silakan masuk, atau daftar ulang bila belum punya akun."
     },
     "signUp": {
       "title": "Buat akun",
@@ -91,6 +93,7 @@
   },
   "onboarding": {
     "pageSubtitle": "Buat perusahaan pertama Anda",
+    "verified": "Email terverifikasi — selamat datang di Nexis! Mulai dengan membuat profil perusahaan Anda.",
     "footer": "Paket gratis mencakup 5 karyawan pertama. Tidak perlu NPWP perusahaan atau data legal lainnya sampai Anda meng-upgrade.",
     "company": {
       "title": "Detail perusahaan",
