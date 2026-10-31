@@ -49,7 +49,7 @@ file, the failure log, and git — never in a chat transcript.
 | 5 | ✔ **Dry-run pre-flight** done 2026-07-19 → `dry-run-preflight-2026-07.md`. Rates/profiles/policy all green, **but roster is now 7 employees** — a hire with compensation effective **2026-07-17** would have been paid a silent full month (engine had no proration and no halt). Fixed same day: new `mid_period_compensation` halt. **Update 2026-07-31:** that halt is now *resolved* by working-day proration for genuine new hires (ADR 0006, PR #91 merged) — dry run should expect **7/7 clean** (E-7 prorated), no designed halt | orchestrator |
 | 6 | **Week 3 dry run (by Jul 24)** — step-by-step in `dry-run-runbook.md`: `/approvals` → Jalankan agen → verify numbers → approve → resume → draft created; log every discrepancy vs manual calc + every halt into the failure log (E-7 now prorates rather than halts — verify its partial-month line; first entry already logged: the 2026-07-31 worker-500 at approve→process); check `audit.recorded` + `agent_cycles` gaps. **Surface is ready** (NEXT 1–4, 7 merged); this now needs Boss to drive | Boss + orchestrator |
 | 7 | **Week 4 live run (by Jul 31)**: July payroll executed via agent with owner approval; review failure log; scope Phase 2 from it | Boss + orchestrator |
-| 8 | **Un-pause the staging Supabase project** (`Nexis`, ap-southeast-1 — INACTIVE as of 2026-10-29). Nothing in rows 6–7 can run until it's back | **Boss** |
+| 8 | ✔ (2026-10-31) **Un-pause the staging Supabase project** (`Nexis`, ap-southeast-1 — INACTIVE as of 2026-10-29). Nothing in rows 6–7 can run until it's back | **Boss** |
 | 9 | **Fix the payroll-worker 500** (failure log 2026-07-31). Code side ✔ — `claude/payroll-ux-fixes` ported in the Nexis Lite PR: retries 429/5xx cold starts and never shows Cloud Run's HTML page. Infra side open: read Cloud Run logs; if it's the `SUPABASE_SERVICE_ROLE_KEY` boot exit, set the secret and redeploy | **Boss** + db-engineer |
 | 10 | **Promote `dev` → `main`** once the Nexis Lite PR lands (dev carries ADR 0005, ADR 0006 proration, and the dry-run docs that `main` lacks) | **Boss** |
 | 11 | **Delete the merged branches** listed in the branch map (this session can only push its own branch) | **Boss** |
@@ -125,8 +125,10 @@ list — do not burn the week the log was meant to steer.
    that aborts if any dropped table has rows), Edge Functions
    `public-api`/`dispatch-webhook`/`scim` and their pgTAP tests removed,
    mobile Performance screen removed. Verified on a stand-in Postgres + pgTAP
-   (no Supabase images here). ✔ Types regenerated (GUARDRAILS 3). **Open:**
-   apply to staging once it's un-paused.
+   (no Supabase images here). ✔ Types regenerated (GUARDRAILS 3). ✔ Applied to staging 2026-10-31
+   after an owner-approved full reset (all data + logins wiped; rate tables
+   kept, identical to `seed.sql`). Staging is now empty: re-onboard Beras
+   Wortel before the next dry run.
    (db-engineer)
 11. ✔ **Fix fresh `supabase db reset`** — `20260622150000` re-created six
    tables `20260622120000` already makes; it now has idempotency-only guards
