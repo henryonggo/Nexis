@@ -52,6 +52,7 @@ file, the failure log, and git — never in a chat transcript.
 | 8 | ✔ (2026-10-31) **Un-pause the staging Supabase project** (`Nexis`, ap-southeast-1 — INACTIVE as of 2026-10-29). Nothing in rows 6–7 can run until it's back | **Boss** |
 | 9 | **Fix the payroll-worker 500** (failure log 2026-07-31). Code side ✔ — `claude/payroll-ux-fixes` ported in the Nexis Lite PR: retries 429/5xx cold starts and never shows Cloud Run's HTML page. Infra side open: read Cloud Run logs; if it's the `SUPABASE_SERVICE_ROLE_KEY` boot exit, set the secret and redeploy | **Boss** + db-engineer |
 | 10 | **Promote `dev` → `main`** once the Nexis Lite PR lands (dev carries ADR 0005, ADR 0006 proration, and the dry-run docs that `main` lacks) | **Boss** |
+| 12 | **Supabase Auth URL config** (2026-10-31, owner-reported: the sign-up confirmation landed on a bare home page). Dashboard → Authentication → URL Configuration: Site URL `https://nexishr.vercel.app`; Redirect URLs `https://nexishr.vercel.app/**` and `https://*-henry-onggo-s-projects.vercel.app/**`. The app now copes either way (stray `?code` / error params are forwarded to the callback, with clear sign-in/onboarding notices), but without the allow-list the `next` target is lost | **Boss** |
 | 11 | **Delete the merged branches** listed in the branch map (this session can only push its own branch) | **Boss** |
 
 ## NEXT — Phase 2 candidates (order by failure log; provisional ranking)
