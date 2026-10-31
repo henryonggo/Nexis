@@ -95,7 +95,11 @@ jobs:
       - name: packages/types matches the schema
         run: |
           supabase gen types typescript --local > "$RUNNER_TEMP/database.ts"
-          diff -u packages/types/src/database.ts "$RUNNER_TEMP/database.ts"
+          if ! diff -u packages/types/src/database.ts "$RUNNER_TEMP/database.ts"; then
+            # Compact, machine-applicable form (RCS) for when the artifact is unreachable.
+            echo "::group::rcs patch"; diff -n packages/types/src/database.ts "$RUNNER_TEMP/database.ts" || true; echo "::endgroup::"
+            exit 1
+          fi
 
       # On drift, publish the freshly generated file so it can be committed as-is.
       - name: Upload regenerated types
