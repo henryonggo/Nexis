@@ -1,8 +1,8 @@
 // Pure navigation config + helpers. Deliberately NOT a "use client" module so
 // Server Components (e.g. the app layout) can import these runtime VALUES
 // directly. Importing them from the "use client" app-sidebar instead resolves
-// to client-reference stubs in production, so PILLARS.filter(...) throws at
-// render — see the regression fixed alongside this file.
+// to client-reference stubs in production, so runtime VALUES (not just types)
+// are undefined at render — see the regression fixed alongside this file.
 import {
   LayoutDashboard,
   Users,
@@ -15,17 +15,13 @@ import {
   Coins,
   FileDown,
   Wallet,
-  Target,
-  BarChart3,
   FileText,
   CreditCard,
   ScrollText,
-  Code2,
   UserCog,
   ShieldCheck,
-  ShieldAlert,
   Settings,
-  SlidersHorizontal,
+  ShieldAlert,
   UserCircle,
   type LucideIcon,
 } from "lucide-react";
@@ -46,39 +42,17 @@ export const ICONS: Record<string, LucideIcon> = {
   payslips: FileDown,
   payroll: Wallet,
   approvals: ClipboardCheck,
-  performance: Target,
-  analytics: BarChart3,
   reports: FileText,
   billing: CreditCard,
   audit: ScrollText,
-  developer: Code2,
   members: UserCog,
   access: ShieldCheck,
   superadmin: ShieldAlert,
   settings: Settings,
 };
 
-export const PILLARS = [
-  { key: "overview", labelKey: "overview", icon: LayoutDashboard, href: "/dashboard" },
-  { key: "people", labelKey: "people", icon: Users, href: "/employees" },
-  { key: "operations", labelKey: "operations", icon: CalendarDays, href: "/attendance" },
-  { key: "finance", labelKey: "finance", icon: Wallet, href: "/payroll" },
-  { key: "platform", labelKey: "platform", icon: SlidersHorizontal, href: "/settings" },
-] as const;
+/** Sidebar sections, in display order. `main` is rendered without a title. */
+export const NAV_GROUPS = ["main", "team", "pay", "company"] as const;
+export type NavGroupKey = (typeof NAV_GROUPS)[number];
 
-export const PILLAR_ITEMS: Record<string, string[]> = {
-  overview: ["dashboard", "analytics", "reports", "audit"],
-  people: ["employees", "members"],
-  operations: ["attendance", "leave", "performance"],
-  finance: ["payroll", "approvals", "payslips", "claims", "loans", "earnings", "deductions", "billing"],
-  platform: ["access", "developer", "superadmin", "settings"],
-};
-
-export function getActivePillar(pathname: string): string {
-  if (pathname.startsWith("/dashboard") || pathname.startsWith("/analytics") || pathname.startsWith("/reports") || pathname.startsWith("/audit")) return "overview";
-  if (pathname.startsWith("/employees") || pathname.startsWith("/members")) return "people";
-  if (pathname.startsWith("/attendance") || pathname.startsWith("/leave") || pathname.startsWith("/performance")) return "operations";
-  if (pathname.startsWith("/payroll") || pathname.startsWith("/approvals") || pathname.startsWith("/payslips") || pathname.startsWith("/claims") || pathname.startsWith("/loans") || pathname.startsWith("/earnings") || pathname.startsWith("/deductions") || pathname.startsWith("/billing")) return "finance";
-  if (pathname.startsWith("/developer") || pathname.startsWith("/superadmin") || pathname.startsWith("/settings")) return "platform";
-  return "overview";
-}
+export type NavGroup = { key: NavGroupKey; label: string | null; items: NavItem[] };

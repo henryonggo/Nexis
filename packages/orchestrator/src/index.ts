@@ -1,7 +1,7 @@
 /**
  * @nexis/orchestrator — the agent runtime (ADR 0004).
  *
- * A stateless payroll-cycle driver: Fable 5 tool-use loop over the
+ * A stateless payroll-cycle driver: Fable 5.1 tool-use loop over the
  * @nexis/agent-tools registry, run server-side by apps/web. Durable state
  * lives in approval_requests + payroll_runs; halts become owner task lists;
  * denied mutations open approval requests and pause the cycle for /approvals.

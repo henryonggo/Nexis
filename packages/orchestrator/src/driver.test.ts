@@ -164,9 +164,27 @@ describe("runPayrollCycle", () => {
       status: "ok",
       data: { gross: 15_000_000 },
     });
-    // Fable 5: no thinking param; fallbacks on by default.
+    // Fable 5.1: no thinking / tool_choice; server-routed fallback on by default.
     expect(client.requests[0]).not.toHaveProperty("thinking");
-    expect(client.requests[0]!.fallbacks).toEqual([{ model: "claude-opus-4-8" }]);
+    expect(client.requests[0]).not.toHaveProperty("tool_choice");
+    expect(client.requests[0]!.model).toBe("claude-fable-5-1");
+    expect(client.requests[0]!.betas).toEqual(["server-side-fallback-2026-07-01"]);
+    expect(client.requests[0]!.fallbacks).toBe("default");
+  });
+
+  it("sends neither betas nor fallbacks when fallbacks is false", async () => {
+    const client = fakeModel([
+      { stop_reason: "end_turn", content: [{ type: "text", text: "ok" }] },
+    ]);
+    await runPayrollCycle({
+      client,
+      toolContext: ctxWith(fakeDb()),
+      instruction: "x",
+      tools: [readTool],
+      fallbacks: false,
+    });
+    expect(client.requests[0]).not.toHaveProperty("betas");
+    expect(client.requests[0]).not.toHaveProperty("fallbacks");
   });
 
   it("opens an approval request on a denied mutation and pauses", async () => {

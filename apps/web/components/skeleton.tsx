@@ -29,7 +29,7 @@ export function PageHeaderSkeleton({ action = true }: { action?: boolean }) {
   );
 }
 
-/** A grid of stat/summary cards (dashboard, analytics, billing). */
+/** A grid of stat/summary cards (dashboard, billing). */
 export function CardGridSkeleton({ count = 3, columns = 3 }: { count?: number; columns?: number }) {
   const colClass = columns === 2 ? "sm:grid-cols-2" : columns === 4 ? "sm:grid-cols-4" : "sm:grid-cols-3";
   return (

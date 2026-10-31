@@ -1,7 +1,7 @@
 ---
 name: domain-engineer
 description: Implements pure-TypeScript domain logic in packages/payroll, packages/money, and the agent layer packages (packages/agent-tools, packages/orchestrator). Invoke for Indonesian payroll/tax math, integer-rupiah helpers, and typed agent tools. No SQL, no UI.
-model: sonnet
+model: claude-sonnet-5-5
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 

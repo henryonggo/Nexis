@@ -95,8 +95,12 @@ export interface CycleOptions {
   approvalTokens?: Record<string, string>;
   tools?: readonly AnyTool[];
   model?: string;
-  /** Refusal fallback model (ADR 0004 / Fable 5 guidance); null disables. */
-  fallbackModel?: string | null;
+  /**
+   * Server-routed refusal fallback (ADR 0004). Fable 5.1 only permits pinned
+   * opus-4-8 / opus-5 targets, so we send the scalar "default" and let the API
+   * route. Default true; false sends neither `betas` nor `fallbacks`.
+   */
+  fallbacks?: boolean;
   maxTurns?: number;
   onEvent?: (event: OrchestratorEvent) => void;
 }
@@ -107,8 +111,8 @@ export async function runPayrollCycle(options: CycleOptions): Promise<CycleResul
     toolContext,
     instruction,
     tools = AGENT_TOOLS,
-    model = "claude-fable-5",
-    fallbackModel = "claude-opus-4-8",
+    model = "claude-fable-5-1",
+    fallbacks = true,
     maxTurns = 12,
     onEvent,
   } = options;
@@ -140,17 +144,16 @@ export async function runPayrollCycle(options: CycleOptions): Promise<CycleResul
       response = await client.beta.messages.create({
         model,
         max_tokens: 16_000,
-        // Fable 5: thinking is always on — the `thinking` param must be omitted.
+        // Fable 5.1: thinking is always on — the `thinking` param must be omitted.
         system: [
           { type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } },
         ],
         tools: anthropicTools,
         messages,
-        ...(fallbackModel
-          ? {
-              betas: ["server-side-fallback-2026-06-01"],
-              fallbacks: [{ model: fallbackModel }],
-            }
+        // The 07-01 header pairs ONLY with the scalar form (mixing is a 400).
+        // No tool_choice any/tool either: Fable 5.1 rejects forced choice.
+        ...(fallbacks
+          ? { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" }
           : {}),
       });
     } catch (err) {
@@ -179,7 +182,7 @@ export async function runPayrollCycle(options: CycleOptions): Promise<CycleResul
     }
 
     // Echo the full assistant content back (thinking blocks included, per
-    // Fable 5 replay rules).
+    // Fable 5.1 replay rules). History is append-only: never edit earlier turns.
     messages.push({ role: "assistant", content: response.content });
 
     if (response.stop_reason === "pause_turn") continue;

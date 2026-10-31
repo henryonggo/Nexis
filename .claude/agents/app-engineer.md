@@ -1,7 +1,7 @@
 ---
 name: app-engineer
 description: Builds and maintains both app surfaces — the Next.js admin web app (apps/web) and the Expo employee app (apps/mobile). Phase 1 scope is the approval-gate UX plus maintenance of what exists. Owns the Playwright e2e specs for what it ships. Reads packages/types, never writes SQL.
-model: sonnet
+model: claude-sonnet-5-5
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
