@@ -2,7 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+/* Specificity (0,2,0) beats .dark/.theme-mono: a page containing .force-light (landing) always gets light tokens. */
+:root,
+:root:has(.force-light) {
   /* ── Nexis v3 "Ledger Instrument" — light (default) ──────────────────────── */
   /* Brand: a single cobalt (resolves the v2 #203cd5/#2452E6 drift). */
   --brand: #2452e6;
@@ -106,6 +108,10 @@
   --destructive-foreground: 0 0% 100%;
   --border: 220 26% 92%;
   --ring: 226 79% 52%;
+}
+
+:root:has(.force-light) {
+  color-scheme: light;
 }
 
 [data-density="compact"] {

@@ -51,6 +51,11 @@ values
   ('aaaa0001-0000-0000-0000-000000000000', 'aaaa1111-0000-0000-0000-000000000001',
    'ea000001-0000-0000-0000-000000000001', 20);
 
+-- Self-contained helper schema (rolled back with the test); the authenticated
+-- role must be able to resolve tests.reset_role() after switching roles.
+create schema if not exists tests;
+grant usage on schema tests to authenticated;
+
 -- Helper: switch to authenticated role impersonating a specific user.
 create or replace function tests.authenticate_as(p_uid uuid) returns void
 language plpgsql as $$

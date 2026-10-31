@@ -7,6 +7,29 @@ import type { Database } from "@nexis/types";
  * Unauthenticated users hitting app/onboarding routes are redirected to sign-in.
  */
 export async function updateSession(request: NextRequest) {
+  // Supabase falls back to the Site URL when our callback isn't in its Redirect URL
+  // allow-list, so auth params can land on any path. Forward them to where they're handled.
+  const { pathname, searchParams } = request.nextUrl;
+  if (pathname !== "/auth/callback") {
+    const url = request.nextUrl.clone();
+    if (searchParams.has("code") || searchParams.has("token_hash")) {
+      url.pathname = "/auth/callback";
+      url.search = "";
+      for (const k of ["code", "token_hash", "type", "next"]) {
+        const v = searchParams.get(k);
+        if (v) url.searchParams.set(k, v);
+      }
+      return NextResponse.redirect(url);
+    }
+    // Plain `?error=` is ours (sign-in banners); Supabase's failure redirect also sends a description.
+    const errorCode = searchParams.get("error_code");
+    if (errorCode || (searchParams.has("error") && searchParams.has("error_description"))) {
+      url.pathname = "/sign-in";
+      url.search = `?error=${errorCode === "otp_expired" ? "link_expired" : "link_invalid"}`;
+      return NextResponse.redirect(url);
+    }
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient<Database>(

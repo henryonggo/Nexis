@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Suspense } from "react";
 import { signIn, type ActionState } from "../actions";
+import { AuthHashRedirect } from "@/components/auth-hash-redirect";
 import { SubmitButton } from "@/components/submit-button";
 import { PasswordInput } from "@/components/password-input";
 import { Card } from "@/components/ui/card";
@@ -25,7 +26,10 @@ function SignInForm() {
   const justReset = params.get("reset") === "1";
   const timedOut = params.get("timeout") === "1";
   const deactivated = params.get("deactivated") === "1";
-  const callbackFailed = params.get("error") === "auth_callback_failed";
+  const verified = params.get("verified") === "1";
+  const linkError = params.get("error");
+  const linkExpired = linkError === "link_expired";
+  const linkInvalid = linkError === "link_invalid" || linkError === "auth_callback_failed";
 
   return (
     <Card className="w-full max-w-md p-8">
@@ -35,7 +39,9 @@ function SignInForm() {
       {justReset && <Alert variant="success" className="mb-4">{t("resetDone")}</Alert>}
       {timedOut && <Alert variant="success" className="mb-4">{t("timedOut")}</Alert>}
       {deactivated && <Alert variant="success" className="mb-4">{t("deactivated")}</Alert>}
-      {callbackFailed && <Alert variant="destructive" className="mb-4">{t("callbackFailed")}</Alert>}
+      {verified && <Alert variant="success" className="mb-4">{t("verified")}</Alert>}
+      {linkExpired && <Alert variant="destructive" className="mb-4">{t("linkExpired")}</Alert>}
+      {linkInvalid && <Alert variant="destructive" className="mb-4">{t("linkInvalid")}</Alert>}
       {state.error && <Alert variant="destructive" className="mb-4">{state.error}</Alert>}
 
       <form action={action} className="space-y-4">
@@ -74,6 +80,7 @@ function SignInForm() {
 export default function SignInPage() {
   return (
     <Suspense>
+      <AuthHashRedirect />
       <SignInForm />
     </Suspense>
   );

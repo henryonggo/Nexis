@@ -3,8 +3,8 @@
 - **Status:** Accepted for the web layer (2026-10-29, owner instruction:
   "simplify the whole process … make it light and approachable to a new
   company"). Schema cut **Accepted** 2026-10-29 (owner: "go ahead with the
-  schema cut") — migration `20261029120000_nexis_lite_schema_cut` written,
-  not yet applied to any remote project.
+  schema cut") — migration `20261029120000_nexis_lite_schema_cut` applied to
+  staging 2026-10-31, right after an owner-approved full data reset.
 - **Context:** `docs/pivot/CODE-REVIEW-2026-07.md` ("the repo's real problem
   is pre-pivot surface area"), `docs/pivot/ROADMAP.md` ("each frozen surface
   is revived only when a paying workflow demands it — otherwise it eventually

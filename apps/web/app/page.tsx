@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { AuthHashRedirect } from "@/components/auth-hash-redirect";
 import { LandingNav } from "./_landing/landing-nav";
 import { Hero } from "./_landing/hero";
 import { Features } from "./_landing/features";
@@ -14,7 +15,8 @@ export default async function Home() {
   const isAuthed = Boolean(user);
 
   return (
-    <div className="min-h-screen">
+    <div className="force-light min-h-screen">
+      <AuthHashRedirect />
       <LandingNav isAuthed={isAuthed} />
       <main>
         <Hero isAuthed={isAuthed} />
