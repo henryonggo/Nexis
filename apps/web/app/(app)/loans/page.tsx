@@ -81,7 +81,7 @@ export default async function LoansPage() {
                       {l.installments}x {formatRupiah(l.installmentAmount)}
                       {t("perMonth")}
                     </p>
-                    {l.reason && <p className="mt-1 text-sm text-ink">"{l.reason}"</p>}
+                    {l.reason && <p className="mt-1 text-sm text-ink">&ldquo;{l.reason}&rdquo;</p>}
                   </div>
                   <LoanDecisionButtons loanId={l.id} />
                 </div>

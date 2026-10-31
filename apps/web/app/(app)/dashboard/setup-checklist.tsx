@@ -8,21 +8,29 @@ import { Card } from "@/components/ui/card";
  */
 export async function SetupChecklist({
   hasEmployees,
-  hasSalaries,
+  hasReadyData,
+  incompleteCount,
   hasPayroll,
 }: {
   hasEmployees: boolean;
-  hasSalaries: boolean;
+  hasReadyData: boolean;
+  incompleteCount: number;
   hasPayroll: boolean;
 }) {
-  if (hasEmployees && hasSalaries && hasPayroll) return null;
+  if (hasEmployees && hasReadyData && hasPayroll) return null;
 
   const t = await getTranslations("dashboard.checklist");
   const steps = [
-    { done: true, label: t("company"), href: null as string | null },
-    { done: hasEmployees, label: t("employees"), href: "/employees/new" },
-    { done: hasSalaries, label: t("salaries"), href: "/employees" },
-    { done: hasPayroll, label: t("payroll"), href: "/approvals" },
+    { done: true, label: t("company"), href: null as string | null, hint: null as string | null },
+    { done: hasEmployees, label: t("employees"), href: "/employees/new", hint: null },
+    {
+      done: hasReadyData,
+      label: t("readyData"),
+      // /employees shows each employee's missing items next to their name.
+      href: "/employees",
+      hint: incompleteCount > 0 ? t("incomplete", { count: incompleteCount }) : null,
+    },
+    { done: hasPayroll, label: t("payroll"), href: "/approvals", hint: null },
   ];
   const completed = steps.filter((s) => s.done).length;
 
@@ -51,6 +59,7 @@ export async function SetupChecklist({
                 {s.label} →
               </Link>
             )}
+            {!s.done && s.hint && <span className="text-xs text-muted">· {s.hint}</span>}
           </li>
         ))}
       </ul>
