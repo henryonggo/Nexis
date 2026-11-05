@@ -352,7 +352,7 @@ export default async function DashboardPage() {
     { data: payrollRuns },
     { data: todayRecords },
     { count: pendingCount },
-    { data: compRows },
+    { data: readinessRows },
   ] = await Promise.all([
     supabase.from("employees").select("id, status").eq("company_id", active.id),
     supabase
@@ -383,18 +383,16 @@ export default async function DashboardPage() {
           .eq("status", "pending")
       : Promise.resolve({ count: 0 }),
     isAdmin
-      ? supabase.from("compensation").select("employee_id").eq("company_id", active.id)
+      ? supabase.rpc("get_payroll_readiness", { p_company_id: active.id })
       : Promise.resolve({ data: null }),
   ]);
 
-  const employees = (statusRows as { id: string; status: string }[] | null) ?? [];
-  const employeeCount = employees.length;
+  const employeeCount = (statusRows as { id: string }[] | null)?.length ?? 0;
 
-  // Payroll needs a salary for everyone on payroll (active/probation); never assumed.
-  const withComp = new Set((compRows as { employee_id: string }[] | null)?.map((c) => c.employee_id));
-  const hasAllSalaries = employees
-    .filter((e) => e.status === "active" || e.status === "probation")
-    .every((e) => withComp.has(e.id));
+  // Same gate the payroll agent halts on: salary, tax profile and bank account for
+  // every active employee. Admin-only RPC; null for other roles / on error.
+  const readiness = readinessRows ?? [];
+  const incompleteCount = readiness.filter((r) => !r.is_ready).length;
 
   // Payroll cost trend: oldest → newest net total across the last few runs.
   const runs = (payrollRuns as
@@ -457,7 +455,8 @@ export default async function DashboardPage() {
       {isAdmin && (
         <SetupChecklist
           hasEmployees={used > 0}
-          hasSalaries={used > 0 && hasAllSalaries}
+          hasReadyData={readiness.length > 0 && incompleteCount === 0}
+          incompleteCount={incompleteCount}
           hasPayroll={Boolean(latestRun)}
         />
       )}

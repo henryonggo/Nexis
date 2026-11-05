@@ -66,7 +66,9 @@
       "resetDone": "Password updated. Please sign in.",
       "timedOut": "You were signed out due to inactivity.",
       "deactivated": "Your account has been deactivated.",
-      "callbackFailed": "The link is invalid or has expired. Please try again."
+      "verified": "Your email is verified. Sign in to continue.",
+      "linkExpired": "The verification link has expired. Sign in with your email and password — we'll send a new link if needed.",
+      "linkInvalid": "The link is invalid or has already been used. Please sign in, or sign up again if you don't have an account yet."
     },
     "signUp": {
       "title": "Create account",
@@ -91,6 +93,7 @@
   },
   "onboarding": {
     "pageSubtitle": "Create your first company",
+    "verified": "Email verified — welcome to Nexis! Start by creating your company profile.",
     "footer": "The free plan covers your first 5 employees. No company NPWP or other legal data needed until you upgrade.",
     "company": {
       "title": "Company details",
@@ -149,7 +152,8 @@
       "company": "Company created",
       "employees": "Add employees",
       "payroll": "Run the payroll agent for the first time",
-      "salaries": "Set a salary for every active employee"
+      "readyData": "Complete salary, NPWP/PTKP & bank details",
+      "incomplete": "{count, plural, one {# employee} other {# employees}} incomplete"
     },
     "manager": {
       "pendingApprovals": "Pending approvals",

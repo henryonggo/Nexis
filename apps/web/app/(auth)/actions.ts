@@ -67,8 +67,8 @@ export async function signUp(_prev: ActionState, formData: FormData): Promise<Ac
   const { email, password, fullName } = parsed.data;
   const redirectTo = formData.get("redirectTo") as string;
 
-  // Verification link lands on the login page (or invite redirect) after confirming.
-  const verifyRedirect = `${siteUrl()}/auth/callback?next=${encodeURIComponent(redirectTo || "/sign-in")}`;
+  // Verification link lands on onboarding (or the invite redirect) after confirming.
+  const verifyRedirect = `${siteUrl()}/auth/callback?next=${encodeURIComponent(redirectTo || "/onboarding?verified=1")}`;
 
   // App-managed confirmation: when configured, create the user + mint our own
   // confirmation link (generateLink does NOT send an email), then send a branded
@@ -92,7 +92,7 @@ export async function signUp(_prev: ActionState, formData: FormData): Promise<Ac
   }
 
   // Fallback for local dev without service-role / Resend: Supabase sends its default
-  // confirmation email, still redirecting to the login page.
+  // confirmation email, still redirecting through the same callback.
   const supabase = createClient();
   const { error } = await supabase.auth.signUp({
     email,

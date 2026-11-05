@@ -1,9 +1,14 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
+import { Alert } from "@/components/ui/alert";
 import { OnboardingForm } from "./form";
 
-export default async function OnboardingPage() {
+export default async function OnboardingPage({
+  searchParams,
+}: {
+  searchParams: { verified?: string };
+}) {
   const supabase = createClient();
   const {
     data: { user },
@@ -26,6 +31,9 @@ export default async function OnboardingPage() {
         <div className="text-3xl font-bold text-brand">{tc("appName")}</div>
         <p className="mt-1 text-sm text-muted">{t("pageSubtitle")}</p>
       </div>
+      {searchParams.verified === "1" && (
+        <Alert variant="success" className="mb-4 max-w-md">{t("verified")}</Alert>
+      )}
       <OnboardingForm />
       <p className="mt-6 max-w-md text-center text-xs text-muted">{t("footer")}</p>
     </main>

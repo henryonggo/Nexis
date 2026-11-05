@@ -7,10 +7,30 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -57,85 +77,6 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      api_request_logs: {
-        Row: {
-          created_at: string
-          id: string
-          key_hash: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          key_hash: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          key_hash?: string
-        }
-        Relationships: []
-      }
-      applications: {
-        Row: {
-          candidate_id: string
-          company_id: string
-          created_at: string
-          id: string
-          job_opening_id: string
-          notes: string | null
-          rating: number | null
-          rejected_reason: string | null
-          stage: Database["public"]["Enums"]["application_stage"]
-          updated_at: string
-        }
-        Insert: {
-          candidate_id: string
-          company_id: string
-          created_at?: string
-          id?: string
-          job_opening_id: string
-          notes?: string | null
-          rating?: number | null
-          rejected_reason?: string | null
-          stage?: Database["public"]["Enums"]["application_stage"]
-          updated_at?: string
-        }
-        Update: {
-          candidate_id?: string
-          company_id?: string
-          created_at?: string
-          id?: string
-          job_opening_id?: string
-          notes?: string | null
-          rating?: number | null
-          rejected_reason?: string | null
-          stage?: Database["public"]["Enums"]["application_stage"]
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "applications_candidate_id_fkey"
-            columns: ["candidate_id"]
-            isOneToOne: false
-            referencedRelation: "candidates"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "applications_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "applications_job_opening_id_fkey"
-            columns: ["job_opening_id"]
-            isOneToOne: false
-            referencedRelation: "job_openings"
             referencedColumns: ["id"]
           },
         ]
@@ -381,50 +322,6 @@ export type Database = {
         }
         Relationships: []
       }
-      candidates: {
-        Row: {
-          company_id: string
-          created_at: string
-          email: string
-          full_name: string
-          id: string
-          phone: string | null
-          resume_path: string | null
-          source: string | null
-          updated_at: string
-        }
-        Insert: {
-          company_id: string
-          created_at?: string
-          email: string
-          full_name: string
-          id?: string
-          phone?: string | null
-          resume_path?: string | null
-          source?: string | null
-          updated_at?: string
-        }
-        Update: {
-          company_id?: string
-          created_at?: string
-          email?: string
-          full_name?: string
-          id?: string
-          phone?: string | null
-          resume_path?: string | null
-          source?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "candidates_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       claim_types: {
         Row: {
           company_id: string
@@ -505,53 +402,6 @@ export type Database = {
         }
         Relationships: []
       }
-      company_api_keys: {
-        Row: {
-          company_id: string
-          created_at: string
-          created_by: string | null
-          expires_at: string | null
-          id: string
-          is_active: boolean
-          key_hash: string
-          last_used_at: string | null
-          name: string
-          scopes: string[]
-        }
-        Insert: {
-          company_id: string
-          created_at?: string
-          created_by?: string | null
-          expires_at?: string | null
-          id?: string
-          is_active?: boolean
-          key_hash: string
-          last_used_at?: string | null
-          name: string
-          scopes?: string[]
-        }
-        Update: {
-          company_id?: string
-          created_at?: string
-          created_by?: string | null
-          expires_at?: string | null
-          id?: string
-          is_active?: boolean
-          key_hash?: string
-          last_used_at?: string | null
-          name?: string
-          scopes?: string[]
-        }
-        Relationships: [
-          {
-            foreignKeyName: "company_api_keys_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       company_billing: {
         Row: {
           active_seats: number
@@ -621,7 +471,6 @@ export type Database = {
           dash_leave: boolean
           dash_pay: boolean
           leave: boolean
-          nav_style: string
           salary: boolean
           updated_at: string
         }
@@ -633,7 +482,6 @@ export type Database = {
           dash_leave?: boolean
           dash_pay?: boolean
           leave?: boolean
-          nav_style?: string
           salary?: boolean
           updated_at?: string
         }
@@ -645,7 +493,6 @@ export type Database = {
           dash_leave?: boolean
           dash_pay?: boolean
           leave?: boolean
-          nav_style?: string
           salary?: boolean
           updated_at?: string
         }
@@ -749,50 +596,6 @@ export type Database = {
           },
         ]
       }
-      company_scim_tokens: {
-        Row: {
-          company_id: string
-          created_at: string
-          created_by: string | null
-          expires_at: string | null
-          id: string
-          is_active: boolean
-          last_used_at: string | null
-          token_hash: string
-          updated_at: string
-        }
-        Insert: {
-          company_id: string
-          created_at?: string
-          created_by?: string | null
-          expires_at?: string | null
-          id?: string
-          is_active?: boolean
-          last_used_at?: string | null
-          token_hash: string
-          updated_at?: string
-        }
-        Update: {
-          company_id?: string
-          created_at?: string
-          created_by?: string | null
-          expires_at?: string | null
-          id?: string
-          is_active?: boolean
-          last_used_at?: string | null
-          token_hash?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "company_scim_tokens_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       company_settings: {
         Row: {
           company_id: string
@@ -832,91 +635,6 @@ export type Database = {
             foreignKeyName: "company_settings_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: true
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      company_sso: {
-        Row: {
-          company_id: string
-          created_at: string
-          default_role: Database["public"]["Enums"]["company_role"]
-          domain: string
-          enabled: boolean
-          id: string
-          idp_metadata: string | null
-          provider: string
-          updated_at: string
-        }
-        Insert: {
-          company_id: string
-          created_at?: string
-          default_role?: Database["public"]["Enums"]["company_role"]
-          domain: string
-          enabled?: boolean
-          id?: string
-          idp_metadata?: string | null
-          provider: string
-          updated_at?: string
-        }
-        Update: {
-          company_id?: string
-          created_at?: string
-          default_role?: Database["public"]["Enums"]["company_role"]
-          domain?: string
-          enabled?: boolean
-          id?: string
-          idp_metadata?: string | null
-          provider?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "company_sso_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      company_webhooks: {
-        Row: {
-          company_id: string
-          created_at: string
-          created_by: string | null
-          events: string[]
-          id: string
-          is_active: boolean
-          secret: string
-          url: string
-        }
-        Insert: {
-          company_id: string
-          created_at?: string
-          created_by?: string | null
-          events?: string[]
-          id?: string
-          is_active?: boolean
-          secret: string
-          url: string
-        }
-        Update: {
-          company_id?: string
-          created_at?: string
-          created_by?: string | null
-          events?: string[]
-          id?: string
-          is_active?: boolean
-          secret?: string
-          url?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "company_webhooks_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
@@ -1833,67 +1551,6 @@ export type Database = {
         }
         Relationships: []
       }
-      interviews: {
-        Row: {
-          application_id: string
-          company_id: string
-          created_at: string
-          feedback: string | null
-          id: string
-          interviewer_id: string | null
-          mode: string | null
-          outcome: Database["public"]["Enums"]["interview_outcome"]
-          scheduled_at: string
-          updated_at: string
-        }
-        Insert: {
-          application_id: string
-          company_id: string
-          created_at?: string
-          feedback?: string | null
-          id?: string
-          interviewer_id?: string | null
-          mode?: string | null
-          outcome?: Database["public"]["Enums"]["interview_outcome"]
-          scheduled_at: string
-          updated_at?: string
-        }
-        Update: {
-          application_id?: string
-          company_id?: string
-          created_at?: string
-          feedback?: string | null
-          id?: string
-          interviewer_id?: string | null
-          mode?: string | null
-          outcome?: Database["public"]["Enums"]["interview_outcome"]
-          scheduled_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "interviews_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: false
-            referencedRelation: "applications"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "interviews_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "interviews_interviewer_id_fkey"
-            columns: ["interviewer_id"]
-            isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       invitations: {
         Row: {
           company_id: string
@@ -1988,53 +1645,6 @@ export type Database = {
             columns: ["subscription_id"]
             isOneToOne: false
             referencedRelation: "subscriptions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      job_openings: {
-        Row: {
-          company_id: string
-          created_at: string
-          created_by: string | null
-          department: string | null
-          description: string | null
-          employment_type: Database["public"]["Enums"]["employment_type"]
-          id: string
-          status: Database["public"]["Enums"]["job_opening_status"]
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          company_id: string
-          created_at?: string
-          created_by?: string | null
-          department?: string | null
-          description?: string | null
-          employment_type?: Database["public"]["Enums"]["employment_type"]
-          id?: string
-          status?: Database["public"]["Enums"]["job_opening_status"]
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          company_id?: string
-          created_at?: string
-          created_by?: string | null
-          department?: string | null
-          description?: string | null
-          employment_type?: Database["public"]["Enums"]["employment_type"]
-          id?: string
-          status?: Database["public"]["Enums"]["job_opening_status"]
-          title?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "job_openings_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]
@@ -2389,6 +1999,48 @@ export type Database = {
           },
         ]
       }
+      payroll_item_earnings: {
+        Row: {
+          amount: number
+          custom_type_id: string | null
+          id: string
+          label: string
+          payroll_item_id: string
+          taxable: boolean
+        }
+        Insert: {
+          amount: number
+          custom_type_id?: string | null
+          id?: string
+          label: string
+          payroll_item_id: string
+          taxable?: boolean
+        }
+        Update: {
+          amount?: number
+          custom_type_id?: string | null
+          id?: string
+          label?: string
+          payroll_item_id?: string
+          taxable?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_item_earnings_custom_type_id_fkey"
+            columns: ["custom_type_id"]
+            isOneToOne: false
+            referencedRelation: "custom_earning_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_item_earnings_payroll_item_id_fkey"
+            columns: ["payroll_item_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payroll_items: {
         Row: {
           allowances: number
@@ -2668,134 +2320,6 @@ export type Database = {
           },
         ]
       }
-      performance_goals: {
-        Row: {
-          company_id: string
-          created_at: string
-          cycle_id: string | null
-          description: string | null
-          employee_id: string
-          id: string
-          progress: number
-          status: Database["public"]["Enums"]["goal_status"]
-          title: string
-          updated_at: string
-          weight: number
-        }
-        Insert: {
-          company_id: string
-          created_at?: string
-          cycle_id?: string | null
-          description?: string | null
-          employee_id: string
-          id?: string
-          progress?: number
-          status?: Database["public"]["Enums"]["goal_status"]
-          title: string
-          updated_at?: string
-          weight?: number
-        }
-        Update: {
-          company_id?: string
-          created_at?: string
-          cycle_id?: string | null
-          description?: string | null
-          employee_id?: string
-          id?: string
-          progress?: number
-          status?: Database["public"]["Enums"]["goal_status"]
-          title?: string
-          updated_at?: string
-          weight?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "performance_goals_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "performance_goals_cycle_id_fkey"
-            columns: ["cycle_id"]
-            isOneToOne: false
-            referencedRelation: "review_cycles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "performance_goals_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      performance_reviews: {
-        Row: {
-          acknowledged_at: string | null
-          company_id: string
-          created_at: string
-          cycle_id: string
-          employee_id: string
-          id: string
-          overall_rating: number | null
-          reviewer_id: string | null
-          status: Database["public"]["Enums"]["review_status"]
-          submitted_at: string | null
-          summary: string | null
-        }
-        Insert: {
-          acknowledged_at?: string | null
-          company_id: string
-          created_at?: string
-          cycle_id: string
-          employee_id: string
-          id?: string
-          overall_rating?: number | null
-          reviewer_id?: string | null
-          status?: Database["public"]["Enums"]["review_status"]
-          submitted_at?: string | null
-          summary?: string | null
-        }
-        Update: {
-          acknowledged_at?: string | null
-          company_id?: string
-          created_at?: string
-          cycle_id?: string
-          employee_id?: string
-          id?: string
-          overall_rating?: number | null
-          reviewer_id?: string | null
-          status?: Database["public"]["Enums"]["review_status"]
-          submitted_at?: string | null
-          summary?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "performance_reviews_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "performance_reviews_cycle_id_fkey"
-            columns: ["cycle_id"]
-            isOneToOne: false
-            referencedRelation: "review_cycles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "performance_reviews_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -2986,44 +2510,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "report_jobs_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      review_cycles: {
-        Row: {
-          company_id: string
-          created_at: string
-          end_date: string
-          id: string
-          name: string
-          start_date: string
-          status: string
-        }
-        Insert: {
-          company_id: string
-          created_at?: string
-          end_date: string
-          id?: string
-          name: string
-          start_date: string
-          status?: string
-        }
-        Update: {
-          company_id?: string
-          created_at?: string
-          end_date?: string
-          id?: string
-          name?: string
-          start_date?: string
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "review_cycles_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
@@ -3230,105 +2716,6 @@ export type Database = {
         }
         Relationships: []
       }
-      webhook_logs: {
-        Row: {
-          attempt_number: number
-          company_id: string
-          created_at: string
-          event_type: string
-          id: string
-          response_body: string | null
-          response_status: number | null
-          status: string
-          webhook_id: string
-        }
-        Insert: {
-          attempt_number?: number
-          company_id: string
-          created_at?: string
-          event_type: string
-          id?: string
-          response_body?: string | null
-          response_status?: number | null
-          status: string
-          webhook_id: string
-        }
-        Update: {
-          attempt_number?: number
-          company_id?: string
-          created_at?: string
-          event_type?: string
-          id?: string
-          response_body?: string | null
-          response_status?: number | null
-          status?: string
-          webhook_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "webhook_logs_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "webhook_logs_webhook_id_fkey"
-            columns: ["webhook_id"]
-            isOneToOne: false
-            referencedRelation: "company_webhooks"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      webhook_queue: {
-        Row: {
-          company_id: string
-          created_at: string
-          event_type: string
-          id: string
-          payload: Json
-          retry_count: number
-          status: string
-          webhook_id: string
-        }
-        Insert: {
-          company_id: string
-          created_at?: string
-          event_type: string
-          id?: string
-          payload: Json
-          retry_count?: number
-          status?: string
-          webhook_id: string
-        }
-        Update: {
-          company_id?: string
-          created_at?: string
-          event_type?: string
-          id?: string
-          payload?: Json
-          retry_count?: number
-          status?: string
-          webhook_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "webhook_queue_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "webhook_queue_webhook_id_fkey"
-            columns: ["webhook_id"]
-            isOneToOne: false
-            referencedRelation: "company_webhooks"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       work_schedules: {
         Row: {
           company_id: string
@@ -3390,7 +2777,6 @@ export type Database = {
     }
     Functions: {
       accept_invitation: { Args: { p_token: string }; Returns: string }
-      acknowledge_review: { Args: { p_review_id: string }; Returns: undefined }
       approve_claim: {
         Args: { p_claim_id: string; p_decision_note?: string }
         Returns: undefined
@@ -3423,24 +2809,11 @@ export type Database = {
       }
       deactivate_current_user: { Args: never; Returns: undefined }
       expire_stale_approval_requests: { Args: never; Returns: number }
-      generate_api_key: {
-        Args: {
-          p_company_id: string
-          p_expires_at?: string
-          p_name: string
-          p_scopes: string[]
-        }
-        Returns: string
-      }
       generate_overtime_entries: {
         Args: { p_company_id: string; p_date: string }
         Returns: undefined
       }
       generate_random_join_code: { Args: never; Returns: string }
-      generate_scim_token: {
-        Args: { p_company_id: string; p_expires_at?: string }
-        Returns: string
-      }
       generate_unique_join_code: { Args: never; Returns: string }
       get_invite_email: { Args: { p_token: string }; Returns: string }
       get_payroll_readiness: {
@@ -3455,28 +2828,6 @@ export type Database = {
           issues: string[]
         }[]
       }
-      get_scim_user_by_id: {
-        Args: { p_company_id: string; p_user_id: string }
-        Returns: {
-          deactivated_at: string
-          email: string
-          full_name: string
-          id: string
-          role: Database["public"]["Enums"]["company_role"]
-        }[]
-      }
-      get_scim_users: {
-        Args: { p_company_id: string; p_email?: string }
-        Returns: {
-          deactivated_at: string
-          email: string
-          full_name: string
-          id: string
-          role: Database["public"]["Enums"]["company_role"]
-        }[]
-      }
-      get_user_id_by_email: { Args: { p_email: string }; Returns: string }
-      hire_application: { Args: { p_application_id: string }; Returns: string }
       is_current_user_active: { Args: never; Returns: boolean }
       link_employee_account: {
         Args: { p_employee_id: string; p_user_id: string }
@@ -3485,23 +2836,6 @@ export type Database = {
       mark_payroll_items_paid: {
         Args: { p_payment_method?: string; p_payroll_item_ids: string[] }
         Returns: undefined
-      }
-      portal_company_summaries: {
-        Args: never
-        Returns: {
-          active_seats: number
-          company_id: string
-          free_seat_limit: number
-          headcount: number
-          last_run_period_month: number
-          last_run_period_year: number
-          last_run_status: Database["public"]["Enums"]["pay_period_status"]
-          last_run_total_net: number
-          name: string
-          pending_approvals: number
-          plan: Database["public"]["Enums"]["plan_tier"]
-          role: Database["public"]["Enums"]["company_role"]
-        }[]
       }
       recompute_employee_overtime: {
         Args: { p_date: string; p_employee_id: string }
@@ -3550,16 +2884,11 @@ export type Database = {
         Returns: string
       }
       safe_cast_uuid: { Args: { p_val: string }; Returns: string }
-      scim_set_user_active: {
-        Args: { p_active: boolean; p_company_id: string; p_user_id: string }
-        Returns: undefined
-      }
       seed_indonesian_holidays: { Args: { p_year: number }; Returns: undefined }
       set_run_manual_days: {
         Args: { p_days: number; p_employee_id: string; p_run_id: string }
         Returns: undefined
       }
-      submit_review: { Args: { p_review_id: string }; Returns: undefined }
       update_own_contact: {
         Args: {
           p_account_name: string
@@ -3596,13 +2925,6 @@ export type Database = {
         | "error"
         | "refusal"
         | "max_turns"
-      application_stage:
-        | "applied"
-        | "screening"
-        | "interview"
-        | "offer"
-        | "hired"
-        | "rejected"
       approval_request_status:
         | "pending"
         | "approved"
@@ -3614,10 +2936,7 @@ export type Database = {
       company_role: "owner" | "admin" | "manager" | "employee" | "accountant"
       employee_status: "active" | "probation" | "inactive" | "terminated"
       employment_type: "permanent" | "contract" | "intern" | "daily"
-      goal_status: "on_track" | "at_risk" | "off_track" | "done" | "cancelled"
-      interview_outcome: "pending" | "pass" | "fail"
       invite_status: "pending" | "accepted" | "revoked" | "expired"
-      job_opening_status: "open" | "paused" | "closed" | "filled"
       leave_status: "pending" | "approved" | "rejected" | "cancelled"
       loan_status:
         | "pending"
@@ -3635,7 +2954,6 @@ export type Database = {
         | "paid"
         | "cancelled"
       plan_tier: "free" | "starter" | "growth" | "enterprise"
-      review_status: "draft" | "submitted" | "acknowledged"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3761,6 +3079,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       agent_cycle_status: [
@@ -3770,14 +3091,6 @@ export const Constants = {
         "error",
         "refusal",
         "max_turns",
-      ],
-      application_stage: [
-        "applied",
-        "screening",
-        "interview",
-        "offer",
-        "hired",
-        "rejected",
       ],
       approval_request_status: [
         "pending",
@@ -3791,10 +3104,7 @@ export const Constants = {
       company_role: ["owner", "admin", "manager", "employee", "accountant"],
       employee_status: ["active", "probation", "inactive", "terminated"],
       employment_type: ["permanent", "contract", "intern", "daily"],
-      goal_status: ["on_track", "at_risk", "off_track", "done", "cancelled"],
-      interview_outcome: ["pending", "pass", "fail"],
       invite_status: ["pending", "accepted", "revoked", "expired"],
-      job_opening_status: ["open", "paused", "closed", "filled"],
       leave_status: ["pending", "approved", "rejected", "cancelled"],
       loan_status: [
         "pending",
@@ -3814,7 +3124,7 @@ export const Constants = {
         "cancelled",
       ],
       plan_tier: ["free", "starter", "growth", "enterprise"],
-      review_status: ["draft", "submitted", "acknowledged"],
     },
   },
 } as const
+
