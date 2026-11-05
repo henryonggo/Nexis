@@ -51,7 +51,8 @@ jobs:
 
   e2e:
     name: Playwright (guard specs)
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest (26.04) has no Playwright Chromium build yet.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
