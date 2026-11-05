@@ -13,7 +13,7 @@ const ITEMS = [
 
 export function Compliance() {
   return (
-    <section id="kepatuhan" className="relative overflow-hidden bg-ink py-24 text-white">
+    <section id="kepatuhan" className="relative overflow-hidden bg-ink py-24 text-white dark:bg-surface-sunken">
       <div className="pointer-events-none absolute inset-0 -z-0 opacity-30">
         <div className="lp-blob absolute -left-20 top-10 h-80 w-80 rounded-full bg-brand/40" />
         <div className="lp-blob absolute -right-10 bottom-0 h-80 w-80 rounded-full bg-accent/30" />

@@ -122,9 +122,10 @@
   --gap-section: 32px;
 }
 
-/* Dark token block — REDEFINES the same names (darkMode: ['class']). Ready, not
-   shipped: tailwind color utilities are still static hex, so flipping `.dark`
-   needs the color→var migration first. Wire only after an AA contrast audit. */
+/* Dark token block — REDEFINES the same names (darkMode: ['class']). Shipped:
+   applied from the `nexis-mode` cookie or prefers-color-scheme (app/layout.tsx).
+   Surfaces must use tokens (bg-surface, lp-glass) — a hardcoded bg-white goes
+   white-on-white here. */
 .dark {
   --bg: #0a0e16;
   --surface-sunken: #11161f;
@@ -297,8 +298,13 @@ table,
   mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 40%, transparent 100%);
 }
 
+.dark .lp-grid {
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+}
+
 .lp-glass {
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--glass);
   backdrop-filter: saturate(180%) blur(12px);
   -webkit-backdrop-filter: saturate(180%) blur(12px);
 }

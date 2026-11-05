@@ -29,7 +29,7 @@ export function Pricing({ isAuthed }: { isAuthed: boolean }) {
         <motion.div
           whileHover={{ y: -6 }}
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
-          className="overflow-hidden rounded-2xl border border-brand bg-white shadow-xl shadow-brand/10 ring-1 ring-brand"
+          className="overflow-hidden rounded-2xl border border-brand bg-surface shadow-xl shadow-brand/10 ring-1 ring-brand"
         >
           {/* Free tier */}
           <div className="border-b border-border p-8 text-center">

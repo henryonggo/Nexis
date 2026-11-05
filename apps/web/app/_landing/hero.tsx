@@ -93,7 +93,7 @@ export function Hero({ isAuthed }: { isAuthed: boolean }) {
             </Link>
             <a
               href="#fitur"
-              className="inline-flex items-center justify-center rounded-md border border-border bg-white px-6 py-3 text-sm font-semibold text-ink transition hover:border-brand/40 hover:text-brand"
+              className="inline-flex items-center justify-center rounded-md border border-border bg-surface px-6 py-3 text-sm font-semibold text-ink transition hover:border-brand/40 hover:text-brand"
             >
               Lihat fitur
             </a>
@@ -120,7 +120,7 @@ export function Hero({ isAuthed }: { isAuthed: boolean }) {
         >
           <motion.div
             style={{ rotateX: rx, rotateY: ry, transformStyle: "preserve-3d" }}
-            className="rounded-2xl border border-border bg-white/90 p-6 shadow-2xl shadow-ink/10 lp-glass"
+            className="rounded-2xl border border-border p-6 shadow-2xl shadow-ink/10 lp-glass"
           >
             <div className="flex items-center justify-between">
               <div>
@@ -137,14 +137,15 @@ export function Hero({ isAuthed }: { isAuthed: boolean }) {
               <Row label="Tunjangan" value="Rp 1.250.000" />
               <Row label="Lembur (1/173)" value="Rp 420.000" accent />
               <div className="my-2 border-t border-dashed border-border" />
-              <Row label="PPh 21 (TER)" value="− Rp 312.000" muted />
+              {/* Mirrors computeMonthlyPayroll: TK/0, TER A 2,25% on gross; BPJS on base pay. Keep in sync if inputs change. */}
+              <Row label="PPh 21 (TER)" value="− Rp 228.825" muted />
               <Row label="BPJS Kesehatan" value="− Rp 85.000" muted />
-              <Row label="BPJS TK" value="− Rp 170.000" muted />
+              <Row label="BPJS TK" value="− Rp 255.000" muted />
             </div>
 
             <div className="mt-5 flex items-end justify-between rounded-xl bg-brand p-4 text-white">
               <span className="text-sm font-medium opacity-90">Gaji bersih</span>
-              <span className="text-2xl font-extrabold tabular-nums">Rp 9.413.000</span>
+              <span className="text-2xl font-extrabold tabular-nums">Rp 9.601.175</span>
             </div>
           </motion.div>
 
@@ -154,14 +155,14 @@ export function Hero({ isAuthed }: { isAuthed: boolean }) {
               <motion.div
                 animate={{ y: [0, -10, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute -left-6 top-10 hidden rounded-xl border border-border bg-white px-3 py-2 text-xs font-semibold text-ink shadow-lg sm:block"
+                className="absolute -left-6 -top-5 hidden rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold text-ink shadow-lg sm:block"
               >
                 ✅ BPJS otomatis
               </motion.div>
               <motion.div
                 animate={{ y: [0, 12, 0] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute -right-4 bottom-12 hidden rounded-xl border border-border bg-white px-3 py-2 text-xs font-semibold text-ink shadow-lg sm:block"
+                className="absolute -bottom-5 -right-4 hidden rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold text-ink shadow-lg sm:block"
               >
                 📄 Slip PDF instan
               </motion.div>
